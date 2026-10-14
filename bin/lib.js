@@ -291,6 +291,32 @@ function recentActivity(days = 3) {
   return out;
 }
 
+// Repos a person has actually touched lately. Tickets carry no assignee, so this is
+// how "my work" is derived: where you have been, not what you were assigned.
+function reposFor(name, days = 7) {
+  const seen = new Map();
+  for (const a of recentActivity(days)) {
+    if (a.who !== name || !a.repo || a.repo === 'platform-root') continue;
+    const prev = seen.get(a.repo);
+    if (!prev || a.ts > prev) seen.set(a.repo, a.ts);
+  }
+  return [...seen.entries()].sort((a, b) => b[1].localeCompare(a[1])).map(([r]) => r);
+}
+
+// The newest handoff note in a repo's status file — "what was I doing?"
+function latestHandoff(repo) {
+  const t = read(path.join(P.status, `${repo}.md`));
+  const i = t.indexOf('## Handoff notes');
+  if (i < 0) return null;
+  const after = t.slice(i);
+  const m = /^### (.+)$/m.exec(after);
+  if (!m) return null;
+  const start = after.indexOf(m[0]);
+  const rest = after.slice(start + m[0].length);
+  const next = rest.search(/^### /m);
+  return { when: m[1].trim(), text: (next < 0 ? rest : rest.slice(0, next)).trim() };
+}
+
 // Who has been active lately, and where. People, not repos — one person can be in
 // several repos and one repo can have several people.
 function whosAround() {
@@ -304,4 +330,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

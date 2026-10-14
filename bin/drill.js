@@ -406,9 +406,44 @@ function roster() {
   ok('the human can remove someone', coord(['who', '--remove', me], { human: true }).ok);
   ok('and then they are gone from the roster', !coord(['who']).out.includes(me), coord(['who']).out);
   coord(['setup', '--yes']);                     // put them back for the rest of the drill
+
+  dashboardViews(me);
 }
 
 // A new dev clones only the board and runs one command.
+// Team view and per-person views are served from one process; a person view must never
+// 500 on an unknown name.
+function dashboardViews(me) {
+  const port = 4800 + (process.pid % 300);
+  const srv = cp.spawn(process.execPath, [path.join(__dirname, '..', 'dashboard', 'server.js'), String(port)], {
+    env: { ...process.env, COORD_ROOT: CO }, stdio: 'ignore', detached: false,
+  });
+  try {
+    const get = p => {
+      for (let i = 0; i < 40; i++) {
+        const r = cp.spawnSync('curl', ['-s', '--max-time', '2', `http://127.0.0.1:${port}${p}`], { encoding: 'utf8' });
+        if (r.stdout && r.stdout.includes('JETKREATE')) return r.stdout;
+        cp.spawnSync('sleep', ['0.1']);
+      }
+      return '';
+    };
+    const team = get('/');
+    ok('dashboard serves the team view', /JETKREATE/.test(team) && /class="kpis"/.test(team), team.slice(0, 120));
+    ok('team view carries nav links to each person', team.includes(`/who/${encodeURIComponent(me)}`), team.slice(0, 400));
+
+    const mine = get(`/who/${encodeURIComponent(me)}`);
+    ok('dashboard serves a person view', /JETKREATE/.test(mine) && /to work on/i.test(mine), mine.slice(0, 160));
+    ok('the person view is scoped to that person', mine.includes('Where you left off'), mine.slice(0, 200));
+
+    const ghost = get('/who/Nobody%20Here');
+    ok('an unknown person is handled, not a crash',
+      /Nobody on the roster is called/.test(ghost) && !/dashboard error/.test(ghost), ghost.slice(0, 160));
+
+    const me2 = get('/me');
+    ok('/me resolves to the local git identity', /JETKREATE/.test(me2), me2.slice(0, 120));
+  } finally { srv.kill(); }
+}
+
 function freshDev() {
   const home = path.join(TMP, 'newdev');
   const board = path.join(home, 'jetkreate-coord');
