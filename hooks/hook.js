@@ -23,6 +23,7 @@ function main() {
   if (repo !== 'platform-root' && !L.isOnboarded(repo)) {
     const mark = `${repo}: discovered, not onboarded`;
     if (!L.read(L.activityFile()).includes(mark)) L.logActivity(repo, mark);
+    if (EVENT === 'session-start') brief(L, repo, false);
     return;
   }
 
@@ -45,7 +46,59 @@ function main() {
       try { require(path.join(__dirname, '..', 'bin', 'archive.js')).archive({}); }
       catch (e) { logError(e); }
     }
+    brief(L, repo, true);
   }
+}
+
+// SessionStart stdout becomes session context, so every session opens knowing its own
+// situation without the human mentioning coord. Factual statements, not instructions.
+function brief(L, repo, onboarded) {
+  const lines = [];
+  if (!onboarded) {
+    lines.push(`This session's repo "${repo}" is a git repo under the jetKreate platform root but is not onboarded into .coord/repos.json.`);
+    lines.push(`It therefore has no status file, no board row, and no coordination history. The platform rules in jetKreate/CLAUDE.md still apply.`);
+    lines.push(`The runbook .coord/ONBOARDING.md covers onboarding it; the human starts that by saying "onboard ${repo}".`);
+    return emit(lines.join('\n'));
+  }
+
+  const tickets = L.lsMd(L.P.tickets).map(f => L.parse(L.read(path.join(L.P.tickets, f))).fm);
+  const fmt = t => `  ${t.id} [${t.status}] ${t.from} -> ${t.to}: ${t.title}`;
+
+  if (repo === 'platform-root') {
+    lines.push(`This session is at the jetKreate platform root, not inside a repo. Coordination state lives in .coord/.`);
+    lines.push(`Onboarded repos: ${L.onboarded().join(', ') || 'none'}.`);
+    const disc = L.discovered();
+    if (disc.length) lines.push(`Discovered but not onboarded: ${disc.join(', ')}. The runbook is .coord/ONBOARDING.md.`);
+    for (const r of L.onboarded()) {
+      const s = L.readStatus(r);
+      lines.push(`  ${r}: ${s.status}${s.task && s.task !== '—' ? ` — ${s.task}` : ''}`);
+    }
+    const act = tickets.filter(t => !['done', 'rejected'].includes(t.status));
+    lines.push(act.length ? `Open tickets:\n${act.map(fmt).join('\n')}` : `No open tickets.`);
+  } else {
+    const e = L.regGet(repo) || {};
+    const s = L.readStatus(repo);
+    lines.push(`This session's repo is "${repo}", an onboarded repo of the jetKreate platform (stack: ${e.stack || 'unrecorded'}).`);
+    lines.push(`Its status file .coord/status/${repo}.md currently reads: Status "${s.status}", Current task "${s.task || '—'}", Blockers "${s.blockers || '—'}".`);
+    if ((e.contracts || []).length) lines.push(`${repo} owns these contracts: ${e.contracts.join(', ')}.`);
+    if ((e.depends_on || []).length) lines.push(`${repo} depends on: ${e.depends_on.join(', ')}.`);
+
+    const inbox = tickets.filter(t => t.to === repo && !['done', 'rejected'].includes(t.status));
+    const outbox = tickets.filter(t => t.from === repo && !['done', 'rejected'].includes(t.status));
+    lines.push(inbox.length ? `Tickets addressed to ${repo}:\n${inbox.map(fmt).join('\n')}` : `No open tickets are addressed to ${repo}.`);
+    if (inbox.some(t => t.status === 'approved')) lines.push(`Approved tickets are the ones cleared to start, with: coord start <id>.`);
+    if (outbox.length) lines.push(`Tickets ${repo} is waiting on:\n${outbox.map(fmt).join('\n')}`);
+  }
+
+  lines.push(`Writes into other repos, and into .coord files this repo does not own, are blocked by a PreToolUse hook — not by convention. Cross-repo changes go through: .coord/bin/coord new --from ${repo === 'platform-root' ? '<repo>' : repo} --to <repo> --title "..."`);
+  lines.push(`The full rules are in jetKreate/CLAUDE.md, loaded automatically from the parent directory. The CLI is .coord/bin/coord (list, show, new, start, review, why, search, check).`);
+  emit(lines.join('\n'));
+}
+
+function emit(text) {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text },
+  }));
 }
 
 function readInput() {

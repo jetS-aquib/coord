@@ -4,6 +4,7 @@
 const fs = require('fs'), os = require('os'), path = require('path'), cp = require('child_process');
 const COORD_BIN = path.join(__dirname, 'coord');
 const HOOK = path.join(__dirname, '..', 'hooks', 'hook.js');
+const GUARD = path.join(__dirname, '..', 'hooks', 'guard.js');
 
 let pass = 0, fail = 0, TMP, CO;
 const ok = (name, cond, detail = '') => {
@@ -34,6 +35,7 @@ function run() {
     const did = decision(id);
     commitAndWhy(id, did);
     hooks(id);
+    guard();
     onboarding();
     archiving(id);
     superseding(did);
@@ -143,7 +145,14 @@ function hooks(id) {
 
   let n = lines().length;
   let r = hook('session-start', { cwd: path.join(TMP, 'beta') });
-  ok('hook logs session-start', r.status === 0 && !r.stdout && lines().length === n + 1 && /\tbeta\tsession-start/.test(lines().at(-1)), r.stdout + r.stderr);
+  ok('hook logs session-start', r.status === 0 && lines().length === n + 1 && /\tbeta\tsession-start/.test(lines().at(-1)), r.stdout + r.stderr);
+
+  // SessionStart stdout becomes session context: the repo should not need to be told about coord
+  let ctx = '';
+  try { ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext; } catch { /* reported below */ }
+  ok('session-start briefs the session on its own repo',
+    /hookEventName":"SessionStart/.test(r.stdout) && ctx.includes('beta') && /status file/.test(ctx), r.stdout.slice(0, 160));
+  ok('briefing names the enforcement and the CLI', /PreToolUse hook/.test(ctx) && /coord new --from beta/.test(ctx), ctx.slice(0, 160));
 
   n = lines().length;
   r = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'jobs.js') } });
@@ -166,6 +175,65 @@ function hooks(id) {
     fs.existsSync(path.join(CO, 'activity', 'hook-errors.log')) ? fs.readFileSync(path.join(CO, 'activity', 'hook-errors.log'), 'utf8') : '');
 }
 
+function guard() {
+  const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
+  const ask = (cwd, tool, input) => {
+    const r = cp.spawnSync(process.execPath, [GUARD], {
+      input: JSON.stringify({ cwd, tool_name: tool, tool_input: input }), encoding: 'utf8',
+      env: { ...process.env, COORD_ROOT: CO },
+    });
+    if (r.status !== 0) return { error: `exit ${r.status}` };
+    if (!r.stdout.trim()) return { decision: 'allow' };
+    try { return { decision: JSON.parse(r.stdout).hookSpecificOutput.permissionDecision, reason: JSON.parse(r.stdout).hookSpecificOutput.permissionDecisionReason }; }
+    catch { return { error: `unparseable: ${r.stdout.slice(0, 80)}` }; }
+  };
+  const denies = (label, cwd, tool, input, want) => {
+    const r = ask(cwd, tool, input);
+    ok(label, r.decision === 'deny' && (!want || new RegExp(want).test(r.reason || '')), JSON.stringify(r));
+  };
+  const allows = (label, cwd, tool, input) => {
+    const r = ask(cwd, tool, input);
+    ok(label, r.decision === 'allow', JSON.stringify(r));
+  };
+
+  denies('guard blocks Edit into another repo', A, 'Edit', { file_path: path.join(B, 'src.js') }, 'Repos never edit each other');
+  allows('guard allows Edit in your own repo', A, 'Edit', { file_path: path.join(A, 'src.js') });
+  denies('guard blocks sed -i into another repo', A, 'Bash', { command: `sed -i "" s/a/b/ ${path.join(B, 'src.js')}` });
+  denies('guard blocks redirection into another repo', A, 'Bash', { command: `echo x > ${path.join(B, 'n.md')}` });
+  denies('guard blocks cp into another repo', A, 'Bash', { command: `cp a.js ${path.join(B, 'a.js')}` });
+  denies('guard blocks git -C commit in another repo', A, 'Bash', { command: `git -C ${B} commit -m x` });
+  allows('guard allows reading another repo', A, 'Bash', { command: `cat ${path.join(B, 'src.js')}` });
+  allows('guard allows grep across another repo', A, 'Bash', { command: `grep -rn foo ${B}` });
+  allows('guard allows writing in your own repo via shell', A, 'Bash', { command: `echo x > ${path.join(A, 'n.md')}` });
+
+  allows('guard allows your own status file', A, 'Edit', { file_path: path.join(CO, 'status', 'alpha.md') });
+  denies("guard blocks another repo's status file", A, 'Edit', { file_path: path.join(CO, 'status', 'beta.md') }, 'belongs to beta');
+  denies('guard blocks hand-editing repos.json', A, 'Write', { file_path: path.join(CO, 'repos.json') }, 'written only by the CLI');
+  denies('guard blocks editing a decision record', A, 'Edit', { file_path: path.join(CO, 'decisions', 'D-001-x.md') }, 'immutable');
+  allows('guard allows editing a ticket', A, 'Edit', { file_path: path.join(CO, 'tickets', 'T-001-x.md') });
+
+  // contract ownership
+  fs.mkdirSync(path.join(CO, 'contracts'), { recursive: true });
+  fs.writeFileSync(path.join(CO, 'contracts', 'jobs.md'), '---\nowner: beta\n---\n\n# jobs\n');
+  denies("guard blocks another repo's contract", A, 'Edit', { file_path: path.join(CO, 'contracts', 'jobs.md') }, 'owned by beta');
+  allows('guard allows the owner to edit its contract', B, 'Edit', { file_path: path.join(CO, 'contracts', 'jobs.md') });
+  allows('guard allows creating a new contract stub', A, 'Write', { file_path: path.join(CO, 'contracts', 'new-thing.md') });
+  fs.rmSync(path.join(CO, 'contracts', 'jobs.md'));
+
+  allows('guard ignores projects outside the platform', os.tmpdir(), 'Edit', { file_path: path.join(os.tmpdir(), 'x.js') });
+
+  // the guard must fail CLOSED, never silently allow: a copy with no lib.js beside it
+  const orphanDir = path.join(TMP, 'orphan-hooks');
+  fs.mkdirSync(orphanDir, { recursive: true });
+  fs.copyFileSync(GUARD, path.join(orphanDir, 'guard.js'));
+  const broken = cp.spawnSync(process.execPath, [path.join(orphanDir, 'guard.js')], {
+    input: JSON.stringify({ cwd: A, tool_name: 'Edit', tool_input: { file_path: path.join(B, 'x.js') } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('guard fails closed when it cannot evaluate', broken.status === 0 && /"permissionDecision":"deny"/.test(broken.stdout),
+    `exit ${broken.status} out=${broken.stdout.slice(0, 100)}`);
+}
+
 function onboarding() {
   const name = 'gamma', dir = path.join(TMP, name);
   fs.mkdirSync(dir);
@@ -179,6 +247,10 @@ function onboarding() {
   fs.writeFileSync(path.join(dir, 'src', 'client.js'), "fetch(process.env.ALPHA_URL + '/api/jobs');\n// talks to alpha\n");
 
   ok('new repo shows up as discovered', /discovered, not onboarded \(1\)[\s\S]*gamma/.test(coord(['repos']).out), coord(['repos']).out);
+  const dbrief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
+    input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('a discovered repo is briefed that it is not onboarded', /is not onboarded/.test(dbrief.stdout) && /ONBOARDING\.md/.test(dbrief.stdout), dbrief.stdout.slice(0, 140));
   ok('no status file for the discovered repo', !fs.existsSync(path.join(CO, 'status', 'gamma.md')));
 
   const before = fs.readdirSync(path.join(CO, 'status')).length;
@@ -203,7 +275,10 @@ function onboarding() {
     input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
   });
   const log = fs.readFileSync(path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`), 'utf8');
-  ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start/.test(log) && !/gamma: discovered/.test(log));
+  const last = log.trim().split('\n').at(-1);
+  // the earlier "discovered" breadcrumb stays in history; what matters is the new entry
+  ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start$/.test(last) && !/discovered/.test(last), last);
+  ok('briefing switches from discovered to onboarded', /onboarded repo of the jetKreate platform/.test(hres.stdout) && !/is not onboarded/.test(hres.stdout), hres.stdout.slice(0, 140));
   ok('tickets can be filed at it', coord(['new', '--from', 'alpha', '--to', name, '--title', 'gamma please'], { cwd: path.join(TMP, 'alpha') }).ok);
   ok('check is clean after onboarding', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 
