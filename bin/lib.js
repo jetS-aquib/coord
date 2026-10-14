@@ -64,6 +64,8 @@ const daysAgo = iso => (Date.now() - new Date(iso).getTime()) / 86400000;
 function repos() {                            // direct subfolders with .git, hidden folders (.coord) excluded
   return fs.readdirSync(P.root, { withFileTypes: true })
     .filter(d => d.isDirectory() && !d.name.startsWith('.') && exists(path.join(P.root, d.name, '.git')))
+    // never a platform repo: this coord dir, or any other clone of it sitting alongside
+    .filter(d => real(path.join(P.root, d.name)) !== P.coord && !exists(path.join(P.root, d.name, 'bin', 'coord')))
     .map(d => d.name).sort();
 }
 function repoOf(dir) {                        // repo owning a directory, or null
@@ -209,6 +211,9 @@ const statusTemplate = repo => `# ${repo}
 
 function ensureStatusFiles() {
   for (const d of [P.status, P.tickets, P.decisions, P.contracts, P.activity, P.archive]) fs.mkdirSync(d, { recursive: true });
+  // a fresh clone gets the merge strategy too: daily logs are append-only from several machines
+  const ga = path.join(P.coord, '.gitattributes');
+  if (!exists(ga)) atomicWrite(ga, 'activity/*.log           merge=union\nactivity/hook-errors.log merge=union\narchive/tickets-index.md merge=union\n');
   const made = [];
   for (const r of onboarded()) {              // discovered-but-not-onboarded repos get nothing
     const f = path.join(P.status, `${r}.md`);

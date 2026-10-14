@@ -5,6 +5,7 @@ const fs = require('fs'), os = require('os'), path = require('path'), cp = requi
 const COORD_BIN = path.join(__dirname, 'coord');
 const HOOK = path.join(__dirname, '..', 'hooks', 'hook.js');
 const GUARD = path.join(__dirname, '..', 'hooks', 'guard.js');
+const COORD_DIRNAME = path.basename(path.join(__dirname, '..'));
 
 let pass = 0, fail = 0, TMP, CO;
 const ok = (name, cond, detail = '') => {
@@ -36,6 +37,7 @@ function run() {
     commitAndWhy(id, did);
     hooks(id);
     guard();
+    team();
     onboarding();
     archiving(id);
     superseding(did);
@@ -58,6 +60,11 @@ function setup() {
   }
   fs.mkdirSync(path.join(TMP, 'not-a-repo'));
   git(['init', '-q'], CO); git(['config', 'user.email', 'd@d'], CO); git(['config', 'user.name', 'drill'], CO);
+
+  // the real coord repo carries its own CLI at bin/coord; the fixture needs one too, so the
+  // installed git hooks can find it and a clone is recognisable as a coord repo
+  fs.mkdirSync(path.join(CO, 'bin'), { recursive: true });
+  fs.writeFileSync(path.join(CO, 'bin', 'coord'), `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} ${JSON.stringify(COORD_BIN)} "$@"\n`, { mode: 0o755 });
 
   coord(['list']);
   ok('discovered repos get no status file', !fs.existsSync(path.join(CO, 'status')) || !fs.readdirSync(path.join(CO, 'status')).length,
@@ -232,6 +239,95 @@ function guard() {
   });
   ok('guard fails closed when it cannot evaluate', broken.status === 0 && /"permissionDecision":"deny"/.test(broken.stdout),
     `exit ${broken.status} out=${broken.stdout.slice(0, 100)}`);
+}
+
+function team() {
+  const A = path.join(TMP, 'alpha');
+
+  ok('sync --quiet is silent with no remote', coord(['sync', '--quiet']).ok);
+  const loud = coord(['sync']);
+  ok('sync says what to do when there is no remote', !loud.ok && /remote add origin/.test(loud.out), loud.out);
+
+  // a bare repo stands in for the shared jetkreate-coord remote
+  const remote = path.join(TMP, 'remote.git');
+  git(['init', '--bare', '-q', remote], TMP);
+  git(['remote', 'add', 'origin', remote], CO);
+  const s1 = coord(['sync']);
+  ok('sync pushes the board to the remote', s1.ok && /synced with origin/.test(s1.out), s1.out);
+
+  // a teammate's clone
+  const mate = path.join(TMP, 'jetkreate-coord');
+  git(['clone', '-q', remote, mate], TMP);
+  git(['config', 'user.email', 'd@d'], mate); git(['config', 'user.name', 'mate'], mate);
+  const asMate = (args, human = true) => {
+    const r = cp.spawnSync(process.execPath, [COORD_BIN, ...args], {
+      cwd: mate, encoding: 'utf8',
+      env: { ...process.env, COORD_ROOT: mate, COORD_ACTOR: human ? 'human' : 'repo' },
+    });
+    return { ok: r.status === 0, out: (r.stdout || '') + (r.stderr || '') };
+  };
+  ok('a clone sees the same repos and tickets', /alpha/.test(asMate(['repos']).out), asMate(['repos']).out);
+
+  // the coord clone is NOT hidden on a teammate's disk — it must not look like a platform repo
+  ok('the coord clone is not mistaken for a platform repo',
+    !new RegExp(`\\b${COORD_DIRNAME}\\b|jetkreate-coord`).test(asMate(['repos']).out), asMate(['repos']).out);
+
+  // teammate files a ticket and pushes; we sync and see it
+  const made = asMate(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Teammate ticket from Copilot']);
+  const tid = (made.out.match(/T-\d+/) || [])[0];
+  ok('a teammate can file a ticket from their clone', made.ok && !!tid, made.out);
+  asMate(['sync']);
+  const s2 = coord(['sync']);
+  ok("their ticket arrives on this machine", s2.ok && coord(['list']).out.includes(tid), s2.out + coord(['list']).out);
+
+  // both machines append to the same daily log: merge=union must keep both lines
+  const today = new Date().toISOString().slice(0, 10);
+  fs.appendFileSync(path.join(CO, 'activity', `${today}.log`), `${today}T10:00:00+00:00\talpha\tmine\n`);
+  fs.appendFileSync(path.join(mate, 'activity', `${today}.log`), `${today}T10:00:01+00:00\tbeta\ttheirs\n`);
+  asMate(['sync']);
+  const s3 = coord(['sync']);
+  const merged = fs.readFileSync(path.join(CO, 'activity', `${today}.log`), 'utf8');
+  ok('concurrent activity logs merge instead of conflicting',
+    s3.ok && /\tmine/.test(merged) && /\ttheirs/.test(merged), s3.out);
+
+  // devsetup: hooks + the tracked instruction file
+  const ds = coord(['devsetup']);
+  ok('devsetup installs git hooks in every repo', ds.ok &&
+    fs.existsSync(path.join(A, '.git', 'hooks', 'commit-msg')) &&
+    fs.existsSync(path.join(A, '.git', 'hooks', 'post-commit')), ds.out);
+  ok('devsetup is idempotent', /nothing to do/.test(coord(['devsetup']).out), coord(['devsetup']).out);
+
+  const cpDoc = fs.readFileSync(path.join(A, '.github', 'copilot-instructions.md'), 'utf8');
+  ok('the tracked instruction file carries no machine path',
+    !cpDoc.includes(TMP) && !cpDoc.includes('/Users/') && !/\.\.\/\.coord/.test(cpDoc), cpDoc.slice(0, 120));
+  ok('it names the rules a Copilot session needs',
+    /Never edit files in another repo/.test(cpDoc) && /coord new --from alpha/.test(cpDoc) && /no-ticket:/.test(cpDoc));
+
+  // commit-msg: warn by default, reject under --strict
+  const msg = path.join(TMP, 'msg.txt');
+  const runHook = () => cp.spawnSync('sh', [path.join(A, '.git', 'hooks', 'commit-msg'), msg], { encoding: 'utf8' });
+  fs.writeFileSync(msg, 'fix the thing\n');
+  let h = runHook();
+  ok('commit-msg warns but allows a message with no ticket', h.status === 0 && /no ticket ID/.test(h.stderr), h.stderr);
+  fs.writeFileSync(msg, 'T-042: fix the thing\n');
+  ok('commit-msg is quiet for a ticket-prefixed message', runHook().status === 0 && !runHook().stderr.trim());
+  fs.writeFileSync(msg, 'no-ticket: typo\n');
+  ok('commit-msg accepts the no-ticket escape hatch', runHook().status === 0);
+  coord(['devsetup', '--repo', 'alpha', '--strict']);
+  fs.writeFileSync(msg, 'fix the thing\n');
+  h = runHook();
+  ok('--strict rejects a message with no ticket', h.status === 1 && /REJECTED/.test(h.stderr), `exit ${h.status}`);
+  coord(['devsetup', '--repo', 'alpha']);
+  ok('strict can be turned back off', runHook().status === 0);
+
+  // post-commit puts a Copilot dev's work on the board without any editor hook
+  fs.writeFileSync(path.join(A, 'feature.js'), 'module.exports = 1;\n');
+  git(['add', '-A'], A);
+  git(['commit', '-q', '-m', 'T-042: add the feature'], A);
+  const log = fs.readFileSync(path.join(CO, 'activity', `${today}.log`), 'utf8');
+  ok('post-commit records the commit on the board', /\talpha\tcommit\t\w+ T-042: add the feature/.test(log),
+    log.trim().split('\n').slice(-2).join(' | '));
+  ok('check is still clean after all the syncing', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 }
 
 function onboarding() {

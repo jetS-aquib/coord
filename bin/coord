@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 const path = require('path'), fs = require('fs');
-const L = require('./lib.js'), R = require('./rules.js'), A = require('./archive.js'), O = require('./onboard.js');
+const L = require('./lib.js'), R = require('./rules.js'), A = require('./archive.js'), O = require('./onboard.js'), D = require('./devsetup.js');
 const { P } = L;
 
 const argv = process.argv.slice(2);
@@ -40,6 +40,10 @@ const USAGE = `coord — jetKreate cross-repo coordination
   onboard <repo> --apply         registry + status file + .git/info/exclude + snapshots
          [--stack S --contracts a,b --depends-on c,d]
   offboard <repo> --yes          mark offboarded, archive its status file and tickets
+
+  sync [--quiet]                 pull and push the board (needs a remote on .coord)
+  devsetup [--repo R] [--strict] [--no-copilot]
+                                 install this machine's git hooks + Copilot instructions
 `;
 
 const CMDS = {
@@ -213,6 +217,56 @@ const CMDS = {
     if (!L.isHuman()) die(`offboarding ${name} is the human's call. Ask them to run: coord offboard ${name} --yes`);
     if (!flags.yes) die(`this archives ${name}'s status file and tickets (decisions stay). Re-run with --yes to confirm.`);
     console.log(O.offboard(name).map(d => '  ' + d).join('\n'));
+  },
+
+  sync() {
+    const quiet = !!flags.quiet;
+    const say = m => { if (!quiet) console.log(m); };
+    if (!L.coordGit(['remote']).out) {
+      if (quiet) return;
+      die('.coord has no remote, so there is nothing to sync with.\n' +
+          'Add one:  git -C ' + L.P.coord + ' remote add origin <url> && coord sync');
+    }
+    if (L.snapshot('coord: local changes before sync')) say('committed local changes');
+
+    const f = L.coordGit(['fetch', '--quiet', 'origin']);
+    if (!f.ok) { if (quiet) return; die(`fetch failed: ${f.err.split('\n')[0]}`); }
+
+    const branch = L.coordGit(['rev-parse', '--abbrev-ref', 'HEAD']).out || 'main';
+    const upstream = L.coordGit(['rev-parse', '--verify', '--quiet', `origin/${branch}`]).ok;
+    if (upstream) {                                  // nothing to rebase onto on a fresh remote
+      const pull = L.coordGit(['rebase', `origin/${branch}`]);
+      if (!pull.ok) {
+        L.coordGit(['rebase', '--abort']);
+        if (quiet) return;
+        die(`cannot rebase onto origin/${branch} — someone changed the same file.\n` +
+            `Resolve by hand in ${L.P.coord}:  git pull --rebase  then  coord check`);
+      }
+    } else say(`origin/${branch} does not exist yet — publishing the board for the first time`);
+
+    const push = L.coordGit(['push', '-u', 'origin', branch]);
+    if (!push.ok) { if (quiet) return; die(`push failed: ${push.err.split('\n')[0]}`); }
+
+    const n = L.coordGit(['rev-list', '--count', `origin/${branch}..${branch}`]).out;
+    say(`synced with origin/${branch}${n && n !== '0' ? ` (${n} ahead)` : ''}`);
+    const probs = R.check().filter(p => p.level === 'error');
+    if (probs.length) say(`heads up: coord check reports ${probs.length} problem(s) after the merge`);
+  },
+
+  devsetup() {
+    const out = D.devsetup({
+      repo: typeof flags.repo === 'string' ? flags.repo : undefined,
+      strict: !!flags.strict,
+      copilot: flags['no-copilot'] !== true,
+    });
+    console.log(out.map(l => '  ' + l).join('\n'));
+    console.log(`\nGit hooks are local to each clone and never committed.`);
+    console.log(`The .github/copilot-instructions.md files ARE tracked — review the diffs and commit them.`);
+  },
+
+  'log-commit'() {                               // called by the post-commit hook
+    const r = D.logCommit(process.cwd());
+    if (r) console.log(r);
   },
 
   drill: () => require('./drill.js').run(),

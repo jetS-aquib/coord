@@ -39,6 +39,7 @@ function main() {
 
   if (EVENT === 'session-stop') {
     L.snapshot(`coord: session end (${repo})`);          // guarded: commits inside .coord only
+    sync();                                              // share the board with the rest of the team
   }
   if (EVENT === 'session-start') {
     const last = L.state().lastArchive;
@@ -46,8 +47,20 @@ function main() {
       try { require(path.join(__dirname, '..', 'bin', 'archive.js')).archive({}); }
       catch (e) { logError(e); }
     }
+    sync();                                              // pick up what the others did
     brief(L, repo, true);
   }
+}
+
+// Best-effort: no remote, offline, or a conflict all mean "carry on silently".
+// A hook must never block a session over a network call.
+function sync() {
+  try {
+    const r = require('child_process').spawnSync(
+      process.execPath, [path.join(__dirname, '..', 'bin', 'coord'), 'sync', '--quiet'],
+      { encoding: 'utf8', timeout: 15000 });
+    if (r.error) logError(r.error);
+  } catch (e) { logError(e); }
 }
 
 // SessionStart stdout becomes session context, so every session opens knowing its own

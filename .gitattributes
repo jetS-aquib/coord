@@ -1,0 +1,5 @@
+# Daily activity logs are append-only from several machines: take every line.
+activity/*.log           merge=union
+activity/hook-errors.log merge=union
+# Archive indexes only ever gain rows.
+archive/tickets-index.md merge=union
