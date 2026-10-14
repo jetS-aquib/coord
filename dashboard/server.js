@@ -75,6 +75,7 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;opacity:.5}
 .t.approved{border-color:#3b82f6}.t.done{border-color:#22c55e}.t.rejected{border-color:#ef4444}
 .tag{text-transform:uppercase;font-size:.68rem;letter-spacing:.08em;opacity:.75}
 .sub td{border:0;padding-top:0;font-size:.75rem}code{opacity:.8}
+.tool{font-size:.75rem}.t-claude-code{color:#a855f7}.t-copilot{color:#3b82f6}.t-both{color:#22c55e}.t-other{opacity:.6}
 .dim{opacity:.55}pre{white-space:pre-wrap;font-size:.8rem;opacity:.8;margin:0}
 </style></head><body>
 <h1>jetKreate</h1>
@@ -86,6 +87,18 @@ ${errs.length ? `<div class="banner"><b>coord check found ${errs.length} problem
 ${(() => { const d = L.discovered(), off = L.offboarded();
   if (!d.length && !off.length) return '';
   return `<h2>Not onboarded</h2>${d.map(r => `<div class="t open"><span class="tag">discovered</span> <b>${esc(r)}</b> <span class="dim">a git repo with no registry entry — run <code>coord onboard ${esc(r)} --preflight</code>, or say "onboard ${esc(r)}"</span></div>`).join('')}${off.map(r => `<div class="t rejected"><span class="tag">offboarded</span> <b>${esc(r)}</b> <span class="dim">history kept in archive/</span></div>`).join('')}`;
+})()}
+
+${(() => {
+  const crew = L.whosAround();
+  if (!crew.length) return '';
+  const you = L.me();
+  // People, not repos: one person can be in several repos and one repo can have several people.
+  return `<h2>Who's around</h2><table><tr><th>Who</th><th>Tool</th><th>Last seen in</th><th>When</th></tr>${
+    crew.map(p => `<tr><td><b>${esc(p.name)}</b>${p.name === you ? ' <span class="dim">(you)</span>' : ''}</td>
+      <td class="tool t-${esc(p.tool)}">${esc(p.tool)}</td>
+      <td>${esc(p.repo || '—')}</td>
+      <td class="dim">${esc(ago(p.ts) || 'no activity yet')}</td></tr>`).join('')}</table>`;
 })()}
 
 <h2>Waiting on you — ${waiting.length}</h2>${tix(waiting, 'Nothing needs your call.')}

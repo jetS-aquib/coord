@@ -69,6 +69,7 @@ function setup() {
   coord(['list']);
   ok('discovered repos get no status file', !fs.existsSync(path.join(CO, 'status')) || !fs.readdirSync(path.join(CO, 'status')).length,
     fs.existsSync(path.join(CO, 'status')) ? fs.readdirSync(path.join(CO, 'status')).join(' ') : '');
+  ok('an empty roster says so', /nobody on the roster/.test(coord(['who']).out), coord(['who']).out);
   ok('both fake repos listed as discovered', /discovered, not onboarded \(2\)/.test(coord(['repos']).out), coord(['repos']).out);
 
   for (const r of ['alpha', 'beta']) coord(['onboard', r, '--apply', '--stack', 'fixture'], { human: true });
@@ -163,7 +164,7 @@ function hooks(id) {
 
   n = lines().length;
   r = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'jobs.js') } });
-  ok('hook logs edits with a repo-relative path', r.status === 0 && /\tbeta\tedit\tjobs\.js$/.test(lines().at(-1)), lines().at(-1));
+  ok('hook logs edits with a repo-relative path', r.status === 0 && /\tbeta\tedit\t[^\t]*\tjobs\.js$/.test(lines().at(-1)), lines().at(-1));
 
   n = lines().length;
   const before = git(['rev-list', '--count', 'HEAD'], CO).stdout.trim() || '0';
@@ -216,6 +217,7 @@ function guard() {
   allows('guard allows your own status file', A, 'Edit', { file_path: path.join(CO, 'status', 'alpha.md') });
   denies("guard blocks another repo's status file", A, 'Edit', { file_path: path.join(CO, 'status', 'beta.md') }, 'belongs to beta');
   denies('guard blocks hand-editing repos.json', A, 'Write', { file_path: path.join(CO, 'repos.json') }, 'written only by the CLI');
+  denies('guard blocks hand-editing people.json', A, 'Write', { file_path: path.join(CO, 'people.json') }, 'written only by the CLI');
   denies('guard blocks editing a decision record', A, 'Edit', { file_path: path.join(CO, 'decisions', 'D-001-x.md') }, 'immutable');
   allows('guard allows editing a ticket', A, 'Edit', { file_path: path.join(CO, 'tickets', 'T-001-x.md') });
 
@@ -325,7 +327,7 @@ function team() {
   git(['add', '-A'], A);
   git(['commit', '-q', '-m', 'T-042: add the feature'], A);
   const log = fs.readFileSync(path.join(CO, 'activity', `${today}.log`), 'utf8');
-  ok('post-commit records the commit on the board', /\talpha\tcommit\t\w+ T-042: add the feature/.test(log),
+  ok('post-commit records the commit on the board', /\talpha\tcommit\t[^\t]*\t\w+ T-042: add the feature/.test(log),
     log.trim().split('\n').slice(-2).join(' | '));
   ok('check is still clean after all the syncing', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 
@@ -357,7 +359,53 @@ function team() {
   ok('the URLs land in the registry', reg.filter(r => r.remote).length >= 2, JSON.stringify(reg.map(r => [r.name, r.remote])));
   coord(['sync', '--quiet']);
 
+  roster();
   freshDev();
+}
+
+// Who's around: people, not repos. One person can be in several repos at once.
+function roster() {
+  const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
+  git(['config', '--local', 'user.email', 'dev1@example.com'], A);
+  git(['config', '--local', 'user.name', 'Dev One'], A);
+
+  const s = coord(['setup', '--yes']);
+  ok('setup puts you on the roster from your git identity', /roster/.test(s.out), s.out.slice(0, 500));
+
+  const roster1 = JSON.parse(fs.readFileSync(path.join(CO, 'people.json'), 'utf8')).people;
+  const entry = roster1.find(p => p.email === 'dev1@example.com');
+  ok('the roster entry comes from the repo-local git identity, not the board\'s bot config',
+    !!entry && entry.name === 'Dev One' && !!entry.tool, JSON.stringify(roster1));
+  ok('nobody is on the roster under the board\'s own identity',
+    !roster1.some(p => p.email === 'coord@jetkreate.local'), JSON.stringify(roster1));
+
+  const me = entry ? entry.name : 'Dev One';
+  ok('coord who --tool sets the tool', coord(['who', '--tool', 'copilot']).out.includes('copilot'));
+  ok('an unknown tool is refused', !coord(['who', '--tool', 'emacs']).ok);
+
+  // activity is attributed, and one person shows across several repos over time
+  const hook = (event, cwd) => cp.spawnSync(process.execPath, [HOOK, event], {
+    input: JSON.stringify({ cwd }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  hook('session-start', A);
+  hook('session-start', B);
+  const today = new Date().toISOString().slice(0, 10);
+  const log = fs.readFileSync(path.join(CO, 'activity', `${today}.log`), 'utf8');
+  ok('activity lines carry the person', log.includes(`\t${me}`), log.trim().split('\n').slice(-2).join(' | '));
+
+  const w = coord(['who']);
+  ok('coord who shows name, tool and where they were last seen',
+    w.out.includes(me) && /copilot/.test(w.out) && /(alpha|beta)/.test(w.out), w.out);
+  ok('coord who marks which one is you', /\(you\)/.test(w.out), w.out);
+
+  // the board stays one row per repo — people live in their own panel
+  const board = fs.readFileSync(path.join(CO, 'status', 'alpha.md'), 'utf8');
+  ok('status files gained no owner field', !/\*\*(Who|Owner|Dev)/i.test(board));
+
+  ok('removing someone is human-only', !coord(['who', '--remove', me]).ok);
+  ok('the human can remove someone', coord(['who', '--remove', me], { human: true }).ok);
+  ok('and then they are gone from the roster', !coord(['who']).out.includes(me), coord(['who']).out);
+  coord(['setup', '--yes']);                     // put them back for the rest of the drill
 }
 
 // A new dev clones only the board and runs one command.
@@ -440,7 +488,7 @@ function onboarding() {
   const log = fs.readFileSync(path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`), 'utf8');
   const last = log.trim().split('\n').at(-1);
   // the earlier "discovered" breadcrumb stays in history; what matters is the new entry
-  ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start$/.test(last) && !/discovered/.test(last), last);
+  ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start(\t|$)/.test(last) && !/discovered/.test(last), last);
   ok('briefing switches from discovered to onboarded', /onboarded repo of the jetKreate platform/.test(hres.stdout) && !/is not onboarded/.test(hres.stdout), hres.stdout.slice(0, 140));
   ok('tickets can be filed at it', coord(['new', '--from', 'alpha', '--to', name, '--title', 'gamma please'], { cwd: path.join(TMP, 'alpha') }).ok);
   ok('check is clean after onboarding', !coord(['check']).out.includes('ERROR'), coord(['check']).out);

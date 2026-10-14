@@ -101,6 +101,8 @@ function judgeCoord(L, parts, own, why) {
 
   if (dir === 'repos.json') return `repos.json is written only by the CLI (${why} would hand-edit it). Use: coord onboard <repo> --apply  /  coord offboard <repo> --yes`;
 
+  if (dir === 'people.json') return `people.json is written only by the CLI (${why} would hand-edit it). Use: coord setup  /  coord who --tool <tool>`;
+
   if (dir === 'decisions') {
     if (file === 'index.md') return `decisions/index.md is rebuilt by the CLI (${why} would hand-edit it). Use: coord decide ...`;
     return `Decision records are immutable and CLI-written (${why} targets ${file}). Use: coord decide ... , or coord supersede <old> <new> to retire one.`;

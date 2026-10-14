@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "updated": "2026-10-14T15:20:53+05:30",
+  "people": [
+    {
+      "name": "aquib N",
+      "email": "aquib.nazmi@jetsynthesys.com",
+      "tool": "claude-code",
+      "since": "2026-10-14"
+    }
+  ]
+}

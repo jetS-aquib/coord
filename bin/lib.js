@@ -1,7 +1,7 @@
 'use strict';
 // Shared core for the coord CLI, hooks and dashboard. No external deps.
 // Root resolution: COORD_ROOT env (used by `coord drill`) or this file's grandparent.
-const fs = require('fs'), path = require('path'), cp = require('child_process');
+const fs = require('fs'), path = require('path'), cp = require('child_process'), os = require('os');
 
 // realpath everywhere: on macOS /var is a symlink to /private/var, and git reports the resolved
 // path — comparing unresolved paths silently breaks repo detection and the .coord git guard.
@@ -19,6 +19,7 @@ const P = {
   archive: path.join(COORD, 'archive'),
   state: path.join(COORD, 'state.json'),
   registry: path.join(COORD, 'repos.json'),
+  people: path.join(COORD, 'people.json'),
 };
 
 const TICKET_STATUS = ['open', 'approved', 'in_progress', 'review', 'done', 'rejected'];
@@ -96,6 +97,42 @@ function discovered() {                        // has .git, not in the registry 
   const known = new Set(registry().map(r => r.name));
   return repos().filter(r => !known.has(r));
 }
+
+/* ---------- people (people.json) — the shared roster, written only by the CLI ---------- */
+const TOOLS = ['claude-code', 'copilot', 'both', 'other'];
+function people() {
+  try { const j = JSON.parse(read(P.people, '{}')); return Array.isArray(j.people) ? j.people : []; }
+  catch { return []; }
+}
+const writePeople = list => atomicWrite(P.people,
+  JSON.stringify({ version: 1, updated: nowISO(), people: [...list].sort((a, b) => a.name.localeCompare(b.name)) }, null, 2) + '\n');
+function putPerson(entry) {
+  const list = people().filter(p => (p.email || '').toLowerCase() !== (entry.email || '').toLowerCase());
+  list.push(entry);
+  writePeople(list);
+  return entry;
+}
+// Who is at this machine: match the git identity against the roster. No local file needed.
+let _me;
+// NEVER read identity from .coord: it carries a bot identity ("coord") for its own
+// snapshot commits. Use the dev's global config, or a platform repo's.
+function gitConfig(key) {
+  // Ask from inside a platform repo so git applies its own local > global precedence.
+  for (const r of repos()) {
+    const v = sh('git', ['config', key], path.join(P.root, r));
+    if (v.ok && v.out) return v.out;
+  }
+  const g = sh('git', ['config', '--global', key], os.tmpdir());   // no repos cloned yet
+  return g.ok ? g.out : '';
+}
+const gitEmail = () => gitConfig('user.email');
+function me() {
+  if (_me !== undefined) return _me;
+  const email = gitEmail().toLowerCase();
+  const hit = email && people().find(p => (p.email || '').toLowerCase() === email);
+  return (_me = hit ? hit.name : '');
+}
+const personNamed = name => people().find(p => p.name === name) || null;
 
 /* ---------- markdown ---------- */
 const LIST_KEYS = new Set(['repos', 'tickets', 'decisions']);
@@ -229,18 +266,42 @@ function readStatus(repo) {
 
 /* ---------- activity ---------- */
 const activityFile = (d = new Date()) => path.join(P.activity, `${day(d)}.log`);
-const logActivity = (repo, event, extra = '') => atomicAppend(activityFile(), `${nowISO()}\t${repo}\t${event}${extra ? '\t' + extra : ''}\n`);
+// Field 3 is the person. Older lines have `extra` there instead, so readers only accept
+// field 3 as a name when it matches the roster.
+const logActivity = (repo, event, extra = '') => atomicAppend(activityFile(), `${nowISO()}\t${repo}\t${event}\t${me()}${extra ? '\t' + extra : ''}\n`);
 function activityLines(limit = 50, file = activityFile()) {
   return read(file).trimEnd().split('\n').filter(Boolean).slice(-limit).reverse();
 }
 function lastActivityPerRepo() {              // heartbeat: newest activity timestamp per repo
   const seen = {};
-  const files = ls(P.activity).filter(f => f.endsWith('.log') && f !== 'hook-errors.log').slice(-3);
-  for (const f of files) for (const line of read(path.join(P.activity, f)).split('\n')) {
-    const [ts, repo] = line.split('\t');
-    if (ts && repo) seen[repo] = ts;
-  }
+  for (const { ts, repo } of recentActivity()) if (ts && repo) seen[repo] = ts;
   return seen;
 }
 
-module.exports = { P, real, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+function recentActivity(days = 3) {
+  const names = new Set(people().map(p => p.name));
+  const out = [];
+  for (const f of ls(P.activity).filter(f => /^\d{4}-\d{2}-\d{2}\.log$/.test(f)).slice(-days)) {
+    for (const line of read(path.join(P.activity, f)).split('\n')) {
+      if (!line) continue;
+      const [ts, repo, event, four] = line.split('\t');
+      out.push({ ts, repo, event, who: names.has(four) ? four : '', line });
+    }
+  }
+  return out;
+}
+
+// Who has been active lately, and where. People, not repos — one person can be in
+// several repos and one repo can have several people.
+function whosAround() {
+  const seen = new Map();
+  for (const a of recentActivity()) {
+    if (!a.who || !a.ts) continue;
+    const prev = seen.get(a.who);
+    if (!prev || a.ts > prev.ts) seen.set(a.who, { ts: a.ts, repo: a.repo, event: a.event });
+  }
+  return people().map(p => ({ ...p, ...(seen.get(p.name) || {}) }))
+    .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
+}
+
+module.exports = { P, real, TOOLS, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

@@ -41,6 +41,8 @@ const USAGE = `coord — jetKreate cross-repo coordination
          [--stack S --contracts a,b --depends-on c,d]
   offboard <repo> --yes          mark offboarded, archive its status file and tickets
 
+  who [--tool T] [--name N]      the roster: who is on the team, what they use, where they were
+      [--remove <name>]          drop someone who has left
   setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
                                  only where it cannot tell (cloning repos, editing ~/.zshrc)
   sync [--quiet]                 pull and push the board (needs a remote on .coord)
@@ -186,6 +188,34 @@ const CMDS = {
     for (const p of real) console.log(`${p.level.toUpperCase()}  ${p.where}: ${p.msg}`);
     for (const p of probs.filter(p => p.level === 'info')) console.log(`note: ${p.msg}`);
     if (probs.some(p => p.level === 'error')) process.exit(1);
+  },
+
+  who() {
+    if (typeof flags.remove === 'string') {
+      if (!L.isHuman()) die(`removing someone from the roster is the human's call.`);
+      const gone = L.people().find(p => p.name === flags.remove);
+      if (!gone) die(`nobody on the roster is called "${flags.remove}"`);
+      L.writePeople(L.people().filter(p => p.name !== flags.remove));
+      return console.log(`removed ${gone.name} from the roster`);
+    }
+    if (typeof flags.tool === 'string' || typeof flags.name === 'string') {
+      const mine = L.people().find(p => p.name === L.me());
+      if (!mine) die('you are not on the roster yet — run: coord setup');
+      if (typeof flags.tool === 'string' && !L.TOOLS.includes(flags.tool)) die(`--tool must be one of: ${L.TOOLS.join(', ')}`);
+      const updated = L.putPerson({
+        ...mine,
+        ...(typeof flags.name === 'string' ? { name: flags.name } : {}),
+        ...(typeof flags.tool === 'string' ? { tool: flags.tool } : {}),
+      });
+      return console.log(`${updated.name} — ${updated.tool}`);
+    }
+    const all = L.whosAround();
+    if (!all.length) return console.log('nobody on the roster yet — run: coord setup');
+    const you = L.me();
+    for (const p of all) {
+      const where = p.repo ? `${p.repo}  ${p.ts.slice(0, 16).replace('T', ' ')}` : 'no activity yet';
+      console.log(`  ${(p.name + (p.name === you ? ' (you)' : '')).padEnd(22)} ${String(p.tool).padEnd(12)} ${where}`);
+    }
   },
 
   repos() {

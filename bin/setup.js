@@ -80,6 +80,9 @@ function setup({ yes = false, noPath = false } = {}) {
     for (const r of missing.filter(r => !r.remote)) todo.push(`${r.name} has no clone URL recorded — ask whoever onboarded it`);
   }
 
+  /* 3b. who you are */
+  introduce(interactive, say, todo);
+
   /* 4. PATH */
   step(4, 'Making `coord` available everywhere');
   const onPath = (process.env.PATH || '').split(path.delimiter).some(p => p && L.real(p) === BIN);
@@ -132,6 +135,34 @@ function setup({ yes = false, noPath = false } = {}) {
   }
   console.log(`\nStart here:  coord repos   ·   coord list   ·   node ${path.relative(process.cwd(), path.join(P.coord, 'dashboard', 'server.js'))}`);
   if (errs.length) process.exitCode = 1;
+}
+
+/* Name and tool. The name is a confirm, not a question — git already knows it.
+   The tool matters because Copilot sessions have no guard and no briefing. */
+function introduce(interactive, say, todo) {
+  const email = L.gitConfig('user.email');
+  if (!email) {
+    todo.push('set your git identity, then re-run setup:  git config --global user.email you@example.com');
+    say('  no git email configured — skipping the roster');
+    return;
+  }
+  const existing = L.people().find(p => (p.email || '').toLowerCase() === email.toLowerCase());
+  if (existing && !interactive) { say(`  you are ${existing.name} (${existing.tool}) on the roster`); return; }
+
+  const guess = existing ? existing.name : (L.gitConfig('user.name') || email.split('@')[0]);
+
+  if (!interactive) {
+    L.putPerson({ name: guess, email, tool: 'other', since: existing ? existing.since : L.day() });
+    say(`  added ${guess} to the roster (tool: other — set it with: coord who --tool claude-code)`);
+    return;
+  }
+
+  const name = ask(`  What should we call you?`, { def: guess, choices: 'name' }) || guess;
+  const t = ask(`  Which do you use? 1) Claude Code  2) Copilot  3) both  4) something else`,
+    { def: existing ? String(L.TOOLS.indexOf(existing.tool) + 1) : '1', choices: '1-4' });
+  const tool = L.TOOLS[(Number(t) || 1) - 1] || 'other';
+  L.putPerson({ name, email, tool, since: existing ? existing.since : L.day() });
+  say(`  ${existing ? 'updated' : 'added'} ${name} (${tool}) on the roster`);
 }
 
 /* a repo cloned here but with no URL on the board: record it so others can clone it */
