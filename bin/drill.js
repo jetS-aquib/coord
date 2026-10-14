@@ -441,6 +441,22 @@ function dashboardViews(me) {
 
     const me2 = get('/me');
     ok('/me resolves to the local git identity', /JETKREATE/.test(me2), me2.slice(0, 120));
+
+    ok('the team view renders the board as columns',
+      /class="kanban"/.test(team) && /Open<\/|>Open\s/.test(team) && /In progress/.test(team) && /Review/.test(team), team.slice(0, 200));
+    ok('closed work has its own column', /khead done">Closed/.test(team));
+
+    // aging only applies to live columns, so make a fresh ticket and backdate its thread
+    const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Aging card for the board']);
+    const newId = (made.out.match(/T-\d+/) || [])[0];
+    const live = newId && fs.readdirSync(path.join(CO, 'tickets')).find(f => f.startsWith(newId + '-'));
+    if (live) {
+      const f = path.join(CO, 'tickets', live);
+      const old9 = new Date(Date.now() - 9 * 864e5).toISOString().replace('Z', '+00:00');
+      fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/^\S+( .*?status: \S+ -> \S+)/gm, `${old9}$1`));
+      const aged = get('/');
+      ok('a card that has sat too long is flagged', /class="card aging"/.test(aged) && /sitting too long/.test(aged), aged.slice(0, 200));
+    }
   } finally { srv.kill(); }
 }
 
