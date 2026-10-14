@@ -189,8 +189,10 @@ function nextNum(kind) {
 function codeMaxTicket() {
   let max = 0;
   for (const r of repos()) {
+    // source only: a JET-nnn inside a markdown example is documentation, not a claim on
+    // that id, and counting it would inflate the sequence every time we write a doc.
     const g = sh('grep', ['-rhoE', `${TICKET_PREFIX}-[0-9]+`, '--include=*.ts', '--include=*.tsx',
-      '--include=*.js', '--include=*.jsx', '--include=*.mjs', '--include=*.md', '--exclude-dir=node_modules',
+      '--include=*.js', '--include=*.jsx', '--include=*.mjs', '--exclude-dir=node_modules',
       '--exclude-dir=.git', '--exclude-dir=dist', '--exclude-dir=.next', '.'], path.join(P.root, r));
     if (!g.ok) continue;
     for (const line of g.out.split('\n')) {

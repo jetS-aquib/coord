@@ -535,7 +535,20 @@ function noTyping() {
     /no ticket file/.test(coord(['show', 'JET-900']).out) && /legacy\.ts/.test(coord(['show', 'JET-900']).out),
     coord(['show', 'JET-900']).out.slice(0, 200));
   fs.rmSync(path.join(B, 'legacy.ts'));
+
+  // a number inside a markdown example is documentation, not a claim on that id
+  fs.writeFileSync(path.join(B, 'EXAMPLES.md'), 'Commit like `JET-9999: do the thing`.\n');
+  ok('a JET number in a markdown example does not burn the id',
+    L_codeMax() < 9999, `code max is ${L_codeMax()}`);
+  fs.rmSync(path.join(B, 'EXAMPLES.md'));
   ok('check is clean after all of it', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
+}
+
+function L_codeMax() {
+  const r = cp.spawnSync(process.execPath, ['-e',
+    `process.env.COORD_ROOT=${JSON.stringify(CO)};console.log(require(${JSON.stringify(path.join(__dirname, 'lib.js'))}).codeMaxTicket())`],
+    { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } });
+  return Number((r.stdout || '0').trim()) || 0;
 }
 
 function L_loadStatus(id) {
