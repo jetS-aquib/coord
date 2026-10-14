@@ -31,7 +31,10 @@ const USAGE = `coord — jetKreate cross-repo coordination
   decide --title T --repos a,b --tickets T-001 [--context --options --decision --reason --consequences]
   supersede <old-id> <new-id>
   why <file>:<line>              which ticket and decisions explain this line
-  search <text>                  tickets, decisions, archive indexes
+  search <text>                  tickets, decisions, context notes, archive indexes
+  ctx [<text>]                   platform facts every repo's agent can read
+      --add "<title>" --body T   write one down
+      --rm <slug>
   archive [--dry-run]
   check                          validate formats, ownership, transitions, links, registry
   drill                          end-to-end self-test in a temp folder
@@ -52,6 +55,7 @@ const USAGE = `coord — jetKreate cross-repo coordination
   pause [reason] / resume        turn everything coord does off / on, on this machine only
   devsetup [--repo R] [--strict] [--no-copilot]
                                  install this machine's git hooks + editor instructions
+           [--claude]            (re)install coord's hooks in ~/.claude/settings.json
 `;
 
 const CMDS = {
@@ -209,6 +213,7 @@ const CMDS = {
     const targets = [
       ...L.idDirs(L.TICKET_PREFIX).flatMap(d => L.lsMd(d).map(f => path.join(d, f))),
       ...L.lsMd(P.decisions).map(f => path.join(P.decisions, f)),
+      ...L.lsMd(P.context).map(f => path.join(P.context, f)),
       path.join(P.archive, 'tickets-index.md'),
       ...L.ls(path.join(P.archive, 'activity')).filter(f => f.endsWith('-summary.md')).map(f => path.join(P.archive, 'activity', f)),
     ].filter(L.exists);
@@ -221,6 +226,42 @@ const CMDS = {
       n += hits.length;
     }
     if (!n) console.log(`nothing matches "${rest.join(' ')}"`);
+  },
+
+  // The one kind of shared knowledge that had nowhere to live. A decision is immutable
+  // and about a choice; a contract is owned by one repo; a status is about right now.
+  // This is for a plain durable fact — "staging is at X", "we dropped the orders API" —
+  // that every repo's agent needs and no repo owns.
+  ctx() {
+    if (typeof flags.rm === 'string') {
+      const f = path.join(P.context, flags.rm.replace(/\.md$/, '') + '.md');
+      if (!L.exists(f)) die(`no context note called "${flags.rm}" — coord ctx lists them`);
+      require('fs').rmSync(f);
+      L.snapshot(`coord: drop context note ${flags.rm}`);
+      return console.log(`dropped ${flags.rm}`);
+    }
+    if (typeof flags.add === 'string') {
+      const body = typeof flags.body === 'string' ? flags.body : rest.join(' ');
+      if (!body.trim()) die('a note with no body helps nobody — pass --body "..."');
+      const sl = L.slug(flags.add);
+      const f = path.join(P.context, sl + '.md');
+      const was = L.exists(f) ? L.parse(L.read(f)).fm : null;
+      L.atomicWrite(f, L.stringify(
+        { title: flags.add, added: was ? was.added : L.day(), updated: L.day(), by: L.actor() },
+        body.trim() + '\n'));
+      L.snapshot(`coord: context note ${sl}`);
+      return console.log(`${was ? 'updated' : 'wrote'} context/${sl}.md — everyone gets it on their next sync`);
+    }
+    const notes = L.lsMd(P.context).map(f => ({ f, ...L.parse(L.read(path.join(P.context, f))) }));
+    if (!notes.length) return console.log('no context notes yet. Add one:  coord ctx --add "Staging URL" --body "https://..."');
+    const q = rest.join(' ').toLowerCase();
+    if (!q) {                                    // the index: titles only, so listing it is cheap
+      for (const n of notes) console.log(`  ${n.f.replace(/\.md$/, '').padEnd(28)} ${n.fm.title}`);
+      return console.log(`\nRead one:  coord ctx <words from its title or body>`);
+    }
+    const hits = notes.filter(n => (n.fm.title + ' ' + n.body).toLowerCase().includes(q));
+    if (!hits.length) return console.log(`no context note mentions "${rest.join(' ')}"`);
+    for (const n of hits) console.log(`## ${n.fm.title}   (${n.fm.by}, updated ${n.fm.updated})\n\n${n.body.trim()}\n`);
   },
 
   archive() {
@@ -333,7 +374,7 @@ const CMDS = {
 
     const push = L.coordGit(['push', '-u', 'origin', branch]);
     if (!push.ok) return stop(`push failed: ${push.err.split('\n')[0]}`, `cd ${L.P.coord} && git push`);
-    L.clearFailures();                             // a good sync clears the backlog of bad ones
+    L.clearFailures('sync');                       // a good sync clears the backlog of bad ones
 
     const n = L.coordGit(['rev-list', '--count', `origin/${branch}..${branch}`]).out;
     say(`synced with origin/${branch}${n && n !== '0' ? ` (${n} ahead)` : ''}`);
@@ -346,6 +387,7 @@ const CMDS = {
   },
 
   devsetup() {
+    if (flags.claude) return console.log(D.installClaudeHooks().map(l => '  ' + l).join('\n'));
     const out = D.devsetup({
       repo: typeof flags.repo === 'string' ? flags.repo : undefined,
       strict: !!flags.strict,

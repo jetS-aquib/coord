@@ -17,6 +17,7 @@ const P = {
   tickets: path.join(COORD, 'tickets'),
   decisions: path.join(COORD, 'decisions'),
   contracts: path.join(COORD, 'contracts'),
+  context: path.join(COORD, 'context'),
   activity: path.join(COORD, 'activity'),
   archive: path.join(COORD, 'archive'),
   state: path.join(COORD, 'state.json'),
@@ -311,7 +312,7 @@ const statusTemplate = repo => `# ${repo}
 `;
 
 function ensureStatusFiles() {
-  for (const d of [P.status, P.tickets, P.decisions, P.contracts, P.activity, P.archive]) fs.mkdirSync(d, { recursive: true });
+  for (const d of [P.status, P.tickets, P.decisions, P.contracts, P.context, P.activity, P.archive]) fs.mkdirSync(d, { recursive: true });
   // a fresh clone gets the merge strategy too: daily logs are append-only from several machines
   const ga = path.join(P.coord, '.gitattributes');
   if (!exists(ga)) atomicWrite(ga, 'activity/*.log           merge=union\nactivity/hook-errors.log merge=union\narchive/tickets-index.md merge=union\n');
@@ -418,7 +419,15 @@ function failures() {
   }
   return [...by.values()].sort((a, b) => b.ts.localeCompare(a.ts));
 }
-const clearFailures = () => { try { fs.rmSync(FAIL_LOG()); } catch { /* already clean */ } };
+// With no scope, forget everything; with one, forget only that scope — a sync that
+// finally works says nothing about a guard that is still crashing.
+function clearFailures(scope) {
+  try {
+    if (!scope) return fs.rmSync(FAIL_LOG());
+    const keep = read(FAIL_LOG()).split('\n').filter(l => l && l.split('\t')[1] !== scope);
+    if (keep.length) atomicWrite(FAIL_LOG(), keep.join('\n') + '\n'); else fs.rmSync(FAIL_LOG());
+  } catch { /* already clean */ }
+}
 
 /* ---------- pause: the escape hatch ---------- */
 // Everything automatic is off on this machine until resumed: no guard, no briefing, no

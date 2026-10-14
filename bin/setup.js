@@ -87,8 +87,13 @@ function setup({ yes = false, noPath = false } = {}) {
   step(4, 'Making `coord` available everywhere');
   const onPath = (process.env.PATH || '').split(path.delimiter).some(p => p && L.real(p) === BIN);
   if (onPath) say('  already on your PATH');
-  else if (noPath) { say('  skipped (--no-path)'); todo.push(`put coord on your PATH:  export PATH="${BIN}:$PATH"`); }
-  else {
+  else if (noPath) { say('  skipped (--no-path)'); todo.push(`put coord on your PATH:\n       ${pathLine()}`); }
+  else if (L.isWindows) {
+    // No profile to append to that is the same on PowerShell, cmd and Git Bash — and
+    // setx writes the registry. Print it; the dev runs it once.
+    say('  Windows: run this once, in PowerShell, then open a new terminal');
+    todo.push(`put coord on your PATH (PowerShell, once):\n       ${pathLine()}`);
+  } else {
     const profile = shellProfile();
     const line = `${MARK}\nexport PATH="${BIN}:$PATH"\n`;
     const already = L.read(profile).includes(BIN);
@@ -100,7 +105,7 @@ function setup({ yes = false, noPath = false } = {}) {
         say(`  added to ${tilde(profile)} — open a new shell, or: source ${tilde(profile)}`);
       } else {
         say(`  not on your PATH — left ${tilde(profile)} alone, see the list below`);
-        todo.push(`put coord on your PATH — add to ${tilde(profile)}:\n       export PATH="${BIN}:$PATH"`);
+        todo.push(`put coord on your PATH — add to ${tilde(profile)}:\n       ${pathLine()}`);
       }
     }
   }
@@ -109,6 +114,7 @@ function setup({ yes = false, noPath = false } = {}) {
   step(5, 'Setting up the repos on this machine');
   if (!here.size) say('  no repos here yet — re-run coord setup once you have cloned some');
   else for (const line of D.devsetup({})) say(`  ${line}`);
+  claudeHooks(say, todo);
 
   /* 6. verify */
   step(6, 'Checking everything lines up');
@@ -175,6 +181,21 @@ function backfillRemotes(active, here, say) {
   }
   if (filled.length) say(`  recorded clone URLs for ${filled.join(', ')} so others can fetch them`);
 }
+
+// Git hooks cover every dev. These cover only Claude Code — and they are where the
+// guard and the session briefing actually live, so a Claude Code dev without them has
+// no enforcement at all and no way to know that.
+function claudeHooks(say, todo) {
+  const mine = L.people().find(p => p.name === L.me());
+  const uses = !mine || ['claude-code', 'both'].includes(mine.tool);
+  if (!uses) return say(`  skipped Claude Code's hooks — you are set to "${mine.tool}" (change it: coord who --tool both)`);
+  if (!L.exists(path.dirname(D.claudeSettings()))) return say('  Claude Code is not installed here — skipped its hooks');
+  for (const line of D.installClaudeHooks()) say(`  ${line}`);
+}
+
+const pathLine = () => L.isWindows
+  ? `setx PATH "$env:PATH;${BIN}"`
+  : `export PATH="${BIN}:$PATH"`;
 
 function shellProfile() {
   const sh = path.basename(process.env.SHELL || 'zsh');

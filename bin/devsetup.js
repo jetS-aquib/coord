@@ -221,6 +221,56 @@ function devsetup({ repo, strict = false, copilot = true } = {}) {
   return out.length ? out : ['everything already in place — nothing to do'];
 }
 
+/* ---------- Claude Code's own hooks (~/.claude/settings.json) ---------- */
+// Copilot users get git hooks; Claude Code users get these as well — the guard and the
+// session briefing live here, not in any repo. Without this step a dev who clones the
+// board has no enforcement at all, and would never know.
+const CLAUDE_HOOKS = [
+  { event: 'SessionStart', script: 'hook.js', arg: 'session-start' },
+  { event: 'Stop', script: 'hook.js', arg: 'session-stop' },
+  { event: 'PostToolUse', script: 'hook.js', arg: 'edit', matcher: 'Edit|Write|MultiEdit' },
+  { event: 'PreToolUse', script: 'guard.js', matcher: 'Edit|Write|NotebookEdit|MultiEdit|Bash', timeout: 10 },
+];
+// process.execPath is the realpath — on Homebrew that is .../Cellar/node/26.8.2/bin/node,
+// which stops working at the next `brew upgrade`. The symlink `which node` reports survives.
+function nodeCmd() {
+  const w = L.sh(L.isWindows ? 'where' : 'which', ['node'], P.coord);
+  const first = w.ok && w.out.split('\n')[0].trim();
+  return first || process.execPath;
+}
+const claudeSettings = () => path.join(require('os').homedir(), '.claude', 'settings.json');
+const isOurs = entry => (entry.hooks || []).some(h =>
+  typeof h.command === 'string' && /[\\/]hooks[\\/](hook|guard)\.js/.test(h.command));
+
+function installClaudeHooks({ file = claudeSettings() } = {}) {
+  const out = [];
+  let cfg = {};
+  const before = L.read(file);
+  if (before.trim()) {
+    try { cfg = JSON.parse(before); }
+    // Never clobber a settings file we cannot parse — that is someone's whole setup.
+    catch (e) { return [`~/.claude/settings.json is not valid JSON (${e.message}) — left alone. Fix it, then: coord devsetup --claude`]; }
+  }
+  const q = s => `"${s}"`, node = nodeCmd();
+  cfg.hooks = cfg.hooks || {};
+  for (const h of CLAUDE_HOOKS) {
+    const cmd = [q(node), q(path.join(P.coord, 'hooks', h.script)), h.arg].filter(Boolean).join(' ');
+    const entry = { ...(h.matcher ? { matcher: h.matcher } : {}), hooks: [{ type: 'command', command: cmd, timeout: h.timeout || 15 }] };
+    const kept = (cfg.hooks[h.event] || []).filter(e => !isOurs(e));   // drop ours, keep everyone else's
+    cfg.hooks[h.event] = [...kept, entry];
+  }
+  const after = JSON.stringify(cfg, null, 2) + '\n';
+  if (after === before) return ['~/.claude/settings.json already has the coord hooks'];
+  if (before) {
+    const bak = `${file}.bak.${Date.now()}`;
+    fs.writeFileSync(bak, before);
+    out.push(`backed up your settings to ${path.basename(bak)}`);
+  }
+  L.atomicWrite(file, after);
+  out.push(`~/.claude/settings.json: coord hooks installed (guard + session briefing) — restart Claude Code to pick them up`);
+  return out;
+}
+
 /* ---------- used by the post-commit hook ---------- */
 function logCommit(cwd) {
   const repo = L.repoOf(cwd);
@@ -248,4 +298,4 @@ function autoStart(repo) {
 
 const pathHint = () => `export PATH="${path.join(P.coord, 'bin')}:$PATH"`;
 
-module.exports = { devsetup, logCommit, copilotDoc, withCoordSection, COORD_BIN, pathHint };
+module.exports = { devsetup, logCommit, copilotDoc, withCoordSection, installClaudeHooks, claudeSettings, COORD_BIN, pathHint };

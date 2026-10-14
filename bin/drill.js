@@ -41,6 +41,7 @@ function run() {
     onboarding();
     archiving(id);
     superseding(did);
+    resilience();
     ok('coord check reports no errors', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
   } catch (e) {
     fail++; console.log(`FAIL  drill crashed: ${e.message}\n${e.stack}`);
@@ -166,7 +167,11 @@ function hooks(id) {
   try { ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext; } catch { /* reported below */ }
   ok('session-start briefs the session on its own repo',
     /hookEventName":"SessionStart/.test(r.stdout) && ctx.includes('beta') && /status file/.test(ctx), r.stdout.slice(0, 160));
-  ok('briefing names the enforcement and the CLI', /PreToolUse hook/.test(ctx) && /coord new --from beta/.test(ctx), ctx.slice(0, 160));
+  // The rules live in jetKreate/CLAUDE.md, which loads in every session under this folder.
+  // Repeating them in the briefing costs ~100 tokens a session to say the same thing twice.
+  ok('briefing does not repeat what CLAUDE.md already says',
+    !/PreToolUse hook/.test(ctx) && !/full rules are in/.test(ctx), ctx.slice(0, 200));
+  ok('briefing stays small', ctx.length < 700, `${ctx.length} chars`);
 
   n = lines().length;
   r = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'jobs.js') } });
@@ -726,6 +731,104 @@ function archiving(id) {
   const w = coord(['why', `${path.join(TMP, 'beta', 'jobs.js')}:2`], { cwd: path.join(TMP, 'beta') });
   ok('coord why still finds the ticket after archiving', w.ok && w.out.includes(id) && /archived/.test(w.out), w.out);
   ok('coord search finds the archived ticket', coord(['search', 'v1/jobs']).out.includes(id));
+}
+
+// The three promises that are not about tickets at all: nothing automatic fails
+// silently, a dev can always switch the whole thing off, and none of it needs a Mac.
+function resilience() {
+  const L = require('./lib.js');
+  const hook = (event, payload) => cp.spawnSync(process.execPath, [HOOK, event], {
+    input: JSON.stringify(payload), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  const guardCall = (cwd, file) => cp.spawnSync(process.execPath, [GUARD], {
+    input: JSON.stringify({ cwd, tool_name: 'Write', tool_input: { file_path: file } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  }).stdout;
+  const beta = path.join(TMP, 'beta'), alphaFile = path.join(TMP, 'alpha', 'x.js');
+  const today = path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`);
+  const failLog = path.join(CO, 'activity', 'failures.log');
+
+  /* --- failures surface, and say how to do it by hand --- */
+  ok('nothing failed, nothing to report', coord(['fix']).out.includes('quietly'));
+  fs.appendFileSync(failLog, `${new Date().toISOString()}\tsync\tfetch failed: no route to host\tcoord sync\n`.repeat(3));
+  const f1 = coord(['fix']);
+  ok('coord fix shows what failed', f1.out.includes('no route to host'), f1.out);
+  ok('coord fix shows the manual command', /by hand:\s+coord sync/.test(f1.out), f1.out);
+  ok('repeats collapse into one row with a count', /\(3x/.test(f1.out) && (f1.out.match(/no route to host/g) || []).length === 1, f1.out);
+  // The board has a working remote by this point, so a sync that succeeds should forget
+  // the sync failures — and only those. A guard crash is a different problem.
+  fs.appendFileSync(failLog, `${new Date().toISOString()}\tguard\tcrashed\tcoord drill\n`);
+  const f2 = coord(['sync', '--quiet']).ok && coord(['fix']).out;
+  ok('a good sync clears its own backlog and nothing else',
+    f2 && !f2.includes('no route to host') && f2.includes('crashed'), String(f2));
+  const bh = hook('session-start', { cwd: TMP });
+  ok('a failure reaches the session briefing',
+    /coord fix/.test(((JSON.parse(bh.stdout || '{}').hookSpecificOutput) || {}).additionalContext || ''),
+    'stdout=' + bh.stdout + ' stderr=' + bh.stderr);
+  const ck = coord(['check']);
+  ok('coord check points at it too', ck.out.includes('coord fix'), ck.out);
+  ok('coord fix --clear empties it', coord(['fix', '--clear']).ok && !fs.existsSync(failLog));
+  ok('failures.log is gitignored', fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').includes('activity/failures.log'));
+
+  /* --- pause: the escape hatch --- */
+  ok('guard blocks a cross-repo write while running', /permissionDecision":"deny/.test(guardCall(beta, alphaFile)));
+  const p = coord(['pause', 'drill']);
+  ok('coord pause says what it switched off', p.ok && /no guard/.test(p.out), p.out);
+  ok('paused: the guard allows everything', guardCall(beta, alphaFile) === '', guardCall(beta, alphaFile));
+  const before = fs.readFileSync(today, 'utf8');
+  hook('edit', { cwd: beta, tool_input: { file_path: path.join(beta, 'jobs.js') } });
+  ok('paused: nothing is recorded', fs.readFileSync(today, 'utf8') === before);
+  ok('paused: session start says so, once', /paused on this machine/.test(
+    JSON.parse(hook('session-start', { cwd: beta }).stdout || '{}').hookSpecificOutput.additionalContext));
+  ok('paused: coord check says so', coord(['check']).out.includes('PAUSED'));
+  ok('paused: the git hooks bail out first', (() => {
+    const h = fs.readFileSync(path.join(beta, '.git', 'hooks', 'post-commit'), 'utf8');
+    const i = h.indexOf('paused'), j = h.indexOf('log-commit');
+    return i > 0 && j > i;
+  })());
+  ok('the paused file is gitignored', fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').split('\n').includes('paused'));
+  ok('coord resume brings it back', coord(['resume']).ok && /permissionDecision":"deny/.test(guardCall(beta, alphaFile)));
+  ok('resume twice is harmless', coord(['resume']).out.includes('already running'));
+
+  /* --- no Mac required --- */
+  ok('a Windows launcher ships beside the CLI', (() => {
+    const c = fs.readFileSync(path.join(__dirname, 'coord.cmd'), 'utf8');
+    return /%~dp0coord/.test(c) && /\r\n/.test(c);                  // CRLF: cmd.exe needs it
+  })());
+  ok('scanning the repos spawns nothing', !/sh\('grep'/.test(fs.readFileSync(path.join(__dirname, 'lib.js'), 'utf8')));
+  ok('the id scan finds a JET tag in source', (() => {
+    fs.writeFileSync(path.join(TMP, 'alpha', 'tagged.js'), '// JET-401: why this exists\n');
+    const hits = cp.spawnSync(process.execPath, ['-e',
+      `const L=require('${path.join(__dirname, 'lib.js').replace(/\\/g, '/')}');console.log(L.codeMaxTicket())`],
+      { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } });
+    fs.rmSync(path.join(TMP, 'alpha', 'tagged.js'));
+    return hits.stdout.trim() === '401';
+  })());
+  ok('setup prints a PowerShell PATH line on Windows', (() => {
+    const s = fs.readFileSync(path.join(__dirname, 'setup.js'), 'utf8');
+    return /isWindows/.test(s) && /setx PATH/.test(s);
+  })());
+
+  /* --- Claude Code's hooks are installed, not assumed --- */
+  const settings = path.join(TMP, 'settings.json');
+  const foreign = { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'bash /somebody/else.sh' }] }] }, other: 1 };
+  fs.writeFileSync(settings, JSON.stringify(foreign, null, 2) + '\n');
+  const D = require('./devsetup.js');
+  const r1 = D.installClaudeHooks({ file: settings });
+  const got = JSON.parse(fs.readFileSync(settings, 'utf8'));
+  const cmds = Object.values(got.hooks).flat().flatMap(e => e.hooks).map(h => h.command);
+  ok('installing coord hooks keeps everyone else\'s', cmds.includes('bash /somebody/else.sh') && got.other === 1, r1.join('; '));
+  ok('all four coord hooks land', ['hook.js" session-start', 'hook.js" session-stop', 'hook.js" edit', 'guard.js']
+    .every(s => cmds.some(c => c.includes(s))), cmds.join('\n'));
+  ok('it backs the old settings up first', fs.readdirSync(TMP).some(f => /^settings\.json\.bak\./.test(f)));
+  D.installClaudeHooks({ file: settings });
+  const twice = JSON.parse(fs.readFileSync(settings, 'utf8'));
+  ok('running it twice does not stack hooks',
+    Object.values(twice.hooks).flat().flatMap(e => e.hooks).length === cmds.length);
+  fs.writeFileSync(settings, '{ this is not json');
+  ok('it refuses to touch settings it cannot parse',
+    D.installClaudeHooks({ file: settings })[0].includes('not valid JSON') &&
+    fs.readFileSync(settings, 'utf8') === '{ this is not json');
 }
 
 function superseding(did) {
