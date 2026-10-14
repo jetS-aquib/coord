@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 const path = require('path'), fs = require('fs');
-const L = require('./lib.js'), R = require('./rules.js'), A = require('./archive.js');
+const L = require('./lib.js'), R = require('./rules.js'), A = require('./archive.js'), O = require('./onboard.js');
 const { P } = L;
 
 const argv = process.argv.slice(2);
@@ -32,8 +32,14 @@ const USAGE = `coord — jetKreate cross-repo coordination
   why <file>:<line>              which ticket and decisions explain this line
   search <text>                  tickets, decisions, archive indexes
   archive [--dry-run]
-  check                          validate formats, ownership, transitions, links
+  check                          validate formats, ownership, transitions, links, registry
   drill                          end-to-end self-test in a temp folder
+
+  repos                          onboarded / discovered / offboarded
+  onboard <repo> --preflight     read-only report: validation, stack, setup, candidates
+  onboard <repo> --apply         registry + status file + .git/info/exclude + snapshots
+         [--stack S --contracts a,b --depends-on c,d]
+  offboard <repo> --yes          mark offboarded, archive its status file and tickets
 `;
 
 const CMDS = {
@@ -56,8 +62,11 @@ const CMDS = {
 
   new() {
     need('from', 'to', 'title');
-    const repos = L.repos();
-    for (const k of ['from', 'to']) if (!repos.includes(flags[k]) && flags[k] !== 'human') die(`--${k} "${flags[k]}" is not a repo (have: ${repos.join(', ')})`);
+    const repos = L.onboarded();
+    for (const k of ['from', 'to']) if (!repos.includes(flags[k]) && flags[k] !== 'human') {
+      const d = L.discovered().includes(flags[k]) ? ` — it is discovered but not onboarded; run: coord onboard ${flags[k]} --preflight` : '';
+      die(`--${k} "${flags[k]}" is not an onboarded repo (have: ${repos.join(', ') || 'none'})${d}`);
+    }
     const r = R.newTicket({
       from: flags.from, to: flags.to, title: flags.title,
       request: flags.request, reason: flags.reason, files: flags.files,
@@ -171,9 +180,77 @@ const CMDS = {
     if (probs.some(p => p.level === 'error')) process.exit(1);
   },
 
+  repos() {
+    const reg = L.registry();
+    const active = reg.filter(r => r.status === 'active');
+    console.log(`onboarded (${active.length})`);
+    for (const r of active) console.log(`  ${r.name.padEnd(24)} ${r.stack || '—'}${(r.depends_on || []).length ? `  -> ${r.depends_on.join(', ')}` : ''}${(r.contracts || []).length ? `  owns ${r.contracts.join(', ')}` : ''}`);
+    const disc = L.discovered();
+    console.log(`\ndiscovered, not onboarded (${disc.length})`);
+    for (const r of disc) console.log(`  ${r.padEnd(24)} run: coord onboard ${r} --preflight`);
+    const off = reg.filter(r => r.status === 'offboarded');
+    console.log(`\noffboarded (${off.length})`);
+    for (const r of off) console.log(`  ${r.name.padEnd(24)} since ${r.offboarded || '?'} (history kept in archive/)`);
+  },
+
+  onboard() {
+    const name = rest[0] || die('usage: coord onboard <repo> --preflight | --apply');
+    if (flags.apply) {
+      const done = O.apply(name, {
+        stack: typeof flags.stack === 'string' ? flags.stack : undefined,
+        contracts: list(flags.contracts),
+        depends_on: list(flags['depends-on']),
+      });
+      console.log(done.map(d => '  ' + d).join('\n'));
+      console.log(`\n${name} is onboarded. Remaining runbook steps: contract stubs, decision record, coord check.`);
+      return;
+    }
+    printPreflight(O.detect(name));
+  },
+
+  offboard() {
+    const name = rest[0] || die('usage: coord offboard <repo> --yes');
+    if (!L.isHuman()) die(`offboarding ${name} is the human's call. Ask them to run: coord offboard ${name} --yes`);
+    if (!flags.yes) die(`this archives ${name}'s status file and tickets (decisions stay). Re-run with --yes to confirm.`);
+    console.log(O.offboard(name).map(d => '  ' + d).join('\n'));
+  },
+
   drill: () => require('./drill.js').run(),
   help: () => console.log(USAGE),
 };
+
+function printPreflight(r) {
+  const yn = b => (b ? 'yes' : 'NO');
+  const bad = O.failures(r);
+  console.log(`# Preflight — ${r.name}\n`);
+  console.log(`path: ${r.abs}`);
+  for (const [k, v] of Object.entries(r.valid)) console.log(`  [${v ? 'x' : ' '}] ${k}`);
+  console.log(`\n## Git`);
+  console.log(`  branch: ${r.git.branch}\n  remote: ${r.git.remote}\n  uncommitted: ${r.git.dirtyCount}${r.git.dirtyCount ? ' — ' + r.git.dirtyFiles.slice(0, 5).join(' | ') : ''}`);
+  const s = r.stack;
+  console.log(`\n## Stack`);
+  console.log(`  summary: ${s.summary}`);
+  console.log(`  package manager: ${s.manager} (${s.lockfile})${s.monorepo ? ' — monorepo' : ''}`);
+  console.log(`  node pinning: ${s.nodePin.join(' | ') || 'none'}`);
+  console.log(`  typescript: ${yn(s.typescript)}   package name: ${s.pkgName || '—'}`);
+  console.log(`  frameworks: ${s.frameworks.join(', ') || 'none detected'}`);
+  for (const [k, v] of Object.entries(s.scripts)) console.log(`  ${k} scripts: ${v.join(', ') || '—'}`);
+  console.log(`\n## Existing Claude setup`);
+  for (const [k, v] of Object.entries(r.claude)) console.log(`  ${k}: ${yn(v)}`);
+  console.log(`\n## Candidate contracts (${r.contracts.length}) — scanned ${r.files} files`);
+  if (!r.contracts.length) console.log('  none detected — this repo may not expose an API');
+  for (const c of r.contracts) console.log(`  ${c.group}  [${c.confidence}]  ${c.pathCount} route(s)  e.g. ${c.paths.slice(0, 3).join(' ')}  (${c.evidence[0]})`);
+  console.log(`\n## Candidate depends_on (${r.depends_on.length})`);
+  if (!r.depends_on.length) console.log('  none detected');
+  for (const d of r.depends_on) console.log(`  ${d.repo}  [${d.confidence}]  ${d.evidence.join('; ')}`);
+  console.log(`\n## Planned changes (apply does nothing until you run --apply)`);
+  console.log(`  create  .coord/status/${r.name}.md`);
+  console.log(`  modify  .coord/repos.json`);
+  console.log(`  modify  ${r.name}/.git/info/exclude  ${r.excludes.length ? '(+ ' + r.excludes.join(', ') + ')' : '(already covered)'}`);
+  console.log(`  create  .coord/contracts/*.md stubs for confirmed contracts`);
+  console.log(`  create  .coord/decisions/D-xxx-onboarded-${r.name}.md`);
+  console.log(`\nvalidation: ${bad.length ? 'FAILED — ' + bad.join('; ') : 'passed'}`);
+}
 
 function move(to) {
   const id = (rest.shift() || '').toUpperCase() || die(`usage: coord ${to === 'approved' ? 'approve' : to} <id> [note]`);

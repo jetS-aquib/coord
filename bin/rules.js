@@ -126,14 +126,25 @@ function check() {
   const out = [];
   const err = (where, msg) => out.push({ level: 'error', where, msg });
   const warn = (where, msg) => out.push({ level: 'warn', where, msg });
-  const repos = L.repos(), repoSet = new Set(repos);
+  const repos = L.onboarded(), repoSet = new Set(repos);
   const ticketIds = new Set(), decisionIds = new Set();
 
+  // registry
+  const onDisk = new Set(L.repos());
+  for (const e of L.registry()) {
+    const where = `repos.json:${e.name}`;
+    for (const k of ['name', 'path', 'status', 'onboarded']) if (!e[k]) err(where, `missing field "${k}"`);
+    if (!['active', 'offboarded'].includes(e.status)) err(where, `status "${e.status}" must be active or offboarded`);
+    if (e.status === 'active' && !onDisk.has(e.name)) err(where, `registered as active but ${e.path} is not a git repo under the platform root`);
+    for (const d of e.depends_on || []) if (!repoSet.has(d) && d !== e.name) warn(where, `depends_on "${d}" is not an active repo`);
+  }
+  for (const d of L.discovered()) warn(`${d}/`, 'git repo present but not onboarded — run: coord onboard ' + d + ' --preflight');
+
   // status files
-  for (const r of repos) if (!L.exists(path.join(P.status, `${r}.md`))) err(`status/${r}.md`, 'missing status file for repo');
+  for (const r of repos) if (!L.exists(path.join(P.status, `${r}.md`))) err(`status/${r}.md`, 'missing status file for an active repo');
   for (const f of L.lsMd(P.status)) {
     const repo = f.replace(/\.md$/, '');
-    if (!repoSet.has(repo)) { warn(`status/${f}`, 'no repo with this name (removed repo?)'); continue; }
+    if (!repoSet.has(repo)) { warn(`status/${f}`, L.regGet(repo) ? 'repo is offboarded — run coord archive' : 'not an onboarded repo'); continue; }
     const s = L.readStatus(repo);
     if (!L.REPO_STATUS.includes(s.status)) err(`status/${f}`, `Status "${s.status}" not one of: ${L.REPO_STATUS.join(' / ')}`);
     if (!s.updated) err(`status/${f}`, 'missing Last updated');
@@ -167,7 +178,10 @@ function check() {
     ticketIds.add(fm.id);
     if (!L.TICKET_STATUS.includes(fm.status)) err(where, `status "${fm.status}" not one of: ${L.TICKET_STATUS.join(', ')}`);
     for (const s of TICKET_SECTIONS) if (!(s in sec)) err(where, `missing section "${s}"`);
-    for (const k of ['from', 'to']) if (fm[k] && fm[k] !== 'human' && !repoSet.has(fm[k])) warn(where, `${k}: "${fm[k]}" is not a repo`);
+    const closedT = ['done', 'rejected'].includes(fm.status);
+    for (const k of ['from', 'to']) if (fm[k] && fm[k] !== 'human' && !repoSet.has(fm[k])) {
+      (closedT || L.regGet(fm[k]) ? warn : err)(where, `${k}: "${fm[k]}" is not an onboarded repo`);
+    }
     if (fm.status === 'review' && EMPTY(sec['Test steps'])) err(where, 'in review with empty Test steps');
     // replay the thread's recorded transitions
     let st = null;
@@ -198,7 +212,7 @@ function check() {
   for (const f of L.lsMd(P.contracts).filter(f => f !== 'README.md')) {
     const { fm } = L.parse(L.read(path.join(P.contracts, f)));
     if (!fm.owner) err(`contracts/${f}`, 'missing frontmatter `owner: <repo>`');
-    else if (!repoSet.has(fm.owner)) err(`contracts/${f}`, `owner "${fm.owner}" is not a repo`);
+    else if (!repoSet.has(fm.owner)) err(`contracts/${f}`, `owner "${fm.owner}" is not an onboarded repo`);
   }
   return out;
 }

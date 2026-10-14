@@ -18,6 +18,7 @@ const P = {
   activity: path.join(COORD, 'activity'),
   archive: path.join(COORD, 'archive'),
   state: path.join(COORD, 'state.json'),
+  registry: path.join(COORD, 'repos.json'),
 };
 
 const TICKET_STATUS = ['open', 'approved', 'in_progress', 'review', 'done', 'rejected'];
@@ -59,6 +60,7 @@ const day = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${p
 const daysAgo = iso => (Date.now() - new Date(iso).getTime()) / 86400000;
 
 /* ---------- repos ---------- */
+// DISCOVERY: every git subfolder. Membership is the registry below — not this.
 function repos() {                            // direct subfolders with .git, hidden folders (.coord) excluded
   return fs.readdirSync(P.root, { withFileTypes: true })
     .filter(d => d.isDirectory() && !d.name.startsWith('.') && exists(path.join(P.root, d.name, '.git')))
@@ -69,6 +71,28 @@ function repoOf(dir) {                        // repo owning a directory, or nul
   if (!r.ok) return null;
   const top = real(r.out), name = path.basename(top);
   return path.dirname(top) === P.root && !name.startsWith('.') ? name : null;   // .coord is not a platform repo
+}
+
+/* ---------- registry (repos.json) — written only by the CLI ---------- */
+function registry() {
+  try { const j = JSON.parse(read(P.registry, '{}')); return Array.isArray(j.repos) ? j.repos : []; }
+  catch { return []; }
+}
+const writeRegistry = list => atomicWrite(P.registry,
+  JSON.stringify({ version: 1, updated: nowISO(), repos: [...list].sort((a, b) => a.name.localeCompare(b.name)) }, null, 2) + '\n');
+const regGet = name => registry().find(r => r.name === name) || null;
+function regPut(entry) {                       // insert or replace one entry, atomically
+  const list = registry().filter(r => r.name !== entry.name);
+  list.push(entry);
+  writeRegistry(list);
+  return entry;
+}
+const onboarded = () => registry().filter(r => r.status === 'active').map(r => r.name).sort();
+const offboarded = () => registry().filter(r => r.status === 'offboarded').map(r => r.name).sort();
+const isOnboarded = name => registry().some(r => r.name === name && r.status === 'active');
+function discovered() {                        // has .git, not in the registry at all
+  const known = new Set(registry().map(r => r.name));
+  return repos().filter(r => !known.has(r));
 }
 
 /* ---------- markdown ---------- */
@@ -186,7 +210,7 @@ const statusTemplate = repo => `# ${repo}
 function ensureStatusFiles() {
   for (const d of [P.status, P.tickets, P.decisions, P.contracts, P.activity, P.archive]) fs.mkdirSync(d, { recursive: true });
   const made = [];
-  for (const r of repos()) {
+  for (const r of onboarded()) {              // discovered-but-not-onboarded repos get nothing
     const f = path.join(P.status, `${r}.md`);
     if (!exists(f)) { atomicWrite(f, statusTemplate(r)); made.push(r); }
   }
@@ -214,4 +238,4 @@ function lastActivityPerRepo() {              // heartbeat: newest activity time
   return seen;
 }
 
-module.exports = { P, real, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
