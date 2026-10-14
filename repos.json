@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-14T13:05:19+05:30",
+  "updated": "2026-10-14T13:05:20+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -35,6 +35,31 @@
       ],
       "depends_on": [
         "TypeScript + React + Vite + Redux Toolkit  creater-ai-backend"
+      ],
+      "onboarded": "2026-10-14",
+      "status": "active"
+    },
+    {
+      "name": "iris",
+      "path": "iris",
+      "stack": "pnpm",
+      "contracts": [
+        "+"
+      ],
+      "depends_on": [
+        "Turborepo /api/studio",
+        "/api/ideas",
+        "/api/script",
+        "/api/remix",
+        "/api/rollstock",
+        "/api/tools",
+        "/api/films",
+        "/api/billing",
+        "/api/youtube",
+        "/api/chats",
+        "/api/director",
+        "/jobs creater-ai-frontend",
+        "creater-ai-backend"
       ],
       "onboarded": "2026-10-14",
       "status": "active"
