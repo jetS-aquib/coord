@@ -328,6 +328,21 @@ function team() {
   ok('post-commit records the commit on the board', /\talpha\tcommit\t\w+ T-042: add the feature/.test(log),
     log.trim().split('\n').slice(-2).join(' | '));
   ok('check is still clean after all the syncing', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
+
+  // a dev clones only the repos they work on — that is normal, not a broken board
+  const parked = path.join(TMP, '_parked-beta');
+  fs.renameSync(path.join(TMP, 'beta'), parked);
+  const c = coord(['check']);
+  ok('a repo you have not cloned is a note, not an error',
+    c.ok && !/ERROR/.test(c.out) && /not cloned here: beta/.test(c.out), c.out);
+  fs.mkdirSync(path.join(TMP, 'beta'));
+  fs.writeFileSync(path.join(TMP, 'beta', 'stray.txt'), 'not a repo\n');
+  const c2 = coord(['check']);
+  ok('but something at that path that is not a repo still errors',
+    !c2.ok && /exists but is not a git repo/.test(c2.out), c2.out);
+  fs.rmSync(path.join(TMP, 'beta'), { recursive: true, force: true });
+  fs.renameSync(parked, path.join(TMP, 'beta'));
+  ok('and it clears once the repo is back', coord(['check']).ok);
 }
 
 function onboarding() {

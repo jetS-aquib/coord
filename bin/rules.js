@@ -126,19 +126,27 @@ function check() {
   const out = [];
   const err = (where, msg) => out.push({ level: 'error', where, msg });
   const warn = (where, msg) => out.push({ level: 'warn', where, msg });
+  const info = (where, msg) => out.push({ level: 'info', where, msg });
   const repos = L.onboarded(), repoSet = new Set(repos);
   const ticketIds = new Set(), decisionIds = new Set();
 
   // registry
   const onDisk = new Set(L.repos());
+  const notCloned = [];
   for (const e of L.registry()) {
     const where = `repos.json:${e.name}`;
     for (const k of ['name', 'path', 'status', 'onboarded']) if (!e[k]) err(where, `missing field "${k}"`);
     if (!['active', 'offboarded'].includes(e.status)) err(where, `status "${e.status}" must be active or offboarded`);
-    if (e.status === 'active' && !onDisk.has(e.name)) err(where, `registered as active but ${e.path} is not a git repo under the platform root`);
+    if (e.status === 'active' && !onDisk.has(e.name)) {
+      // Not cloned here is normal — you only clone what you work on. Only flag the case
+      // where something IS at that path but is not a git repo, which is a real mix-up.
+      if (L.exists(path.join(P.root, e.path))) err(where, `${e.path} exists but is not a git repo`);
+      else notCloned.push(e.name);
+    }
     for (const d of e.depends_on || []) if (!repoSet.has(d) && d !== e.name) warn(where, `depends_on "${d}" is not an active repo`);
   }
   for (const d of L.discovered()) warn(`${d}/`, 'git repo present but not onboarded — run: coord onboard ' + d + ' --preflight');
+  if (notCloned.length) info('this machine', `${notCloned.length} active repo(s) not cloned here: ${notCloned.join(', ')} — clone them beside the board if you need them`);
 
   // status files
   for (const r of repos) if (!L.exists(path.join(P.status, `${r}.md`))) err(`status/${r}.md`, 'missing status file for an active repo');

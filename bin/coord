@@ -179,8 +179,10 @@ const CMDS = {
 
   check() {
     const probs = R.check();
-    if (!probs.length) return console.log('check: OK');
-    for (const p of probs) console.log(`${p.level.toUpperCase()}  ${p.where}: ${p.msg}`);
+    const real = probs.filter(p => p.level !== 'info');
+    if (!real.length) console.log('check: OK');
+    for (const p of real) console.log(`${p.level.toUpperCase()}  ${p.where}: ${p.msg}`);
+    for (const p of probs.filter(p => p.level === 'info')) console.log(`note: ${p.msg}`);
     if (probs.some(p => p.level === 'error')) process.exit(1);
   },
 

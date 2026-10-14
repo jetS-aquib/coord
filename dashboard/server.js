@@ -26,7 +26,8 @@ function board() {
     const last = beat[r];
     const mins = last ? (Date.now() - new Date(last).getTime()) / 60000 : Infinity;
     const e = L.regGet(r) || {};
-    return { ...s, heartbeat: last, stale: s.status === 'working' && mins > STALE_MIN, stack: e.stack, deps: e.depends_on || [] };
+    const here = L.repos().includes(r);
+    return { ...s, heartbeat: last, stale: s.status === 'working' && mins > STALE_MIN, stack: e.stack, deps: e.depends_on || [], here };
   });
 }
 
@@ -49,7 +50,7 @@ function page() {
     <td class="s s-${esc(x.status).replace(/\s+/g, '-')}">${esc(x.status)}${x.stale ? ' <span class="stale">STALE</span>' : ''}</td>
     <td>${esc(x.blockers || '—')}</td>
     <td class="dim">${esc(ago(x.heartbeat) || 'no activity')}</td></tr>
-    <tr class="sub"><td colspan="5" class="dim">${esc(x.stack || '—')}${x.deps.length ? ' · depends on ' + esc(x.deps.join(', ')) : ''}</td></tr>`;
+    <tr class="sub"><td colspan="5" class="dim">${esc(x.stack || '—')}${x.deps.length ? ' · depends on ' + esc(x.deps.join(', ')) : ''}${x.here ? '' : ' · not cloned on this machine'}</td></tr>`;
 
   const tix = (arr, empty) => arr.length ? arr.map(x => `<div class="t ${esc(x.status)}">
       <span class="tag">${esc(x.status)}</span> <b>${esc(x.id)}</b>
