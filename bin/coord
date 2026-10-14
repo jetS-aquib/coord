@@ -101,7 +101,10 @@ const CMDS = {
       acceptance: flags.acceptance, test: flags.test,
     });
     console.log(`${r.id} created (open) -> ${path.relative(P.coord, r.file)}`);
-    console.log(`Tell the human; it does nothing until they run: coord approve ${r.id}`);
+    const filer = L.me();
+    console.log(filer
+      ? `Tell ${filer}; it does nothing until they run: coord approve ${r.id}`
+      : `Tell whoever asked for this; it does nothing until they run: coord approve ${r.id}`);
   },
 
   on() {
@@ -390,7 +393,8 @@ function move(to) {
   const id = (rest.shift() || '').toUpperCase() || die(`usage: coord ${to === 'approved' ? 'approve' : to} <id> [note]`);
   const t = R.transition(id, to, rest.join(' '));
   console.log(`${id}: ${t.from} -> ${to}`);
-  if (to === 'approved') console.log(`${id} is now yours to work on: coord start ${id}`);
+  if (t.onBehalf) console.log(`note: filed by ${t.onBehalf} — recorded as done by ${L.me() || 'you'}`);
+  if (to === 'approved') console.log(`${id} is open to any of us now: coord start ${id}`);
 
   // starting work points the repo at the ticket; every commit then tags itself
   const tk = L.loadTicket(id);

@@ -63,7 +63,7 @@ function addThread(file, who, text) {
 function newTicket({ from, to, title, request, reason, files, acceptance, test }) {
   const who = L.actor();
   const r = L.createWithId(L.TICKET_PREFIX, P.tickets, L.slug(title), id => L.stringify(
-    { id, title, from, to, status: 'open', created: L.nowISO(), updated: L.nowISO(), decisions: [] },
+    { id, title, from, to, filed_by: L.me() || '', status: 'open', created: L.nowISO(), updated: L.nowISO(), decisions: [] },
     ticketBody({ request, reason, files, acceptance, test })));
   addThread(r.file, who, `created ticket, status: - -> open`);
   return r;
@@ -112,13 +112,25 @@ function transition(id, to, note = '') {
   const from = t.fm.status;
   const allowed = L.TRANSITIONS[from] || {};
   if (!allowed[to]) throw new Error(`invalid transition ${from} -> ${to} (allowed: ${Object.keys(allowed).join(', ') || 'none'})`);
-  if (allowed[to] === 'human' && !L.isHuman()) throw new Error(`${from} -> ${to} is the human's call. Ask them to run: coord ${to === 'approved' ? 'approve' : to} ${id}`);
+  // `human` means a person rather than an agent, and specifically the person whose agent
+  // filed the ticket. Someone else may still act, but the thread records that they did.
+  let onBehalf = '';
+  if (allowed[to] === 'human') {
+    const verb = to === 'approved' ? 'approve' : to;
+    const filer = t.fm.filed_by || '';
+    if (!L.isHuman()) {
+      throw new Error(`${from} -> ${to} is a person's call, not an agent's. ` +
+        (filer ? `Ask ${filer} to run: coord ${verb} ${id}` : `Ask whoever asked for this to run: coord ${verb} ${id}`));
+    }
+    const who = L.me();
+    if (filer && who && who !== filer) onBehalf = filer;
+  }
   if (to === 'review' && EMPTY(t.sec['Test steps'])) throw new Error(`${id} needs Test steps filled in before review`);
   const fm = { ...t.fm, status: to, updated: L.nowISO() };
   if (to === 'done' || to === 'rejected') fm.closed = L.day();
   L.atomicWrite(t.file, L.stringify(fm, t.body));
-  addThread(t.file, L.actor(), `status: ${from} -> ${to}${note ? ' — ' + note : ''}`);
-  return { file: t.file, from, to };
+  addThread(t.file, L.actor(), `status: ${from} -> ${to}${onBehalf ? ` (on behalf of ${onBehalf}, who filed it)` : ''}${note ? ' — ' + note : ''}`);
+  return { file: t.file, from, to, onBehalf, filer: t.fm.filed_by || '' };
 }
 
 /* ---------- what was being worked on, and when ---------- */

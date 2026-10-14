@@ -273,7 +273,9 @@ const setState = patch => atomicWrite(P.state, JSON.stringify({ ...state(), ...p
 /* ---------- actor ---------- */
 // Claude's Bash tool is not a TTY; a human in a terminal is. COORD_ACTOR=human overrides for scripts.
 const isHuman = () => process.env.COORD_ACTOR === 'human' || (!!process.stdout.isTTY && process.env.COORD_ACTOR !== 'repo');
-const actor = () => (isHuman() ? 'human' : (repoOf(process.cwd()) || 'platform-root'));
+// Name the person when the roster knows them. An agent runs on its dev's machine, so
+// this resolves to that dev either way — which is what makes "your agent filed it" work.
+const actor = () => me() || (isHuman() ? 'human' : (repoOf(process.cwd()) || 'platform-root'));
 
 /* ---------- templates ---------- */
 const statusTemplate = repo => `# ${repo}

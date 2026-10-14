@@ -91,7 +91,13 @@ function lifecycle() {
   ok('invalid transition open -> review refused', !coord(['review', id]).ok);
 
   r = coord(['approve', id]);
-  ok('approve refused for a repo session (human only)', !r.ok && /human/i.test(r.out), r.out);
+  ok('an agent cannot approve its own ticket', !r.ok && /a person's call, not an agent's/.test(r.out), r.out);
+  ok('and it names who should', !r.ok && /Ask .+ to run: coord approve/.test(r.out), r.out);
+  // before anyone is on the roster there is no filer to record; the field is still there
+  // and an empty one must not lock the ticket, or a fresh board would be unusable
+  ok('the ticket carries a filed_by field', /^filed_by:/m.test(readT(id)), readT(id).split('\n').slice(0, 8).join(' | '));
+  ok('an unknown filer asks for anyone rather than naming nobody',
+    /Ask whoever asked for this/.test(coord(['approve', id]).out), coord(['approve', id]).out);
   r = coord(['approve', id, 'go ahead'], { human: true });
   ok('approve works for the human', r.ok && /status: open -> approved/.test(readT(id)), r.out);
 
@@ -404,6 +410,7 @@ function roster() {
   const board = fs.readFileSync(path.join(CO, 'status', 'alpha.md'), 'utf8');
   ok('status files gained no owner field', !/\*\*(Who|Owner|Dev)/i.test(board));
 
+  onBehalf();
   ok('removing someone is human-only', !coord(['who', '--remove', me]).ok);
   ok('the human can remove someone', coord(['who', '--remove', me], { human: true }).ok);
   ok('and then they are gone from the roster', !coord(['who']).out.includes(me), coord(['who']).out);
@@ -416,6 +423,31 @@ function roster() {
 // A new dev clones only the board and runs one command.
 // Team view and per-person views are served from one process; a person view must never
 // 500 on an unknown name.
+// The requester approves and closes; anyone else may, and the thread says so.
+function onBehalf() {
+  const A = path.join(TMP, 'alpha');
+  const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Filed by one, closed by another'], { cwd: A });
+  const id = (made.out.match(/JET-\d+/) || [])[0];
+  const filer = (/^filed_by: (.+)$/m.exec(readT(id)) || [])[1];
+  ok('the filer is recorded on the ticket', !!filer, readT(id).split('\n').slice(0, 8).join(' | '));
+
+  coord(['approve', id], { human: true });
+  coord(['start', id], { cwd: path.join(TMP, 'beta') });
+  const d = path.join(CO, 'tickets'), f = fs.readdirSync(d).find(x => x.startsWith(id + '-'));
+  fs.writeFileSync(path.join(d, f), fs.readFileSync(path.join(d, f), 'utf8')
+    .replace(/## Test steps\n\n—/, '## Test steps\n\n1. check it'));
+  coord(['review', id], { cwd: path.join(TMP, 'beta') });
+
+  // someone else closes it: allowed, but written down
+  const other = cp.spawnSync(process.execPath, [COORD_BIN, 'done', id], {
+    cwd: TMP, encoding: 'utf8',
+    env: { ...process.env, COORD_ROOT: CO, COORD_ACTOR: 'human', COORD_TEST_ME: 'Someone Else' },
+  });
+  const thread = readT(id);
+  ok('a different person may still act on it', /status: review -> done/.test(thread), thread.slice(-200));
+  ok('the thread records the filer either way', thread.includes(filer), thread.slice(-200));
+}
+
 function dashboardViews(me) {
   const port = 4800 + (process.pid % 300);
   const srv = cp.spawn(process.execPath, [path.join(__dirname, '..', 'dashboard', 'server.js'), String(port)], {
