@@ -62,7 +62,7 @@ function addThread(file, who, text) {
 /* ---------- create ---------- */
 function newTicket({ from, to, title, request, reason, files, acceptance, test }) {
   const who = L.actor();
-  const r = L.createWithId('T', P.tickets, L.slug(title), id => L.stringify(
+  const r = L.createWithId(L.TICKET_PREFIX, P.tickets, L.slug(title), id => L.stringify(
     { id, title, from, to, status: 'open', created: L.nowISO(), updated: L.nowISO(), decisions: [] },
     ticketBody({ request, reason, files, acceptance, test })));
   addThread(r.file, who, `created ticket, status: - -> open`);
@@ -129,7 +129,7 @@ function ticketsActiveAt(repo, when) {
   const t = new Date(when).getTime();
   if (!isFinite(t)) return [];
   const out = [];
-  for (const dir of L.idDirs('T')) for (const f of L.lsMd(dir)) {
+  for (const dir of L.idDirs(L.TICKET_PREFIX)) for (const f of L.lsMd(dir)) {
     const { fm, body } = L.parse(L.read(path.join(dir, f)));
     if (fm.to !== repo && fm.from !== repo) continue;
     const moves = [...(L.sections(body).Thread || '').matchAll(/^(\S+) .*?status: (\S+) -> (\S+)/gm)]
@@ -203,7 +203,7 @@ function check() {
   }
 
   // tickets (active + archived, so links resolve either way)
-  for (const dir of L.idDirs('T')) for (const f of L.lsMd(dir)) {
+  for (const dir of L.idDirs(L.TICKET_PREFIX)) for (const f of L.lsMd(dir)) {
     const file = path.join(dir, f), where = path.relative(P.coord, file);
     const { fm, body } = L.parse(L.read(file));
     const sec = L.sections(body);

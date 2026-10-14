@@ -22,6 +22,12 @@ const P = {
   people: path.join(COORD, 'people.json'),
 };
 
+// The repos already carry `JET-nnn` tags in comments — a documented convention
+// ("issue tags mark why code exists"). coord continues that series rather than
+// inventing a second one.
+const TICKET_PREFIX = 'JET';
+const TICKET_RE = new RegExp(`${TICKET_PREFIX}-\\d+`, 'g');
+
 const TICKET_STATUS = ['open', 'approved', 'in_progress', 'review', 'done', 'rejected'];
 const REPO_STATUS = ['working', 'blocked', 'waiting on human', 'idle'];
 // who may drive each transition; `human` is enforced by requireHuman()
@@ -164,7 +170,7 @@ const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, 
 
 /* ---------- ids ---------- */
 function idDirs(kind) {
-  const dirs = kind === 'T'
+  const dirs = kind === TICKET_PREFIX
     ? [P.tickets, ...ls(path.join(P.archive, 'tickets')).map(d => path.join(P.archive, 'tickets', d))]
     : [P.decisions];
   return dirs.filter(exists);
@@ -174,7 +180,41 @@ function nextNum(kind) {
   const re = new RegExp(`^${kind}-(\\d+)`);
   for (const d of idDirs(kind)) for (const f of ls(d)) { const m = re.exec(f); if (m) max = Math.max(max, +m[1]); }
   for (const m of read(path.join(P.archive, 'tickets-index.md')).matchAll(new RegExp(`${kind}-(\\d+)`, 'g'))) max = Math.max(max, +m[1]);
+  if (kind === TICKET_PREFIX) max = Math.max(max, codeMaxTicket());   // never reuse an id the code already cites
   return max + 1;
+}
+
+// Highest JET-nnn appearing anywhere in the repos' source. Keeps new ids clear of the
+// 646 references already in comments, and self-corrects if someone cites a higher one.
+function codeMaxTicket() {
+  let max = 0;
+  for (const r of repos()) {
+    const g = sh('grep', ['-rhoE', `${TICKET_PREFIX}-[0-9]+`, '--include=*.ts', '--include=*.tsx',
+      '--include=*.js', '--include=*.jsx', '--include=*.mjs', '--include=*.md', '--exclude-dir=node_modules',
+      '--exclude-dir=.git', '--exclude-dir=dist', '--exclude-dir=.next', '.'], path.join(P.root, r));
+    if (!g.ok) continue;
+    for (const line of g.out.split('\n')) {
+      const n = Number(line.split('-')[1]);
+      if (isFinite(n)) max = Math.max(max, n);
+    }
+  }
+  return max;
+}
+
+// Every place in the repos that cites a ticket id, with the line it sits on.
+function codeRefs(id) {
+  const out = [];
+  for (const r of repos()) {
+    const g = sh('grep', ['-rnoE', `.{0,90}${id}\\b.{0,40}`, '--include=*.ts', '--include=*.tsx',
+      '--include=*.js', '--include=*.jsx', '--include=*.mjs', '--include=*.md', '--exclude-dir=node_modules',
+      '--exclude-dir=.git', '--exclude-dir=dist', '--exclude-dir=.next', '.'], path.join(P.root, r));
+    if (!g.ok || !g.out) continue;
+    for (const line of g.out.split('\n')) {
+      const m = /^\.?\/?(.+?):(\d+):(.*)$/.exec(line);
+      if (m) out.push({ repo: r, file: m[1], line: +m[2], text: m[3].trim() });
+    }
+  }
+  return out;
 }
 // Allocate + create in one shot: 'wx' fails if the file exists, so two writers can never land on one id.
 function createWithId(kind, dir, titleSlug, content) {
@@ -192,7 +232,7 @@ const pad3 = n => String(n).padStart(3, '0');
 
 /* ---------- lookup ---------- */
 function findTicket(id, { archived = true } = {}) {
-  const dirs = [P.tickets, ...(archived ? idDirs('T').slice(1) : [])];
+  const dirs = [P.tickets, ...(archived ? idDirs(TICKET_PREFIX).slice(1) : [])];
   for (const d of dirs) for (const f of lsMd(d)) if (f.startsWith(id + '-')) return path.join(d, f);
   return null;
 }
@@ -343,4 +383,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

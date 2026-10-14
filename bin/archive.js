@@ -50,7 +50,7 @@ function summarize(month, dir, files) {
     const [, repo] = line.split('\t');
     if (!repo) continue;
     perRepo[repo] = (perRepo[repo] || 0) + 1;
-    for (const m of line.matchAll(/T-\d+/g)) tickets.add(m[0]);
+    for (const m of line.matchAll(new RegExp(L.TICKET_RE.source, 'g'))) tickets.add(m[0]);
   }
   const rows = Object.entries(perRepo).sort((a, b) => b[1] - a[1]).map(([r, n]) => `| ${r} | ${n} |`);
   return `# Activity ${month}\n\nArchived ${files.length} daily log(s) into ${month}.tar.gz.\n\n| repo | events |\n| --- | --- |\n${rows.join('\n')}\n\nTickets touched: ${[...tickets].sort().join(', ') || '—'}\n`;

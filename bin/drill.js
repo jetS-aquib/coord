@@ -83,7 +83,7 @@ function lifecycle() {
   let r = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Add /v1/jobs endpoint',
     '--request', 'Expose GET /v1/jobs returning {id,state}.', '--reason', 'alpha cannot poll job state.',
     '--files', 'src/api/jobs.js'], { cwd: path.join(TMP, 'alpha') });
-  const id = (r.out.match(/T-\d+/) || [])[0];
+  const id = (r.out.match(/JET-\d+/) || [])[0];
   ok('coord new creates a ticket in status open', r.ok && !!id && /status: - -> open/.test(readT(id)), r.out);
 
   ok('bad repo name refused', !coord(['new', '--from', 'nope', '--to', 'beta', '--title', 'x']).ok);
@@ -219,7 +219,7 @@ function guard() {
   denies('guard blocks hand-editing repos.json', A, 'Write', { file_path: path.join(CO, 'repos.json') }, 'written only by the CLI');
   denies('guard blocks hand-editing people.json', A, 'Write', { file_path: path.join(CO, 'people.json') }, 'written only by the CLI');
   denies('guard blocks editing a decision record', A, 'Edit', { file_path: path.join(CO, 'decisions', 'D-001-x.md') }, 'immutable');
-  allows('guard allows editing a ticket', A, 'Edit', { file_path: path.join(CO, 'tickets', 'T-001-x.md') });
+  allows('guard allows editing a ticket', A, 'Edit', { file_path: path.join(CO, 'tickets', 'JET-001-x.md') });
 
   // contract ownership
   fs.mkdirSync(path.join(CO, 'contracts'), { recursive: true });
@@ -276,7 +276,7 @@ function team() {
 
   // teammate files a ticket and pushes; we sync and see it
   const made = asMate(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Teammate ticket from Copilot']);
-  const tid = (made.out.match(/T-\d+/) || [])[0];
+  const tid = (made.out.match(/JET-\d+/) || [])[0];
   ok('a teammate can file a ticket from their clone', made.ok && !!tid, made.out);
   asMate(['sync']);
   const s2 = coord(['sync']);
@@ -313,7 +313,7 @@ function team() {
   // silent by default: prepare-commit-msg already adds the ID when one is known, and a
   // genuinely ticket-less commit is normal. Nagging every time was the friction.
   ok('commit-msg says nothing about a message with no ticket', h.status === 0 && !h.stderr.trim(), h.stderr);
-  fs.writeFileSync(msg, 'T-042: fix the thing\n');
+  fs.writeFileSync(msg, 'JET-042: fix the thing\n');
   ok('commit-msg is quiet for a ticket-prefixed message', runHook().status === 0 && !runHook().stderr.trim());
   fs.writeFileSync(msg, 'no-ticket: typo\n');
   ok('commit-msg accepts the no-ticket escape hatch', runHook().status === 0);
@@ -327,9 +327,9 @@ function team() {
   // post-commit puts a Copilot dev's work on the board without any editor hook
   fs.writeFileSync(path.join(A, 'feature.js'), 'module.exports = 1;\n');
   git(['add', '-A'], A);
-  git(['commit', '-q', '-m', 'T-042: add the feature'], A);
+  git(['commit', '-q', '-m', 'JET-042: add the feature'], A);
   const log = fs.readFileSync(path.join(CO, 'activity', `${today}.log`), 'utf8');
-  ok('post-commit records the commit on the board', /\talpha\tcommit\t[^\t]*\t\w+ T-042: add the feature/.test(log),
+  ok('post-commit records the commit on the board', /\talpha\tcommit\t[^\t]*\t\w+ JET-042: add the feature/.test(log),
     log.trim().split('\n').slice(-2).join(' | '));
   ok('check is still clean after all the syncing', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 
@@ -451,7 +451,7 @@ function dashboardViews(me) {
 
     // aging only applies to live columns, so make a fresh ticket and backdate its thread
     const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Aging card for the board']);
-    const newId = (made.out.match(/T-\d+/) || [])[0];
+    const newId = (made.out.match(/JET-\d+/) || [])[0];
     const live = newId && fs.readdirSync(path.join(CO, 'tickets')).find(f => f.startsWith(newId + '-'));
     if (live) {
       const f = path.join(CO, 'tickets', live);
@@ -470,7 +470,7 @@ function noTyping() {
 
   // assistant files it, human approves — the dev has done nothing
   const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Hands-free ticket'], { cwd: A });
-  const id = (made.out.match(/T-\d+/) || [])[0];
+  const id = (made.out.match(/JET-\d+/) || [])[0];
   coord(['approve', id], { human: true });
 
   // the dev simply starts editing
@@ -501,10 +501,10 @@ function noTyping() {
   // two approved tickets for one repo: guessing would be worse than doing nothing
   fs.rmSync(path.join(B, '.git', 'coord-ticket'), { force: true });
   const m2 = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Second candidate'], { cwd: A });
-  const id2 = (m2.out.match(/T-\d+/) || [])[0];
+  const id2 = (m2.out.match(/JET-\d+/) || [])[0];
   coord(['approve', id2], { human: true });
   const m3 = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Third candidate'], { cwd: A });
-  const id3 = (m3.out.match(/T-\d+/) || [])[0];
+  const id3 = (m3.out.match(/JET-\d+/) || [])[0];
   coord(['approve', id3], { human: true });
   cp.spawnSync(process.execPath, [HOOK, 'edit'], {
     input: JSON.stringify({ cwd: B, tool_input: { file_path: path.join(B, 'amb.js') } }),
@@ -519,11 +519,22 @@ function noTyping() {
   ok('coord why falls back to what was open at the time',
     w.ok && /a guess from timing/.test(w.out) && /this repo asked for it|work for this repo/.test(w.out), w.out);
 
-  ok('coord on reports what the repo is tagged with', /no current ticket|is on T-/.test(coord(['on'], { cwd: B }).out));
+  ok('coord on reports what the repo is tagged with', /no current ticket|is on JET-/.test(coord(['on'], { cwd: B }).out));
   coord(['on', id], { cwd: B });
   ok('coord on sets it by hand when you want to', fs.existsSync(path.join(B, '.git', 'coord-ticket')));
   coord(['on', '--clear'], { cwd: B });
   ok('coord on --clear removes it', !fs.existsSync(path.join(B, '.git', 'coord-ticket')));
+
+  // ids continue the series the code already cites, never collide with it
+  fs.writeFileSync(path.join(B, 'legacy.ts'), '// JET-900 explains this\nexport const q = 1;\n');
+  const after = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'After a high code reference'], { cwd: A });
+  const afterId = (after.out.match(/JET-(\d+)/) || [])[0];
+  ok('a new ticket never reuses an id the code already cites',
+    !!afterId && Number(afterId.split('-')[1]) > 900, after.out);
+  ok('coord show finds an id that only exists in code',
+    /no ticket file/.test(coord(['show', 'JET-900']).out) && /legacy\.ts/.test(coord(['show', 'JET-900']).out),
+    coord(['show', 'JET-900']).out.slice(0, 200));
+  fs.rmSync(path.join(B, 'legacy.ts'));
   ok('check is clean after all of it', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 }
 

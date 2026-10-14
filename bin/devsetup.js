@@ -17,7 +17,7 @@ const commitMsg = () => `#!/bin/sh
 #   coord devsetup --strict        (or export COORD_STRICT=1)
 MSG=$(head -1 "$1")
 case "$MSG" in
-  T-[0-9]*:*|no-ticket:*|Merge\\ *|Revert\\ *|fixup!*|squash!*|amend!*) exit 0 ;;
+  JET-[0-9]*:*|no-ticket:*|Merge\\ *|Revert\\ *|fixup!*|squash!*|amend!*) exit 0 ;;
 esac
 
 STRICT=0
@@ -27,7 +27,7 @@ STRICT=0
 # Default is silent: prepare-commit-msg already added the ID when it knew one, and a
 # commit with no ticket is a normal thing. coord why falls back to time-matching.
 if [ "$STRICT" = "1" ]; then
-  printf '\\n  coord: REJECTED — no ticket ID.\\n  Use "T-042: %s" or "no-ticket: %s"\\n\\n' "$MSG" "$MSG" >&2
+  printf '\\n  coord: REJECTED — no ticket ID.\\n  Use "JET-193: %s" or "no-ticket: %s"\\n\\n' "$MSG" "$MSG" >&2
   exit 1
 fi
 exit 0
@@ -43,7 +43,7 @@ case "$SOURCE" in merge|squash) exit 0 ;; esac
 
 FIRST=$(head -1 "$MSGFILE")
 case "$FIRST" in
-  T-[0-9]*:*|no-ticket:*|Merge\\ *|Revert\\ *|fixup!*|squash!*|amend!*) exit 0 ;;
+  JET-[0-9]*:*|no-ticket:*|Merge\\ *|Revert\\ *|fixup!*|squash!*|amend!*) exit 0 ;;
 esac
 
 TICKET=$(cat "$(dirname "$0")/../coord-ticket" 2>/dev/null | tr -d '[:space:]')
@@ -90,12 +90,15 @@ function copilotDoc(repo) {
     `  \`coord new --from ${repo} --to <repo> --title "..."\``,
     '  It does nothing until a human approves it.',
     `- Only act on a ticket addressed to ${repo} after a human has approved it.`,
-    '- **Every commit message starts with the ticket ID** — `T-042: add GET /v1/jobs` — or',
+    '- **Every commit message starts with the ticket ID** — `JET-193: add GET /v1/jobs` — or',
     '  `no-ticket: <reason>`. A git hook reminds you. This is what lets',
     '  `coord why <file>:<line>` explain a line months from now.',
     '- Record a decision for cross-repo changes, contract changes, new dependencies, real',
     '  choices between alternatives, and security tradeoffs:',
     `  \`coord decide --title "..." --repos ${repo}\``,
+    '',
+    'The `JET-nnn` tags already scattered through this codebase mark why code exists.',
+    '`coord show JET-154` finds every place one is cited. New tickets continue that series.',
     ...(contracts.length ? [
       '',
       `## Contracts ${repo} owns`,
@@ -116,7 +119,7 @@ function copilotDoc(repo) {
     '',
     '```',
     'coord list              what is open',
-    'coord show T-042        one ticket in full',
+    'coord show JET-193      one ticket in full (works for the JET-nnn tags already in code)',
     'coord why src/x.ts:88   why is this line like this',
     'coord sync              pull and push the board',
     '```',
@@ -132,7 +135,7 @@ const agentsSection = () => [
   '',
   'This repo is part of the jetKreate platform. Never edit another repo; file a ticket with',
   '`coord new` instead (the `jetkreate-coord` repo, cloned beside this one). Commit messages',
-  'start with `T-nnn:` or `no-ticket:`. See `.github/copilot-instructions.md` for the full set.',
+  'start with `JET-nnn:` or `no-ticket:`. See `.github/copilot-instructions.md` for the full set.',
   AGENTS_END,
   '',
 ].join('\n');

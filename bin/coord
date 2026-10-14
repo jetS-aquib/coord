@@ -62,11 +62,30 @@ const CMDS = {
   },
 
   show() {
-    const id = rest[0] || die('usage: coord show <id>');
-    const f = /^D-/i.test(id) ? L.findDecision(id.toUpperCase()) : L.findTicket(id.toUpperCase());
-    if (!f) die(`not found: ${id}`);
-    console.log(`# ${path.relative(P.coord, f)}\n`);
-    console.log(L.read(f));
+    const id = (rest[0] || die('usage: coord show <id>')).toUpperCase();
+    const f = /^D-/i.test(id) ? L.findDecision(id) : L.findTicket(id);
+    if (f) {
+      console.log(`# ${path.relative(P.coord, f)}\n`);
+      return console.log(L.read(f));
+    }
+    // No ticket file. The id may still be one of the JET-nnn tags already in the code —
+    // show where it is cited rather than claiming it does not exist.
+    if (new RegExp(`^${L.TICKET_PREFIX}-\\d+$`).test(id)) {
+      const refs = L.codeRefs(id);
+      if (refs.length) {
+        console.log(`${id}  —  no ticket file; ${refs.length} reference(s) in code\n`);
+        let repo = null;
+        for (const r of refs.slice(0, 25)) {
+          if (r.repo !== repo) { console.log(`  ${r.repo}`); repo = r.repo; }
+          console.log(`    ${r.file}:${r.line}`);
+          if (r.text) console.log(`      ${r.text.slice(0, 100)}`);
+        }
+        if (refs.length > 25) console.log(`    ...and ${refs.length - 25} more`);
+        console.log(`\nNothing records why. To give it a home: coord new --from <repo> --to <repo> --title "..."`);
+        return;
+      }
+    }
+    die(`not found: ${id}`);
   },
 
   new() {
@@ -149,7 +168,7 @@ const CMDS = {
     console.log(`commit ${short}  ${author}  ${date}`);
     console.log(`  ${subject}\n`);
 
-    const ids = [...new Set([subject, ...bodyLines].join('\n').match(/T-\d+/g) || [])];
+    const ids = [...new Set([subject, ...bodyLines].join('\n').match(new RegExp(L.TICKET_RE.source, 'g')) || [])];
     if (!ids.length) {
       if (/^no-ticket:/i.test(subject)) return console.log(`No ticket: the commit says "${subject}".`);
       // No ID in the message — fall back to what was live for this repo at that moment.
@@ -182,7 +201,7 @@ const CMDS = {
   search() {
     const q = rest.join(' ').toLowerCase() || die('usage: coord search <text>');
     const targets = [
-      ...L.idDirs('T').flatMap(d => L.lsMd(d).map(f => path.join(d, f))),
+      ...L.idDirs(L.TICKET_PREFIX).flatMap(d => L.lsMd(d).map(f => path.join(d, f))),
       ...L.lsMd(P.decisions).map(f => path.join(P.decisions, f)),
       path.join(P.archive, 'tickets-index.md'),
       ...L.ls(path.join(P.archive, 'activity')).filter(f => f.endsWith('-summary.md')).map(f => path.join(P.archive, 'activity', f)),
