@@ -25,6 +25,19 @@
       ],
       "onboarded": "2026-10-14",
       "status": "active"
+    },
+    {
+      "name": "creater-ai-frontend",
+      "path": "creater-ai-frontend",
+      "stack": "npm",
+      "contracts": [
+        "+"
+      ],
+      "depends_on": [
+        "TypeScript + React + Vite + Redux Toolkit  creater-ai-backend"
+      ],
+      "onboarded": "2026-10-14",
+      "status": "active"
     }
   ]
 }
