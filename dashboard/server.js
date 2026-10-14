@@ -20,12 +20,13 @@ const tickets = () => L.lsMd(P.tickets).map(f => L.parse(L.read(path.join(P.tick
 
 function board() {
   const beat = L.lastActivityPerRepo();
-  L.ensureStatusFiles();
-  return L.repos().map(r => {
+  L.ensureStatusFiles();                         // onboarded repos only
+  return L.onboarded().map(r => {
     const s = L.readStatus(r);
     const last = beat[r];
     const mins = last ? (Date.now() - new Date(last).getTime()) / 60000 : Infinity;
-    return { ...s, heartbeat: last, stale: s.status === 'working' && mins > STALE_MIN };
+    const e = L.regGet(r) || {};
+    return { ...s, heartbeat: last, stale: s.status === 'working' && mins > STALE_MIN, stack: e.stack, deps: e.depends_on || [] };
   });
 }
 
@@ -47,7 +48,8 @@ function page() {
     <td><b>${esc(x.repo)}</b></td><td>${esc(x.task || '—')}</td>
     <td class="s s-${esc(x.status).replace(/\s+/g, '-')}">${esc(x.status)}${x.stale ? ' <span class="stale">STALE</span>' : ''}</td>
     <td>${esc(x.blockers || '—')}</td>
-    <td class="dim">${esc(ago(x.heartbeat) || 'no activity')}</td></tr>`;
+    <td class="dim">${esc(ago(x.heartbeat) || 'no activity')}</td></tr>
+    <tr class="sub"><td colspan="5" class="dim">${esc(x.stack || '—')}${x.deps.length ? ' · depends on ' + esc(x.deps.join(', ')) : ''}</td></tr>`;
 
   const tix = (arr, empty) => arr.length ? arr.map(x => `<div class="t ${esc(x.status)}">
       <span class="tag">${esc(x.status)}</span> <b>${esc(x.id)}</b>
@@ -71,6 +73,7 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;opacity:.5}
 .t.open{border-color:#f59e0b}.t.review{border-color:#a855f7}.t.in_progress{border-color:#3b82f6}
 .t.approved{border-color:#3b82f6}.t.done{border-color:#22c55e}.t.rejected{border-color:#ef4444}
 .tag{text-transform:uppercase;font-size:.68rem;letter-spacing:.08em;opacity:.75}
+.sub td{border:0;padding-top:0;font-size:.75rem}code{opacity:.8}
 .dim{opacity:.55}pre{white-space:pre-wrap;font-size:.8rem;opacity:.8;margin:0}
 </style></head><body>
 <h1>jetKreate</h1>
@@ -78,6 +81,11 @@ ${errs.length ? `<div class="banner"><b>coord check found ${errs.length} problem
 
 <h2>Board</h2>
 <table><tr><th>Repo</th><th>Current task</th><th>Status</th><th>Blockers</th><th>Last activity</th></tr>${board().map(row).join('')}</table>
+
+${(() => { const d = L.discovered(), off = L.offboarded();
+  if (!d.length && !off.length) return '';
+  return `<h2>Not onboarded</h2>${d.map(r => `<div class="t open"><span class="tag">discovered</span> <b>${esc(r)}</b> <span class="dim">a git repo with no registry entry — run <code>coord onboard ${esc(r)} --preflight</code>, or say "onboard ${esc(r)}"</span></div>`).join('')}${off.map(r => `<div class="t rejected"><span class="tag">offboarded</span> <b>${esc(r)}</b> <span class="dim">history kept in archive/</span></div>`).join('')}`;
+})()}
 
 <h2>Waiting on you — ${waiting.length}</h2>${tix(waiting, 'Nothing needs your call.')}
 <h2>In flight — ${active.length}</h2>${tix(active, 'Nothing in progress.')}

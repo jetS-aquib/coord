@@ -18,6 +18,14 @@ function main() {
 
   const repo = L.repoOf(cwd) || 'platform-root';
 
+  // A git repo that is not in the registry gets one breadcrumb a day and nothing else:
+  // no status file, no snapshot, no edit trail.
+  if (repo !== 'platform-root' && !L.isOnboarded(repo)) {
+    const mark = `${repo}: discovered, not onboarded`;
+    if (!L.read(L.activityFile()).includes(mark)) L.logActivity(repo, mark);
+    return;
+  }
+
   if (EVENT === 'edit') {
     const f = data.tool_input && data.tool_input.file_path;
     if (!f) return;

@@ -34,6 +34,7 @@ function run() {
     const did = decision(id);
     commitAndWhy(id, did);
     hooks(id);
+    onboarding();
     archiving(id);
     superseding(did);
     ok('coord check reports no errors', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
@@ -56,10 +57,16 @@ function setup() {
   fs.mkdirSync(path.join(TMP, 'not-a-repo'));
   git(['init', '-q'], CO); git(['config', 'user.email', 'd@d'], CO); git(['config', 'user.name', 'drill'], CO);
 
-  coord(['list']);                                   // triggers ensureStatusFiles
+  coord(['list']);
+  ok('discovered repos get no status file', !fs.existsSync(path.join(CO, 'status')) || !fs.readdirSync(path.join(CO, 'status')).length,
+    fs.existsSync(path.join(CO, 'status')) ? fs.readdirSync(path.join(CO, 'status')).join(' ') : '');
+  ok('both fake repos listed as discovered', /discovered, not onboarded \(2\)/.test(coord(['repos']).out), coord(['repos']).out);
+
+  for (const r of ['alpha', 'beta']) coord(['onboard', r, '--apply', '--stack', 'fixture'], { human: true });
   const st = fs.readdirSync(path.join(CO, 'status'));
-  ok('two fake repos discovered, status files auto-created', st.length === 2 && st.includes('alpha.md') && st.includes('beta.md'), st.join(' '));
-  ok('non-repo folder ignored', !st.includes('not-a-repo.md'));
+  ok('onboarding creates status files', st.length === 2 && st.includes('alpha.md') && st.includes('beta.md'), st.join(' '));
+  ok('non-repo folder never appears', !st.includes('not-a-repo.md'));
+  ok('tickets refused for an unregistered repo', !coord(['new', '--from', 'alpha', '--to', 'ghost', '--title', 'x']).ok);
 }
 
 function lifecycle() {
@@ -157,6 +164,63 @@ function hooks(id) {
   ok('hook survives garbage input, exits 0, prints nothing', r.status === 0 && !r.stdout && !r.stderr);
   ok('no hook errors logged', !fs.existsSync(path.join(CO, 'activity', 'hook-errors.log')),
     fs.existsSync(path.join(CO, 'activity', 'hook-errors.log')) ? fs.readFileSync(path.join(CO, 'activity', 'hook-errors.log'), 'utf8') : '');
+}
+
+function onboarding() {
+  const name = 'gamma', dir = path.join(TMP, name);
+  fs.mkdirSync(dir);
+  git(['init', '-q'], dir); git(['config', 'user.email', 'd@d'], dir); git(['config', 'user.name', 'drill'], dir);
+  fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({
+    name: '@fixture/gamma', dependencies: { express: '^4' }, scripts: { test: 'vitest', build: 'tsc' },
+  }));
+  fs.mkdirSync(path.join(dir, 'src'));
+  fs.writeFileSync(path.join(dir, 'src', 'routes.js'),
+    "router.get('/api/gamma/items', h);\nrouter.post('/api/gamma/items', h);\nconst base = process.env.ALPHA_URL;\n");
+  fs.writeFileSync(path.join(dir, 'src', 'client.js'), "fetch(process.env.ALPHA_URL + '/api/jobs');\n// talks to alpha\n");
+
+  ok('new repo shows up as discovered', /discovered, not onboarded \(1\)[\s\S]*gamma/.test(coord(['repos']).out), coord(['repos']).out);
+  ok('no status file for the discovered repo', !fs.existsSync(path.join(CO, 'status', 'gamma.md')));
+
+  const before = fs.readdirSync(path.join(CO, 'status')).length;
+  const pre = coord(['onboard', name, '--preflight'], { cwd: dir });
+  ok('preflight passes validation', pre.ok && /validation: passed/.test(pre.out), pre.out);
+  ok('preflight detects the stack', /Express/.test(pre.out) && /package manager: npm|package manager: unknown/.test(pre.out), pre.out);
+  ok('preflight finds the candidate contract', /\/api\/gamma/.test(pre.out), pre.out);
+  ok('preflight changes nothing', fs.readdirSync(path.join(CO, 'status')).length === before && !fs.existsSync(path.join(CO, 'status', 'gamma.md')));
+
+  const ap = coord(['onboard', name, '--apply', '--stack', 'npm + Express', '--contracts', '/api/gamma', '--depends-on', 'alpha'], { human: true });
+  ok('apply onboards the repo', ap.ok && fs.existsSync(path.join(CO, 'status', 'gamma.md')), ap.out);
+  const entry = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === name);
+  ok('registry entry is complete', !!entry && entry.status === 'active' && entry.contracts[0] === '/api/gamma' && entry.depends_on[0] === 'alpha' && !!entry.onboarded, JSON.stringify(entry));
+  ok('.git/info/exclude got the local-only entries',
+    /\.serena\//.test(fs.readFileSync(path.join(dir, '.git', 'info', 'exclude'), 'utf8')) &&
+    /CLAUDE\.local\.md/.test(fs.readFileSync(path.join(dir, '.git', 'info', 'exclude'), 'utf8')));
+  ok('onboarding touched no tracked file in the repo', git(['status', '--porcelain'], dir).stdout.includes('package.json'));
+  ok('re-onboarding an active repo refused', !coord(['onboard', name, '--apply'], { human: true }).ok);
+
+  // it now behaves like a real member
+  const hres = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
+    input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  const log = fs.readFileSync(path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`), 'utf8');
+  ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start/.test(log) && !/gamma: discovered/.test(log));
+  ok('tickets can be filed at it', coord(['new', '--from', 'alpha', '--to', name, '--title', 'gamma please'], { cwd: path.join(TMP, 'alpha') }).ok);
+  ok('check is clean after onboarding', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
+
+  // offboard: history survives
+  ok('offboard refused without --yes', !coord(['offboard', name], { human: true }).ok);
+  ok('offboard refused for a repo session', !coord(['offboard', name, '--yes']).ok);
+  const off = coord(['offboard', name, '--yes'], { human: true });
+  const e2 = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === name);
+  ok('offboard marks the registry entry', off.ok && e2.status === 'offboarded' && !!e2.offboarded, off.out);
+  ok('status file archived, not deleted',
+    !fs.existsSync(path.join(CO, 'status', 'gamma.md')) && fs.existsSync(path.join(CO, 'archive', 'status', 'gamma.md')));
+  ok('its open ticket archived with a flag',
+    /gamma please.*was open at offboarding/.test(fs.readFileSync(path.join(CO, 'archive', 'tickets-index.md'), 'utf8')));
+  ok('decisions untouched by offboarding', fs.readdirSync(path.join(CO, 'decisions')).length >= 2);
+  ok('offboarded repo listed as such', /offboarded \(1\)[\s\S]*gamma/.test(coord(['repos']).out), coord(['repos']).out);
+  ok('repo files untouched by offboarding', fs.existsSync(path.join(dir, 'src', 'routes.js')));
+  ok('check still clean after offboarding', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 }
 
 function archiving(id) {
