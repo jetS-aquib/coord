@@ -184,6 +184,7 @@ const statusTemplate = repo => `# ${repo}
 `;
 
 function ensureStatusFiles() {
+  for (const d of [P.status, P.tickets, P.decisions, P.contracts, P.activity, P.archive]) fs.mkdirSync(d, { recursive: true });
   const made = [];
   for (const r of repos()) {
     const f = path.join(P.status, `${r}.md`);

@@ -1,76 +1,99 @@
-// Read-only coordination dashboard. No deps. localhost only.
+'use strict';
+// Read-only coordination dashboard. No deps, localhost only, GET only.
 //   node .coord/dashboard/server.js [port]
-const http = require('http'), fs = require('fs'), path = require('path');
+const http = require('http'), path = require('path');
+const L = require('../bin/lib.js'), R = require('../bin/rules.js');
+const { P } = L;
 
-const COORD = path.resolve(__dirname, '..');
-const ROOT = path.resolve(COORD, '..');
 const PORT = Number(process.argv[2] || process.env.PORT || 4747);
+const STALE_MIN = 30;
 
-const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-const read = f => { try { return fs.readFileSync(f, 'utf8'); } catch { return ''; } };
+const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const ago = iso => {
+  if (!iso) return null;
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (!isFinite(m)) return null;
+  return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.floor(m / 60)}h ago` : `${Math.floor(m / 1440)}d ago`;
+};
 
-const repos = () => fs.readdirSync(ROOT, { withFileTypes: true })
-  .filter(d => d.isDirectory() && fs.existsSync(path.join(ROOT, d.name, '.git')))
-  .map(d => d.name).sort();
+const tickets = () => L.lsMd(P.tickets).map(f => L.parse(L.read(path.join(P.tickets, f))).fm);
 
 function board() {
-  const rows = new Map();
-  for (const line of read(path.join(COORD, 'board.md')).split('\n')) {
-    if (!line.trim().startsWith('|')) continue;
-    const c = line.split('|').slice(1, -1).map(s => s.trim());
-    if (c.length < 4 || /^:?-{2,}/.test(c[0]) || c[0].toLowerCase() === 'repo') continue;
-    rows.set(c[0], c.slice(0, 4));
-  }
-  for (const r of repos()) if (!rows.has(r)) rows.set(r, [r, '—', '—', '—']); // new repo, no setup needed
-  return [...rows.values()];
-}
-
-function messages() {
-  const dir = path.join(COORD, 'messages');
-  let files = [];
-  try { files = fs.readdirSync(dir).filter(f => f.endsWith('.md') && !f.startsWith('_')); } catch {}
-  const msgs = files.map(f => {
-    const txt = read(path.join(dir, f));
-    const field = k => (txt.match(new RegExp('^' + k + ':\\s*(.*)$', 'mi')) || [, ''])[1].trim();
-    return { file: f, status: (field('Status') || 'pending').toLowerCase(), from: field('From'), to: field('To'), request: field('Request'), reason: field('Reason'), files: field('Related files') };
+  const beat = L.lastActivityPerRepo();
+  L.ensureStatusFiles();
+  return L.repos().map(r => {
+    const s = L.readStatus(r);
+    const last = beat[r];
+    const mins = last ? (Date.now() - new Date(last).getTime()) / 60000 : Infinity;
+    return { ...s, heartbeat: last, stale: s.status === 'working' && mins > STALE_MIN };
   });
-  const rank = s => (s === 'pending' ? 0 : 1);
-  return msgs.sort((a, b) => rank(a.status) - rank(b.status) || b.file.localeCompare(a.file));
 }
-
-const activity = () => read(path.join(COORD, 'activity.log')).trimEnd().split('\n').filter(Boolean).slice(-50).reverse();
 
 function page() {
-  const b = board().map(r => `<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="s s-${esc(r[2]).replace(/\s+/g, '-')}">${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('');
-  const m = messages().map(x => `<div class="msg ${esc(x.status)}">
-    <div class="hd"><span class="tag">${esc(x.status)}</span> <b>${esc(x.from)}</b> → <b>${esc(x.to)}</b> <span class="fn">${esc(x.file)}</span></div>
-    <div>${esc(x.request)}</div>
-    <div class="dim">${esc(x.reason)}</div>
-    <div class="dim">${esc(x.files)}</div></div>`).join('') || '<p class="dim">No messages.</p>';
+  const probs = R.check();                       // ponytail: re-run per request; fine at this tree size
+  const errs = probs.filter(p => p.level === 'error');
+  const t = tickets();
+  const waiting = t.filter(x => ['open', 'review'].includes(x.status));
+  const active = t.filter(x => ['approved', 'in_progress'].includes(x.status));
+  const closed = t.filter(x => ['done', 'rejected'].includes(x.status))
+    .sort((a, b) => String(b.updated).localeCompare(String(a.updated))).slice(0, 10);
+
+  const decisions = L.lsMd(P.decisions).filter(f => f !== 'index.md')
+    .map(f => L.parse(L.read(path.join(P.decisions, f))).fm)
+    .filter(d => d.status === 'active')
+    .sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 8);
+
+  const row = x => `<tr>
+    <td><b>${esc(x.repo)}</b></td><td>${esc(x.task || '—')}</td>
+    <td class="s s-${esc(x.status).replace(/\s+/g, '-')}">${esc(x.status)}${x.stale ? ' <span class="stale">STALE</span>' : ''}</td>
+    <td>${esc(x.blockers || '—')}</td>
+    <td class="dim">${esc(ago(x.heartbeat) || 'no activity')}</td></tr>`;
+
+  const tix = (arr, empty) => arr.length ? arr.map(x => `<div class="t ${esc(x.status)}">
+      <span class="tag">${esc(x.status)}</span> <b>${esc(x.id)}</b>
+      <span class="dim">${esc(x.from)} → ${esc(x.to)}</span> ${esc(x.title)}
+      ${(x.decisions || []).length ? `<span class="dim">[${esc((x.decisions || []).join(' '))}]</span>` : ''}
+      <span class="dim">${esc(ago(x.updated) || '')}</span></div>`).join('') : `<p class="dim">${empty}</p>`;
+
   return `<!doctype html><html><head><meta charset="utf-8"><title>jetKreate coord</title>
-<meta http-equiv="refresh" content="5">
-<style>
+<meta http-equiv="refresh" content="5"><style>
 :root{color-scheme:dark light}
-body{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;margin:2rem auto;max-width:60rem;padding:0 1rem}
-h2{margin:2rem 0 .5rem;font-size:1rem;text-transform:uppercase;letter-spacing:.1em;opacity:.6}
-table{border-collapse:collapse;width:100%}
-td,th{border-bottom:1px solid #8884;padding:.4rem .6rem;text-align:left;vertical-align:top}
-.s-working{color:#3b82f6}.s-waiting-on-human{color:#f59e0b}.s-waiting-on-other-repo{color:#f59e0b}.s-done{color:#22c55e}
-.msg{border-left:3px solid #8884;padding:.4rem .8rem;margin:.5rem 0}
-.msg.pending{border-color:#f59e0b}.msg.approved{border-color:#3b82f6}.msg.done{border-color:#22c55e}.msg.rejected{border-color:#ef4444}
-.tag{text-transform:uppercase;font-size:.75rem;letter-spacing:.08em}
-.fn,.dim{opacity:.55}.hd{margin-bottom:.2rem}
-pre{white-space:pre-wrap;font-size:.85rem;opacity:.8;margin:0}
+body{font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;margin:2rem auto;max-width:64rem;padding:0 1rem}
+h1{font-size:1.1rem;letter-spacing:.15em;text-transform:uppercase}
+h2{margin:2rem 0 .5rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;opacity:.55}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #8883;padding:.35rem .6rem;text-align:left;vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;opacity:.5}
+.s-working{color:#3b82f6}.s-blocked{color:#ef4444}.s-waiting-on-human{color:#f59e0b}.s-idle{opacity:.6}
+.stale{background:#ef4444;color:#fff;padding:0 .3rem;border-radius:3px;font-size:.7rem}
+.banner{background:#ef4444;color:#fff;padding:.6rem .9rem;border-radius:4px;margin:1rem 0}
+.banner ul{margin:.3rem 0 0;padding-left:1.1rem}
+.t{border-left:3px solid #8884;padding:.2rem .7rem;margin:.25rem 0}
+.t.open{border-color:#f59e0b}.t.review{border-color:#a855f7}.t.in_progress{border-color:#3b82f6}
+.t.approved{border-color:#3b82f6}.t.done{border-color:#22c55e}.t.rejected{border-color:#ef4444}
+.tag{text-transform:uppercase;font-size:.68rem;letter-spacing:.08em;opacity:.75}
+.dim{opacity:.55}pre{white-space:pre-wrap;font-size:.8rem;opacity:.8;margin:0}
 </style></head><body>
 <h1>jetKreate</h1>
-<h2>Board</h2><table><tr><th>Repo</th><th>Current task</th><th>Status</th><th>Last updated</th></tr>${b}</table>
-<h2>Messages</h2>${m}
-<h2>Activity (last 50)</h2><pre>${esc(activity().join('\n')) || 'empty'}</pre>
-<p class="dim">read-only · refreshes every 5s</p>
+${errs.length ? `<div class="banner"><b>coord check found ${errs.length} problem${errs.length > 1 ? 's' : ''}</b><ul>${errs.slice(0, 8).map(p => `<li>${esc(p.where)}: ${esc(p.msg)}</li>`).join('')}</ul></div>` : ''}
+
+<h2>Board</h2>
+<table><tr><th>Repo</th><th>Current task</th><th>Status</th><th>Blockers</th><th>Last activity</th></tr>${board().map(row).join('')}</table>
+
+<h2>Waiting on you — ${waiting.length}</h2>${tix(waiting, 'Nothing needs your call.')}
+<h2>In flight — ${active.length}</h2>${tix(active, 'Nothing in progress.')}
+<h2>Recently closed</h2>${tix(closed, 'Nothing closed yet.')}
+
+<h2>Active decisions</h2>${decisions.length ? decisions.map(d => `<div class="t"><b>${esc(d.id)}</b> ${esc(d.title)} <span class="dim">${esc(d.date)} · ${esc((d.repos || []).join(' '))} ${esc((d.tickets || []).join(' '))}</span></div>`).join('') : '<p class="dim">No decisions recorded.</p>'}
+
+<h2>Today</h2><pre>${esc(L.activityLines(50).join('\n')) || 'no activity today'}</pre>
+
+<p class="dim">read-only · refreshes every 5s · last archive: ${esc(L.state().lastArchive || 'never')}${probs.length && !errs.length ? ` · ${probs.length} warning(s)` : ''}</p>
 </body></html>`;
 }
 
 http.createServer((req, res) => {
-  if (req.method !== 'GET') { res.writeHead(405).end(); return; }
-  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(page());
-}).listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}`));
+  if (req.method !== 'GET') return res.writeHead(405).end();
+  let body;
+  try { body = page(); } catch (e) { body = `<pre>dashboard error:\n${esc(e.stack)}</pre>`; }
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' }).end(body);
+}).listen(PORT, '127.0.0.1', () => console.log(`coord dashboard: http://127.0.0.1:${PORT}`));
