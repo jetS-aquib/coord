@@ -1,0 +1,190 @@
+#!/usr/bin/env node
+'use strict';
+const path = require('path'), fs = require('fs');
+const L = require('./lib.js'), R = require('./rules.js'), A = require('./archive.js');
+const { P } = L;
+
+const argv = process.argv.slice(2);
+const cmd = argv.shift();
+const flags = {}, rest = [];
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i].startsWith('--')) {
+    const [k, v] = argv[i].slice(2).split('=');
+    flags[k] = v !== undefined ? v : (argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true);
+  } else rest.push(argv[i]);
+}
+const list = v => (typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
+const die = m => { console.error(m); process.exit(1); };
+const need = (...ks) => ks.forEach(k => { if (typeof flags[k] !== 'string') die(`missing --${k}`); });
+
+const USAGE = `coord — jetKreate cross-repo coordination
+
+  list [--status X]              tickets, newest first
+  show <id>                      a ticket or decision in full
+  new --from R --to R --title T [--request --reason --files --acceptance --test]
+  approve <id> [note]            open -> approved        (human)
+  start <id> [note]              approved -> in_progress (assignee)
+  review <id> [note]             in_progress -> review   (assignee; Test steps required)
+  done <id> [note]               review -> done          (human)
+  reject <id> <reason>           -> rejected             (human)
+  decide --title T --repos a,b --tickets T-001 [--context --options --decision --reason --consequences]
+  supersede <old-id> <new-id>
+  why <file>:<line>              which ticket and decisions explain this line
+  search <text>                  tickets, decisions, archive indexes
+  archive [--dry-run]
+  check                          validate formats, ownership, transitions, links
+  drill                          end-to-end self-test in a temp folder
+`;
+
+const CMDS = {
+  list() {
+    const want = flags.status;
+    const rows = L.lsMd(P.tickets).map(f => L.parse(L.read(path.join(P.tickets, f))).fm)
+      .filter(fm => !want || fm.status === want)
+      .sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
+    if (!rows.length) return console.log(want ? `no tickets with status ${want}` : 'no open tickets');
+    for (const fm of rows) console.log(`${fm.id}  ${fm.status.padEnd(11)}  ${fm.from} -> ${fm.to}  ${fm.title}`);
+  },
+
+  show() {
+    const id = rest[0] || die('usage: coord show <id>');
+    const f = /^D-/i.test(id) ? L.findDecision(id.toUpperCase()) : L.findTicket(id.toUpperCase());
+    if (!f) die(`not found: ${id}`);
+    console.log(`# ${path.relative(P.coord, f)}\n`);
+    console.log(L.read(f));
+  },
+
+  new() {
+    need('from', 'to', 'title');
+    const repos = L.repos();
+    for (const k of ['from', 'to']) if (!repos.includes(flags[k]) && flags[k] !== 'human') die(`--${k} "${flags[k]}" is not a repo (have: ${repos.join(', ')})`);
+    const r = R.newTicket({
+      from: flags.from, to: flags.to, title: flags.title,
+      request: flags.request, reason: flags.reason, files: flags.files,
+      acceptance: flags.acceptance, test: flags.test,
+    });
+    console.log(`${r.id} created (open) -> ${path.relative(P.coord, r.file)}`);
+    console.log(`Tell the human; it does nothing until they run: coord approve ${r.id}`);
+  },
+
+  approve: () => move('approved'),
+  start: () => move('in_progress'),
+  review: () => move('review'),
+  done: () => move('done'),
+  reject() {
+    const id = (rest.shift() || '').toUpperCase() || die('usage: coord reject <id> <reason>');
+    const why = rest.join(' ') || die('a reason is required');
+    const t = R.transition(id, 'rejected', why);
+    console.log(`${id}: ${t.from} -> rejected`);
+  },
+
+  decide() {
+    need('title');
+    const tickets = list(flags.tickets);
+    for (const t of tickets) if (!L.loadTicket(t)) die(`no such ticket: ${t}`);
+    const r = R.newDecision({
+      title: flags.title, repos: list(flags.repos), tickets,
+      context: flags.context, options: flags.options, decision: flags.decision,
+      reason: flags.reason, consequences: flags.consequences,
+    });
+    console.log(`${r.id} recorded -> ${path.relative(P.coord, r.file)}`);
+    if (tickets.length) console.log(`linked to ${tickets.join(', ')}`);
+  },
+
+  supersede() {
+    const [o, n] = rest.map(s => (s || '').toUpperCase());
+    if (!o || !n) die('usage: coord supersede <old-id> <new-id>');
+    R.supersede(o, n);
+    console.log(`${o} superseded by ${n}`);
+  },
+
+  why() {
+    const arg = rest[0] || die('usage: coord why <file>:<line>');
+    const m = /^(.*):(\d+)$/.exec(arg) || die('usage: coord why <file>:<line>');
+    const [, fileArg, lineNo] = m;
+    if (!L.exists(path.resolve(fileArg))) die(`no such file: ${fileArg}`);
+    const abs = L.real(path.resolve(fileArg));
+    const repo = L.repoOf(path.dirname(abs));
+    if (!repo) die(`${fileArg} is not inside a platform repo`);
+    const repoDir = L.real(path.join(P.root, repo));
+    const blame = L.sh('git', ['blame', '-L', `${lineNo},${lineNo}`, '--porcelain', '--', path.relative(repoDir, abs)], repoDir);
+    if (!blame.ok) die(`git blame failed in ${repo}: ${blame.err.split('\n')[0]}`);
+    const sha = blame.out.split(' ')[0];
+    const log = L.sh('git', ['log', '-1', '--format=%h%n%an%n%ad%n%s%n%b', '--date=short', sha], repoDir);
+    const [short, author, date, subject, ...bodyLines] = log.out.split('\n');
+    console.log(`${repo}/${path.relative(repoDir, abs)}:${lineNo}`);
+    console.log(`commit ${short}  ${author}  ${date}`);
+    console.log(`  ${subject}\n`);
+
+    const ids = [...new Set([subject, ...bodyLines].join('\n').match(/T-\d+/g) || [])];
+    if (!ids.length) {
+      const noTicket = /^no-ticket:/i.test(subject);
+      return console.log(noTicket ? `No ticket: the commit says "${subject}".` : 'No ticket ID in that commit message — nothing recorded explains this line.');
+    }
+    for (const id of ids) {
+      const t = L.loadTicket(id);
+      if (!t) { console.log(`${id}: referenced by the commit, but no such ticket (active or archived).`); continue; }
+      console.log(`${id} [${t.fm.status}]${t.archived ? ' (archived)' : ''}  ${t.fm.from} -> ${t.fm.to}  ${t.fm.title}`);
+      console.log(`  Request: ${(t.sec.Request || '—').trim()}`);
+      const thread = (t.sec.Thread || '').trim();
+      if (thread) console.log(thread.split('\n').map(l => '  | ' + l).join('\n'));
+      for (const d of t.fm.decisions || []) {
+        const df = L.findDecision(d);
+        if (!df) { console.log(`  ${d}: linked but missing`); continue; }
+        const { fm, body } = L.parse(L.read(df));
+        console.log(`  ${d} [${fm.status}${fm.superseded_by ? ' by ' + fm.superseded_by : ''}] ${fm.title}`);
+        console.log(`    ${(L.sections(body).Decision || '—').trim().split('\n')[0]}`);
+      }
+      console.log('');
+    }
+  },
+
+  search() {
+    const q = rest.join(' ').toLowerCase() || die('usage: coord search <text>');
+    const targets = [
+      ...L.idDirs('T').flatMap(d => L.lsMd(d).map(f => path.join(d, f))),
+      ...L.lsMd(P.decisions).map(f => path.join(P.decisions, f)),
+      path.join(P.archive, 'tickets-index.md'),
+      ...L.ls(path.join(P.archive, 'activity')).filter(f => f.endsWith('-summary.md')).map(f => path.join(P.archive, 'activity', f)),
+    ].filter(L.exists);
+    let n = 0;
+    for (const f of targets) {
+      const hits = L.read(f).split('\n').map((l, i) => [i + 1, l]).filter(([, l]) => l.toLowerCase().includes(q));
+      if (!hits.length) continue;
+      console.log(path.relative(P.coord, f));
+      for (const [i, l] of hits.slice(0, 5)) console.log(`  ${i}: ${l.trim()}`);
+      n += hits.length;
+    }
+    if (!n) console.log(`nothing matches "${rest.join(' ')}"`);
+  },
+
+  archive() {
+    const acts = A.archive({ dryRun: !!flags['dry-run'] });
+    console.log(acts.length ? acts.join('\n') : 'nothing to archive');
+    if (flags['dry-run']) console.log('(dry run — nothing was moved)');
+  },
+
+  check() {
+    const probs = R.check();
+    if (!probs.length) return console.log('check: OK');
+    for (const p of probs) console.log(`${p.level.toUpperCase()}  ${p.where}: ${p.msg}`);
+    if (probs.some(p => p.level === 'error')) process.exit(1);
+  },
+
+  drill: () => require('./drill.js').run(),
+  help: () => console.log(USAGE),
+};
+
+function move(to) {
+  const id = (rest.shift() || '').toUpperCase() || die(`usage: coord ${to === 'approved' ? 'approve' : to} <id> [note]`);
+  const t = R.transition(id, to, rest.join(' '));
+  console.log(`${id}: ${t.from} -> ${to}`);
+  if (to === 'approved') console.log(`${id} is now yours to work on: coord start ${id}`);
+}
+
+try {
+  L.ensureStatusFiles();                       // a new repo gets a status file on any CLI use
+  (CMDS[cmd] || CMDS.help)();
+} catch (e) {
+  die(e.message);
+}

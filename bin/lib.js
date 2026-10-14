@@ -3,10 +3,14 @@
 // Root resolution: COORD_ROOT env (used by `coord drill`) or this file's grandparent.
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 
-const COORD = path.resolve(process.env.COORD_ROOT || path.join(__dirname, '..'));
+// realpath everywhere: on macOS /var is a symlink to /private/var, and git reports the resolved
+// path — comparing unresolved paths silently breaks repo detection and the .coord git guard.
+const real = p => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
+
+const COORD = real(process.env.COORD_ROOT || path.join(__dirname, '..'));
 const P = {
   coord: COORD,
-  root: path.resolve(COORD, '..'),
+  root: real(path.resolve(COORD, '..')),
   status: path.join(COORD, 'status'),
   tickets: path.join(COORD, 'tickets'),
   decisions: path.join(COORD, 'decisions'),
@@ -63,8 +67,8 @@ function repos() {                            // direct subfolders with .git, hi
 function repoOf(dir) {                        // repo owning a directory, or null
   const r = sh('git', ['rev-parse', '--show-toplevel'], dir);
   if (!r.ok) return null;
-  const top = path.resolve(r.out);
-  return path.dirname(top) === P.root ? path.basename(top) : null;
+  const top = real(r.out), name = path.basename(top);
+  return path.dirname(top) === P.root && !name.startsWith('.') ? name : null;   // .coord is not a platform repo
 }
 
 /* ---------- markdown ---------- */
@@ -148,7 +152,7 @@ function sh(cmd, args, cwd) {
 // Every write to git goes through here: refuses unless .coord is itself the repo root.
 function coordGit(args) {
   const top = sh('git', ['rev-parse', '--show-toplevel'], P.coord);
-  if (!top.ok || path.resolve(top.out) !== P.coord) return { ok: false, out: '', err: '.coord is not its own git repo — refusing' };
+  if (!top.ok || real(top.out) !== P.coord) return { ok: false, out: '', err: '.coord is not its own git repo — refusing' };
   return sh('git', args, P.coord);
 }
 function snapshot(msg) {
@@ -209,4 +213,4 @@ function lastActivityPerRepo() {              // heartbeat: newest activity time
   return seen;
 }
 
-module.exports = { P, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
