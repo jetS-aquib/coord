@@ -16,6 +16,7 @@ for (let i = 0; i < argv.length; i++) {
 const list = v => (typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
 const die = m => { console.error(m); process.exit(1); };
 const need = (...ks) => ks.forEach(k => { if (typeof flags[k] !== 'string') die(`missing --${k}`); });
+const confirm = q => { const S = require('./setup.js'); return S.yesish(S.ask(q)); };
 
 const USAGE = `coord — jetKreate cross-repo coordination
 
@@ -47,6 +48,8 @@ const USAGE = `coord — jetKreate cross-repo coordination
   setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
                                  only where it cannot tell (cloning repos, editing ~/.zshrc)
   sync [--quiet]                 pull and push the board (needs a remote on .coord)
+  fix [--yes] [--clear]          anything automatic that failed, and how to do it by hand
+  pause [reason] / resume        turn everything coord does off / on, on this machine only
   devsetup [--repo R] [--strict] [--no-copilot]
                                  install this machine's git hooks + editor instructions
 `;
@@ -227,6 +230,9 @@ const CMDS = {
   },
 
   check() {
+    if (L.paused()) console.log(`coord is PAUSED on this machine (${L.paused().trim()}) — nothing automatic is running. coord resume\n`);
+    const f = L.failures();
+    if (f.length) console.log(`${f.length} automation(s) failed here (${f.map(x => x.scope).join(', ')}) — see: coord fix\n`);
     const probs = R.check();
     const real = probs.filter(p => p.level !== 'info');
     if (!real.length) console.log('check: OK');
@@ -301,15 +307,18 @@ const CMDS = {
   sync() {
     const quiet = !!flags.quiet;
     const say = m => { if (!quiet) console.log(m); };
+    // In --quiet (hooks, git hooks) a failure must not print and must not block — but it
+    // must not vanish either, or the board silently stops being shared.
+    const stop = (msg, remedy) => { L.logFailure('sync', msg, remedy); return quiet ? undefined : die(msg); };
     if (!L.coordGit(['remote']).out) {
-      if (quiet) return;
+      if (quiet) return;                           // local-only board is a choice, not a failure
       die('.coord has no remote, so there is nothing to sync with.\n' +
           'Add one:  git -C ' + L.P.coord + ' remote add origin <url> && coord sync');
     }
     if (L.snapshot('coord: local changes before sync')) say('committed local changes');
 
     const f = L.coordGit(['fetch', '--quiet', 'origin']);
-    if (!f.ok) { if (quiet) return; die(`fetch failed: ${f.err.split('\n')[0]}`); }
+    if (!f.ok) return stop(`fetch failed: ${f.err.split('\n')[0]}`, 'coord sync');
 
     const branch = L.coordGit(['rev-parse', '--abbrev-ref', 'HEAD']).out || 'main';
     const upstream = L.coordGit(['rev-parse', '--verify', '--quiet', `origin/${branch}`]).ok;
@@ -317,14 +326,14 @@ const CMDS = {
       const pull = L.coordGit(['rebase', `origin/${branch}`]);
       if (!pull.ok) {
         L.coordGit(['rebase', '--abort']);
-        if (quiet) return;
-        die(`cannot rebase onto origin/${branch} — someone changed the same file.\n` +
-            `Resolve by hand in ${L.P.coord}:  git pull --rebase  then  coord check`);
+        return stop(`cannot rebase onto origin/${branch} — someone changed the same file`,
+          `cd ${L.P.coord} && git pull --rebase    # resolve, then: coord check`);
       }
     } else say(`origin/${branch} does not exist yet — publishing the board for the first time`);
 
     const push = L.coordGit(['push', '-u', 'origin', branch]);
-    if (!push.ok) { if (quiet) return; die(`push failed: ${push.err.split('\n')[0]}`); }
+    if (!push.ok) return stop(`push failed: ${push.err.split('\n')[0]}`, `cd ${L.P.coord} && git push`);
+    L.clearFailures();                             // a good sync clears the backlog of bad ones
 
     const n = L.coordGit(['rev-list', '--count', `origin/${branch}..${branch}`]).out;
     say(`synced with origin/${branch}${n && n !== '0' ? ` (${n} ahead)` : ''}`);
@@ -348,8 +357,56 @@ const CMDS = {
   },
 
   'log-commit'() {                               // called by the post-commit hook
-    const r = D.logCommit(process.cwd());
-    if (r) console.log(r);
+    try {
+      const r = D.logCommit(process.cwd());
+      if (r) console.log(r);
+    } catch (e) {
+      // The hook throws this away; "coord fix" is where it resurfaces.
+      L.logFailure('post-commit', e.message, 'coord check');
+      throw e;
+    }
+  },
+
+  // Every automatic thing coord does can fail: a hook crash, a sync that cannot reach
+  // the remote, an archive that threw. This is where those surface, each with the command
+  // that does the same job by hand.
+  fix() {
+    if (flags.clear) { L.clearFailures(); return console.log('cleared — nothing pending'); }
+    const f = L.failures();
+    if (!f.length) return console.log('nothing failed — coord is doing its job quietly');
+    console.log(`${f.length} thing(s) coord could not do on this machine:\n`);
+    for (const x of f) {
+      console.log(`  ${x.scope}${x.n > 1 ? `  (${x.n}x, first ${x.first.slice(0, 16).replace('T', ' ')})` : `  ${x.ts.slice(0, 16).replace('T', ' ')}`}`);
+      console.log(`    ${x.msg}`);
+      if (x.remedy) console.log(`    by hand:  ${x.remedy}`);
+      console.log('');
+    }
+    const runnable = f.filter(x => x.remedy && x.remedy.startsWith('coord ') && !x.remedy.includes('#'));
+    if (!runnable.length) return console.log(`Fix what you can, then:  coord fix --clear`);
+    if (!flags.yes && !L.isHuman()) return console.log(`Ask the human to run these, or: coord fix --yes`);
+    if (!flags.yes && !confirm(`Run ${runnable.length} of these now?`)) return console.log('left alone — coord fix --clear to dismiss');
+    let allOk = true;
+    for (const x of runnable) {
+      process.stdout.write(`  ${x.remedy} ... `);
+      const r = L.sh(process.execPath, [__filename, ...x.remedy.split(/\s+/).slice(1)], L.P.coord);
+      console.log(r.ok ? 'ok' : `still failing: ${(r.err || r.out).split('\n')[0]}`);
+      allOk = allOk && r.ok;
+    }
+    if (allOk) { L.clearFailures(); console.log('\nall clear'); }
+    else console.log(`\nSome are still broken. Worst case:  coord pause   (turns coord off here until you fix it)`);
+  },
+
+  pause() {
+    L.setPaused(true, rest.join(' '));
+    console.log(`coord is off on this machine: no guard, no board updates, no sync, no commit hooks.`);
+    console.log(`Nothing you do is recorded until:  coord resume`);
+    console.log(`The file is ${path.relative(process.cwd(), path.join(P.coord, 'paused'))} — delete it and coord is back.`);
+  },
+
+  resume() {
+    if (!L.paused()) return console.log('coord was already running');
+    L.setPaused(false);
+    console.log('coord is back on. Work done while it was paused was not recorded — "coord check" if you want to be sure nothing is off.');
   },
 
   drill: () => require('./drill.js').run(),

@@ -17,6 +17,7 @@ function main() {
   const data = readInput();
   const cwd = L.real(data.cwd || process.cwd());
   if (cwd !== L.P.root && !cwd.startsWith(L.P.root + path.sep)) return;   // another project — not ours to police
+  if (L.paused()) return;                        // paused on this machine: allow everything
 
   const own = L.repoOf(cwd);                       // null => platform-root session (onboarding/admin)
   const tool = data.tool_name || '';
@@ -133,15 +134,20 @@ function readInput() {
 // through — an enforcement hook that fails open enforces nothing.
 function failClosed(e) {
   deny(`The coord guard could not evaluate this call and blocks it rather than guessing: ${(e && e.message) || e}. ` +
-    `Details in .coord/activity/hook-errors.log. Run ".coord/bin/coord drill" to check the guard, ` +
-    `or remove the guard.js PreToolUse hook from ~/.claude/settings.json to disable it.`);
+    `Run ".coord/bin/coord drill" to check the guard, or ".coord/bin/coord pause" to turn ` +
+    `everything coord does off on this machine until it is fixed. "coord fix" has the details.`);
 }
 
 function logError(e) {
   try {
-    const f = path.join(__dirname, '..', 'activity', 'hook-errors.log');
-    fs.mkdirSync(path.dirname(f), { recursive: true });
-    fs.appendFileSync(f, `${new Date().toISOString()}\tguard\t${(e && e.stack) || e}\n`);
+    const dir = path.join(__dirname, '..', 'activity');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(path.join(dir, 'hook-errors.log'), `${new Date().toISOString()}\tguard\t${(e && e.stack) || e}\n`);
+    // The human-facing half: a guard that fails closed blocks real work, so this is the
+    // one failure that must never sit unread in a log.
+    fs.appendFileSync(path.join(dir, 'failures.log'),
+      [new Date().toISOString(), 'guard', String((e && e.message) || e).split('\n')[0].slice(0, 300),
+        'coord drill    # then, if it is still broken: coord pause'].join('\t') + '\n');
   } catch { /* a guard that cannot log must still not break the session */ }
 }
 

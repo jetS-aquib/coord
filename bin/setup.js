@@ -185,4 +185,4 @@ function shellProfile() {
 }
 const tilde = p => p.replace(os.homedir(), '~');
 
-module.exports = { setup };
+module.exports = { setup, ask, yesish };

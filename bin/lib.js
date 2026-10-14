@@ -7,6 +7,8 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 // path — comparing unresolved paths silently breaks repo detection and the .coord git guard.
 const real = p => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
 
+const isWindows = process.platform === 'win32';
+
 const COORD = real(process.env.COORD_ROOT || path.join(__dirname, '..'));
 const P = {
   coord: COORD,
@@ -184,40 +186,58 @@ function nextNum(kind) {
   return max + 1;
 }
 
+/* ---------- scanning the repos' source ---------- */
+// A plain JS walk, no spawn. Started as a Windows fallback (no grep outside Git Bash)
+// and replaced grep outright: measured over these three repos it returns the identical
+// 41 refs for JET-154 in 1.4s against grep's 40s, because it rejects a file on
+// `includes('JET')` before any regex runs. One code path, same on every OS.
+const SRC_EXT = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
+const SKIP_DIR = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', '.next', '.turbo']);
+
+function walkFiles(dir, exts, fn, depth = 0) {
+  if (depth > 12) return;
+  let ents = [];
+  try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+  for (const e of ents) {
+    const f = path.join(dir, e.name);
+    if (e.isDirectory()) { if (!SKIP_DIR.has(e.name)) walkFiles(f, exts, fn, depth + 1); }
+    else if (exts.includes(path.extname(e.name))) fn(f);
+  }
+}
+
+// Matches of `re` under one repo, as { repo, file, line, text }.
+function scanRepo(repo, exts, re) {
+  const base = path.join(P.root, repo), out = [];
+  const rx = new RegExp(re.source, 'g');
+  walkFiles(base, exts, f => {
+    let text;
+    try { if (fs.statSync(f).size > 2e6) return; text = fs.readFileSync(f, 'utf8'); } catch { return; }
+    if (!text.includes(TICKET_PREFIX)) return;                  // cheap reject before the regex
+    text.split('\n').forEach((line, i) => {
+      rx.lastIndex = 0;
+      for (const m of line.matchAll(rx)) out.push({ repo, file: path.relative(base, f).split(path.sep).join('/'), line: i + 1, text: m[0].trim() });
+    });
+  });
+  return out;
+}
+
 // Highest JET-nnn appearing anywhere in the repos' source. Keeps new ids clear of the
 // 646 references already in comments, and self-corrects if someone cites a higher one.
 function codeMaxTicket() {
   let max = 0;
-  for (const r of repos()) {
-    // source only: a JET-nnn inside a markdown example is documentation, not a claim on
-    // that id, and counting it would inflate the sequence every time we write a doc.
-    const g = sh('grep', ['-rhoE', `${TICKET_PREFIX}-[0-9]+`, '--include=*.ts', '--include=*.tsx',
-      '--include=*.js', '--include=*.jsx', '--include=*.mjs', '--exclude-dir=node_modules',
-      '--exclude-dir=.git', '--exclude-dir=dist', '--exclude-dir=.next', '.'], path.join(P.root, r));
-    if (!g.ok) continue;
-    for (const line of g.out.split('\n')) {
-      const n = Number(line.split('-')[1]);
-      if (isFinite(n)) max = Math.max(max, n);
-    }
+  // source only: a JET-nnn inside a markdown example is documentation, not a claim on
+  // that id, and counting it would inflate the sequence every time we write a doc.
+  const re = new RegExp(`${TICKET_PREFIX}-[0-9]+`);
+  for (const r of repos()) for (const hit of scanRepo(r, SRC_EXT, re)) {
+    const n = Number((TICKET_RE.exec(hit.text) || [''])[0].split('-')[1] || hit.text.split('-')[1]);
+    TICKET_RE.lastIndex = 0;
+    if (isFinite(n)) max = Math.max(max, n);
   }
   return max;
 }
 
 // Every place in the repos that cites a ticket id, with the line it sits on.
-function codeRefs(id) {
-  const out = [];
-  for (const r of repos()) {
-    const g = sh('grep', ['-rnoE', `.{0,90}${id}\\b.{0,40}`, '--include=*.ts', '--include=*.tsx',
-      '--include=*.js', '--include=*.jsx', '--include=*.mjs', '--include=*.md', '--exclude-dir=node_modules',
-      '--exclude-dir=.git', '--exclude-dir=dist', '--exclude-dir=.next', '.'], path.join(P.root, r));
-    if (!g.ok || !g.out) continue;
-    for (const line of g.out.split('\n')) {
-      const m = /^\.?\/?(.+?):(\d+):(.*)$/.exec(line);
-      if (m) out.push({ repo: r, file: m[1], line: +m[2], text: m[3].trim() });
-    }
-  }
-  return out;
-}
+const codeRefs = id => repos().flatMap(r => scanRepo(r, [...SRC_EXT, '.md'], new RegExp(`.{0,90}${id}\\b.{0,40}`)));
 // Allocate + create in one shot: 'wx' fails if the file exists, so two writers can never land on one id.
 function createWithId(kind, dir, titleSlug, content) {
   fs.mkdirSync(dir, { recursive: true });
@@ -374,6 +394,44 @@ function latestHandoff(repo) {
   return { when: m[1].trim(), text: (next < 0 ? rest : rest.slice(0, next)).trim() };
 }
 
+/* ---------- failures: anything automatic that did not work ---------- */
+// hook-errors.log is a stack dump nobody reads. This is the half a human can act on:
+// one line per failure, carrying the command that does the same job by hand. Local to
+// this machine (gitignored) — someone else's broken hook is not the team's business.
+const FAIL_LOG = () => path.join(P.activity, 'failures.log');
+const oneLine = s => String(s == null ? '' : s).split('\n')[0].replace(/\t/g, ' ').slice(0, 300);
+function logFailure(scope, msg, remedy = '') {
+  try { atomicAppend(FAIL_LOG(), [nowISO(), scope, oneLine(msg), oneLine(remedy)].join('\t') + '\n'); }
+  catch { /* a failure logger that fails must not throw */ }
+}
+// Newest first, one row per (scope + remedy) with a count — a hook that broke 40 times
+// is one problem, not forty.
+function failures() {
+  const by = new Map();
+  for (const line of read(FAIL_LOG()).split('\n')) {
+    if (!line) continue;
+    const [ts, scope, msg, remedy = ''] = line.split('\t');
+    if (!ts || !scope) continue;
+    const k = scope + '\u0000' + remedy;
+    const prev = by.get(k);
+    by.set(k, { ts, scope, msg, remedy, n: (prev ? prev.n : 0) + 1, first: prev ? prev.first : ts });
+  }
+  return [...by.values()].sort((a, b) => b.ts.localeCompare(a.ts));
+}
+const clearFailures = () => { try { fs.rmSync(FAIL_LOG()); } catch { /* already clean */ } };
+
+/* ---------- pause: the escape hatch ---------- */
+// Everything automatic is off on this machine until resumed: no guard, no briefing, no
+// sync, no commit hooks. A coordination tool that can wedge someone's day with no way
+// out is worse than no coordination tool. Local file, never committed.
+const PAUSE_FILE = () => path.join(P.coord, 'paused');
+const paused = () => exists(PAUSE_FILE()) ? (read(PAUSE_FILE()).trim() || 'paused') : null;
+function setPaused(on, why = '') {
+  if (!on) { try { fs.rmSync(PAUSE_FILE()); } catch { /* already running */ } return false; }
+  atomicWrite(PAUSE_FILE(), `paused by ${me() || 'someone'} at ${nowISO()}${why ? ' — ' + why : ''}\n`);
+  return true;
+}
+
 // Who has been active lately, and where. People, not repos — one person can be in
 // several repos and one repo can have several people.
 function whosAround() {
@@ -387,4 +445,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, isWindows, scanRepo, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

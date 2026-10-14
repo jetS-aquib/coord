@@ -15,6 +15,11 @@ const commitMsg = () => `#!/bin/sh
 # installed by: coord devsetup — local to this clone, never committed.
 # Warns when a commit message carries no ticket ID. To reject instead:
 #   coord devsetup --strict        (or export COORD_STRICT=1)
+COORD_ROOT="${P.coord}"
+
+# "coord pause" switches everything off on this machine. Nothing below runs until resume.
+[ -f "$COORD_ROOT/paused" ] && exit 0
+
 MSG=$(head -1 "$1")
 case "$MSG" in
   JET-[0-9]*:*|no-ticket:*|Merge\\ *|Revert\\ *|fixup!*|squash!*|amend!*) exit 0 ;;
@@ -37,6 +42,11 @@ exit 0
 // has nothing to add — plenty of commits genuinely have no ticket.
 const prepareCommitMsg = () => `#!/bin/sh
 # installed by: coord devsetup — local to this clone, never committed.
+COORD_ROOT="${P.coord}"
+
+# "coord pause" switches everything off on this machine. Nothing below runs until resume.
+[ -f "$COORD_ROOT/paused" ] && exit 0
+
 MSGFILE="$1"
 SOURCE="$2"
 case "$SOURCE" in merge|squash) exit 0 ;; esac
@@ -61,7 +71,13 @@ const postCommit = () => `#!/bin/sh
 COORD="${COORD_BIN}"
 COORD_ROOT="${P.coord}"
 export COORD_ROOT
+
+# "coord pause" switches everything off on this machine. Nothing below runs until resume.
+[ -f "$COORD_ROOT/paused" ] && exit 0
+
 [ -x "$COORD" ] || exit 0
+# Silent on success and on failure alike — a commit must never be held up by the board.
+# What failed is recorded by coord itself and shown by "coord fix".
 "$COORD" log-commit >/dev/null 2>&1
 "$COORD" sync --quiet >/dev/null 2>&1
 exit 0

@@ -1,2 +1,6 @@
 # this machine's own hook crashes, not the team's business
 activity/hook-errors.log
+# the human-facing half of the same thing: what failed and how to do it by hand
+activity/failures.log
+# "coord pause" — off on THIS machine only; never anyone else's business
+paused

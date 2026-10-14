@@ -16,6 +16,14 @@ function main() {
   const cwd = L.real(data.cwd || process.cwd());
   if (cwd !== L.P.root && !cwd.startsWith(L.P.root + path.sep)) return;   // another project — do nothing
 
+  // Paused on this machine: nothing automatic runs. Say so once at session start —
+  // silently doing nothing is how someone spends an afternoon wondering why the board
+  // never moves. Everything else returns without touching a file.
+  const why = L.paused();
+  if (why) return EVENT === 'session-start'
+    ? emit(`coord is paused on this machine (${why.trim()}). No guard, no board updates, no sync until someone runs: coord resume`)
+    : undefined;
+
   const repo = L.repoOf(cwd) || 'platform-root';
 
   // A git repo that is not in the registry gets one breadcrumb a day and nothing else:
@@ -40,29 +48,31 @@ function main() {
 
   if (EVENT === 'session-stop') {
     L.snapshot(`coord: session end (${repo})`);          // guarded: commits inside .coord only
-    sync();                                              // share the board with the rest of the team
+    sync(L);                                              // share the board with the rest of the team
   }
   if (EVENT === 'session-start') {
     const last = L.state().lastArchive;
     if (!last || L.daysAgo(last) > ARCHIVE_EVERY_DAYS) {
       try { require(path.join(__dirname, '..', 'bin', 'archive.js')).archive({}); }
-      catch (e) { logError(e); }
+      catch (e) { logError(e); L.logFailure('archive', e.message, 'coord archive'); }
     }
-    sync();                                              // pick up what the others did
+    sync(L);                                             // pick up what the others did
     brief(L, repo, true);
   }
 }
 
 // Best-effort: no remote, offline, or a conflict all mean "carry on silently".
 // A hook must never block a session over a network call.
-function sync() {
+function sync(L) {
   try {
     const r = require('child_process').spawnSync(
       process.execPath, [path.join(__dirname, '..', 'bin', 'coord'), 'sync', '--quiet'],
       { encoding: 'utf8', timeout: 15000 });
-    if (r.error) logError(r.error);
-  } catch (e) { logError(e); }
+    if (r.error) return fail(L, r.error);
+    if (r.status !== 0) fail(L, (r.stderr || r.stdout || 'sync exited ' + r.status));
+  } catch (e) { fail(L, e); }
 }
+const fail = (L, e) => { logError(e); try { L.logFailure('sync', (e && e.message) || e, 'coord sync'); } catch { /* ignore */ } };
 
 // SessionStart stdout becomes session context, so every session opens knowing its own
 // situation without the human mentioning coord. Factual statements, not instructions.
@@ -77,18 +87,20 @@ function brief(L, repo, onboarded) {
 
   const tickets = L.lsMd(L.P.tickets).map(f => L.parse(L.read(path.join(L.P.tickets, f))).fm);
   const fmt = t => `  ${t.id} [${t.status}] ${t.from} -> ${t.to}: ${t.title}`;
+  // Long lists cost context every session and are never read past the first few.
+  const some = (ts, head) => ts.length <= 6 ? `${head}:\n${ts.map(fmt).join('\n')}`
+    : `${head} (${ts.length}, newest 5 — the rest: coord list):\n${ts.slice(-5).map(fmt).join('\n')}`;
 
   if (repo === 'platform-root') {
     lines.push(`This session is at the jetKreate platform root, not inside a repo. Coordination state lives in .coord/.`);
     lines.push(`Onboarded repos: ${L.onboarded().join(', ') || 'none'}.`);
     const disc = L.discovered();
     if (disc.length) lines.push(`Discovered but not onboarded: ${disc.join(', ')}. The runbook is .coord/ONBOARDING.md.`);
-    for (const r of L.onboarded()) {
-      const s = L.readStatus(r);
-      lines.push(`  ${r}: ${s.status}${s.task && s.task !== '—' ? ` — ${s.task}` : ''}`);
-    }
+    const busy = L.onboarded().map(r => L.readStatus(r)).filter(s => s.status !== 'idle');
+    for (const s of busy) lines.push(`  ${s.repo}: ${s.status}${s.task && s.task !== '—' ? ` — ${s.task}` : ''}`);
+    if (!busy.length) lines.push(`All of them are idle.`);
     const act = tickets.filter(t => !['done', 'rejected'].includes(t.status));
-    lines.push(act.length ? `Open tickets:\n${act.map(fmt).join('\n')}` : `No open tickets.`);
+    lines.push(act.length ? some(act, 'Open tickets') : `No open tickets.`);
   } else {
     const e = L.regGet(repo) || {};
     const s = L.readStatus(repo);
@@ -99,13 +111,17 @@ function brief(L, repo, onboarded) {
 
     const inbox = tickets.filter(t => t.to === repo && !['done', 'rejected'].includes(t.status));
     const outbox = tickets.filter(t => t.from === repo && !['done', 'rejected'].includes(t.status));
-    lines.push(inbox.length ? `Tickets addressed to ${repo}:\n${inbox.map(fmt).join('\n')}` : `No open tickets are addressed to ${repo}.`);
-    if (inbox.some(t => t.status === 'approved')) lines.push(`Approved tickets are the ones cleared to start, with: coord start <id>.`);
-    if (outbox.length) lines.push(`Tickets ${repo} is waiting on:\n${outbox.map(fmt).join('\n')}`);
+    lines.push(inbox.length ? some(inbox, `Tickets addressed to ${repo}`) : `No open tickets are addressed to ${repo}.`);
+    if (outbox.length) lines.push(some(outbox, `Tickets ${repo} is waiting on`));
   }
 
-  lines.push(`Writes into other repos, and into .coord files this repo does not own, are blocked by a PreToolUse hook — not by convention. Cross-repo changes go through: .coord/bin/coord new --from ${repo === 'platform-root' ? '<repo>' : repo} --to <repo> --title "..."`);
-  lines.push(`The full rules are in jetKreate/CLAUDE.md, loaded automatically from the parent directory. The CLI is .coord/bin/coord (list, show, new, start, review, why, search, check).`);
+  // Anything automatic that broke on this machine. Nobody opens a log file; this is
+  // the one moment a person is guaranteed to be looking.
+  const f = L.failures();
+  if (f.length) lines.push(`${f.length} coord automation(s) failed on this machine since ${f[f.length - 1].first.slice(0, 10)} (${f.map(x => x.scope).join(', ')}). "coord fix" lists each one with the command that does it by hand.`);
+
+  // The rules themselves are in jetKreate/CLAUDE.md, which loads in every session under
+  // this folder. Restating them here would cost ~100 tokens a session to say it twice.
   emit(lines.join('\n'));
 }
 
