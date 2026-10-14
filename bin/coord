@@ -41,9 +41,11 @@ const USAGE = `coord — jetKreate cross-repo coordination
          [--stack S --contracts a,b --depends-on c,d]
   offboard <repo> --yes          mark offboarded, archive its status file and tickets
 
+  setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
+                                 only where it cannot tell (cloning repos, editing ~/.zshrc)
   sync [--quiet]                 pull and push the board (needs a remote on .coord)
   devsetup [--repo R] [--strict] [--no-copilot]
-                                 install this machine's git hooks + Copilot instructions
+                                 install this machine's git hooks + editor instructions
 `;
 
 const CMDS = {
@@ -253,6 +255,10 @@ const CMDS = {
     say(`synced with origin/${branch}${n && n !== '0' ? ` (${n} ahead)` : ''}`);
     const probs = R.check().filter(p => p.level === 'error');
     if (probs.length) say(`heads up: coord check reports ${probs.length} problem(s) after the merge`);
+  },
+
+  setup() {
+    require('./setup.js').setup({ yes: !!flags.yes, noPath: !!flags['no-path'] });
   },
 
   devsetup() {

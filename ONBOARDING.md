@@ -135,6 +135,13 @@ tracked file. Commit anything in the repo. The only repo-local write is
 
 ---
 
+## A new person, not a new repo
+
+That's `coord setup`, not this runbook. They clone `jetkreate-coord`, run
+`./bin/coord setup`, and it walks the whole thing — repos, PATH, hooks, editor
+instructions, verification — asking only about cloning missing repos and editing their
+shell profile. This file is only for adding a *repo* to the platform.
+
 ## Offboarding
 
 `coord offboard <repo> --yes` — human-only, and it asks for `--yes` first. Marks the

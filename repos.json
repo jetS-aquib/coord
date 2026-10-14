@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-14T13:05:35+05:30",
+  "updated": "2026-10-14T14:16:57+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -24,7 +24,8 @@
         "creater-ai-frontend"
       ],
       "onboarded": "2026-10-14",
-      "status": "active"
+      "status": "active",
+      "remote": "git@codebasehq.com:js/mcn/creater-ai-backend.git"
     },
     {
       "name": "creater-ai-frontend",
@@ -35,7 +36,8 @@
         "creater-ai-backend"
       ],
       "onboarded": "2026-10-14",
-      "status": "active"
+      "status": "active",
+      "remote": "git@codebasehq.com:js/mcn/creater-ai-frontend.git"
     },
     {
       "name": "iris",
@@ -60,7 +62,8 @@
         "creater-ai-frontend"
       ],
       "onboarded": "2026-10-14",
-      "status": "active"
+      "status": "active",
+      "remote": "git@github.com:jet-ai-task-force/iris.git"
     }
   ]
 }

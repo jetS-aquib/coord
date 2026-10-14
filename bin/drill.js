@@ -343,6 +343,58 @@ function team() {
   fs.rmSync(path.join(TMP, 'beta'), { recursive: true, force: true });
   fs.renameSync(parked, path.join(TMP, 'beta'));
   ok('and it clears once the repo is back', coord(['check']).ok);
+
+  // give the fixture repos somewhere to be cloned from, so setup can offer the URLs
+  for (const name of ['alpha', 'beta']) {
+    const bare = path.join(TMP, `${name}.git`);
+    git(['init', '--bare', '-q', bare], TMP);
+    git(['remote', 'add', 'origin', bare], path.join(TMP, name));
+    git(['push', '-q', 'origin', 'HEAD'], path.join(TMP, name));
+  }
+  const bf = coord(['setup', '--yes']);
+  ok('setup records clone URLs for repos that had none', /recorded clone URLs/.test(bf.out), bf.out.slice(0, 400));
+  const reg = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos;
+  ok('the URLs land in the registry', reg.filter(r => r.remote).length >= 2, JSON.stringify(reg.map(r => [r.name, r.remote])));
+  coord(['sync', '--quiet']);
+
+  freshDev();
+}
+
+// A new dev clones only the board and runs one command.
+function freshDev() {
+  const home = path.join(TMP, 'newdev');
+  const board = path.join(home, 'jetkreate-coord');
+  fs.mkdirSync(home, { recursive: true });
+  git(['clone', '-q', path.join(TMP, 'remote.git'), board], home);
+  git(['config', 'user.email', 'd@d'], board); git(['config', 'user.name', 'new'], board);
+  fs.mkdirSync(path.join(board, 'bin'), { recursive: true });
+  fs.writeFileSync(path.join(board, 'bin', 'coord'), `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} ${JSON.stringify(COORD_BIN)} "$@"\n`, { mode: 0o755 });
+
+  const run = args => cp.spawnSync(process.execPath, [COORD_BIN, ...args], {
+    cwd: board, encoding: 'utf8',
+    env: { ...process.env, COORD_ROOT: board, COORD_ACTOR: 'human', HOME: home, SHELL: '/bin/zsh' },
+  });
+
+  const r = run(['setup', '--yes']);
+  ok('setup runs end to end on a fresh clone', r.status === 0 || r.status === undefined, (r.stdout + r.stderr).slice(-300));
+  const out = r.stdout;
+  ok('setup walks all six steps', /\[1\/6\][\s\S]*\[6\/6\]/.test(out), out.slice(0, 120));
+  ok('setup sees the board has every repo registered', /\[ \] alpha|\[x\] alpha/.test(out), out);
+  ok('setup reports repos it cannot find locally', /not cloned here/.test(out), out);
+  ok('setup offers the clone command for them', /git clone/.test(out), out);
+  ok('setup never edits a shell profile without being asked',
+    !fs.existsSync(path.join(home, '.zshrc')) && /not on your PATH|export PATH=/.test(out));
+  ok('setup ends with what is left to do', /thing\(s\) left for you|Setup complete/.test(out), out.slice(-200));
+  ok('setup is safe to run twice', run(['setup', '--yes']).status === 0);
+
+  // with the repos present it should finish clean
+  for (const name of ['alpha', 'beta']) {
+    git(['clone', '-q', path.join(TMP, name), path.join(home, name)], home);
+  }
+  const r2 = run(['setup', '--yes']);
+  ok('with the repos cloned, setup installs their hooks',
+    /hooks\/commit-msg installed/.test(r2.stdout) && fs.existsSync(path.join(home, 'alpha', '.git', 'hooks', 'commit-msg')), r2.stdout.slice(-300));
+  ok('and check comes back clean for the new dev', /check: OK/.test(r2.stdout), r2.stdout.slice(-300));
 }
 
 function onboarding() {
