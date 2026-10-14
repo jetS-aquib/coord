@@ -32,6 +32,7 @@ function main() {
     if (!f) return;
     const base = repo === 'platform-root' ? L.P.root : path.join(L.P.root, repo);
     L.logActivity(repo, 'edit', path.relative(base, L.real(path.resolve(f))) || path.basename(f));
+    if (repo !== 'platform-root') autoStart(L, repo);
     return;
   }
 
@@ -112,6 +113,23 @@ function emit(text) {
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text },
   }));
+}
+
+// The board follows the work: if exactly one approved ticket is aimed at this repo and
+// someone starts editing it, move it along and point the repo at it. Only when there is
+// exactly one candidate — with two, guessing would be worse than doing nothing.
+function autoStart(L, repo) {
+  try {
+    if (L.currentTicket(repo)) return;                 // already pointed at something
+    const approved = L.lsMd(L.P.tickets)
+      .map(f => L.parse(L.read(path.join(L.P.tickets, f))).fm)
+      .filter(fm => fm.status === 'approved' && fm.to === repo);
+    if (approved.length !== 1) return;
+    const id = approved[0].id;
+    require(path.join(__dirname, '..', 'bin', 'rules.js')).transition(id, 'in_progress', 'work started in ' + repo);
+    L.setCurrentTicket(repo, id);
+    L.logActivity(repo, 'auto-start', id);
+  } catch (e) { logError(e); }
 }
 
 function readInput() {

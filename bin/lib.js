@@ -264,6 +264,19 @@ function readStatus(repo) {
   return { repo, task: field('Current task'), status: field('Status'), blockers: field('Blockers'), updated: field('Last updated'), notes: (t.match(/^### .*/gm) || []).length, text: t };
 }
 
+/* ---------- the ticket you are currently on ---------- */
+// Lives in .git/ so it is per-clone and per-person: two devs in one repo can be on
+// different tickets. Never committed, like .git/info/exclude.
+const ticketPointer = repo => path.join(P.root, repo, '.git', 'coord-ticket');
+const currentTicket = repo => read(ticketPointer(repo)).trim();
+function setCurrentTicket(repo, id) {
+  const f = ticketPointer(repo);
+  if (!exists(path.dirname(f))) return false;
+  if (id) atomicWrite(f, id + '\n');
+  else try { fs.rmSync(f); } catch { /* already gone */ }
+  return true;
+}
+
 /* ---------- activity ---------- */
 const activityFile = (d = new Date()) => path.join(P.activity, `${day(d)}.log`);
 // Field 3 is the person. Older lines have `extra` there instead, so readers only accept
@@ -330,4 +343,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

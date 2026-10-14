@@ -121,6 +121,32 @@ function transition(id, to, note = '') {
   return { file: t.file, from, to };
 }
 
+/* ---------- what was being worked on, and when ---------- */
+// The thread timestamps every status change, so we can reconstruct which tickets were
+// live for a repo at any moment. That is how `coord why` answers for a commit whose
+// message carries no ticket ID.
+function ticketsActiveAt(repo, when) {
+  const t = new Date(when).getTime();
+  if (!isFinite(t)) return [];
+  const out = [];
+  for (const dir of L.idDirs('T')) for (const f of L.lsMd(dir)) {
+    const { fm, body } = L.parse(L.read(path.join(dir, f)));
+    if (fm.to !== repo && fm.from !== repo) continue;
+    const moves = [...(L.sections(body).Thread || '').matchAll(/^(\S+) .*?status: (\S+) -> (\S+)/gm)]
+      .map(m => ({ at: new Date(m[1]).getTime(), to: m[3] }))
+      .filter(m => isFinite(m.at));
+    if (!moves.length) continue;
+    // the state the ticket was in at time t
+    let state = null;
+    for (const m of moves) { if (m.at <= t) state = m.to; else break; }
+    if (!['approved', 'in_progress', 'review'].includes(state)) continue;
+    // Both directions can explain a line: the repo doing the work, and the repo that
+    // asked and may have stubbed its own side. Say which, rather than implying either.
+    out.push({ fm, state, role: fm.to === repo ? 'work for this repo' : 'this repo asked for it' });
+  }
+  return out.sort((a, b) => (a.role === 'work for this repo' ? -1 : 1) - (b.role === 'work for this repo' ? -1 : 1));
+}
+
 /* ---------- check ---------- */
 function check() {
   const out = [];
@@ -225,4 +251,4 @@ function check() {
   return out;
 }
 
-module.exports = { TICKET_SECTIONS, DECISION_SECTIONS, EMPTY, newTicket, newDecision, supersede, transition, addThread, rebuildDecisionIndex, check, ticketBody, decisionBody };
+module.exports = { ticketsActiveAt, TICKET_SECTIONS, DECISION_SECTIONS, EMPTY, newTicket, newDecision, supersede, transition, addThread, rebuildDecisionIndex, check, ticketBody, decisionBody };

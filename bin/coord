@@ -41,6 +41,7 @@ const USAGE = `coord — jetKreate cross-repo coordination
          [--stack S --contracts a,b --depends-on c,d]
   offboard <repo> --yes          mark offboarded, archive its status file and tickets
 
+  on [<id>|--clear]              show or set the ticket this repo's commits get tagged with
   who [--tool T] [--name N]      the roster: who is on the team, what they use, where they were
       [--remove <name>]          drop someone who has left
   setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
@@ -82,6 +83,21 @@ const CMDS = {
     });
     console.log(`${r.id} created (open) -> ${path.relative(P.coord, r.file)}`);
     console.log(`Tell the human; it does nothing until they run: coord approve ${r.id}`);
+  },
+
+  on() {
+    const repo = L.repoOf(process.cwd());
+    if (!repo) die('run this from inside a repo');
+    if (flags.clear) { L.setCurrentTicket(repo, ''); return console.log(`${repo}: commits are no longer tagged`); }
+    const id = (rest[0] || '').toUpperCase();
+    if (!id) {
+      const cur = L.currentTicket(repo);
+      return console.log(cur ? `${repo} is on ${cur} — commits here are tagged "${cur}: ..."` : `${repo} has no current ticket; commits are left as you type them`);
+    }
+    const t = L.loadTicket(id);
+    if (!t) die(`no such ticket: ${id}`);
+    L.setCurrentTicket(repo, t.fm.id);
+    console.log(`${repo} is on ${t.fm.id} — commits here are tagged automatically now`);
   },
 
   approve: () => move('approved'),
@@ -135,8 +151,15 @@ const CMDS = {
 
     const ids = [...new Set([subject, ...bodyLines].join('\n').match(/T-\d+/g) || [])];
     if (!ids.length) {
-      const noTicket = /^no-ticket:/i.test(subject);
-      return console.log(noTicket ? `No ticket: the commit says "${subject}".` : 'No ticket ID in that commit message — nothing recorded explains this line.');
+      if (/^no-ticket:/i.test(subject)) return console.log(`No ticket: the commit says "${subject}".`);
+      // No ID in the message — fall back to what was live for this repo at that moment.
+      const at = L.sh('git', ['log', '-1', '--format=%aI', sha], repoDir).out;
+      const live = R.ticketsActiveAt(repo, at);
+      if (!live.length) return console.log('No ticket ID in that commit, and nothing was open for this repo at the time.');
+      console.log(`No ticket ID in that commit. Open around ${String(at).slice(0, 10)} — a guess from timing, not a recorded link:\n`);
+      for (const { fm, state, role } of live) console.log(`  ${fm.id} [${state}] ${fm.title}\n      ${fm.from} -> ${fm.to} · ${role}`);
+      console.log(`\nRun "coord show <id>" for the full story.`);
+      return;
     }
     for (const id of ids) {
       const t = L.loadTicket(id);
@@ -349,6 +372,16 @@ function move(to) {
   const t = R.transition(id, to, rest.join(' '));
   console.log(`${id}: ${t.from} -> ${to}`);
   if (to === 'approved') console.log(`${id} is now yours to work on: coord start ${id}`);
+
+  // starting work points the repo at the ticket; every commit then tags itself
+  const tk = L.loadTicket(id);
+  if (to === 'in_progress' && tk && L.setCurrentTicket(tk.fm.to, id)) {
+    console.log(`commits in ${tk.fm.to} are now tagged "${id}: ..." — you do not need to type it`);
+  }
+  if (['done', 'rejected'].includes(to) && tk && L.currentTicket(tk.fm.to) === id) {
+    L.setCurrentTicket(tk.fm.to, '');
+    console.log(`commits in ${tk.fm.to} are no longer tagged`);
+  }
 }
 
 try {

@@ -24,11 +24,34 @@ STRICT=0
 [ -n "$COORD_STRICT" ] && STRICT=1
 [ -f "$(dirname "$0")/../coord-strict" ] && STRICT=1
 
+# Default is silent: prepare-commit-msg already added the ID when it knew one, and a
+# commit with no ticket is a normal thing. coord why falls back to time-matching.
 if [ "$STRICT" = "1" ]; then
   printf '\\n  coord: REJECTED — no ticket ID.\\n  Use "T-042: %s" or "no-ticket: %s"\\n\\n' "$MSG" "$MSG" >&2
   exit 1
 fi
-printf '\\n  coord: no ticket ID in this message.\\n  Use "T-042: %s" or "no-ticket: %s"\\n  so "coord why" can explain this line later.   (coord list — what is open)\\n\\n' "$MSG" "$MSG" >&2
+exit 0
+`;
+
+// Writes the ticket prefix the dev would otherwise have to remember. Silent when it
+// has nothing to add — plenty of commits genuinely have no ticket.
+const prepareCommitMsg = () => `#!/bin/sh
+# installed by: coord devsetup — local to this clone, never committed.
+MSGFILE="$1"
+SOURCE="$2"
+case "$SOURCE" in merge|squash) exit 0 ;; esac
+
+FIRST=$(head -1 "$MSGFILE")
+case "$FIRST" in
+  T-[0-9]*:*|no-ticket:*|Merge\\ *|Revert\\ *|fixup!*|squash!*|amend!*) exit 0 ;;
+esac
+
+TICKET=$(cat "$(dirname "$0")/../coord-ticket" 2>/dev/null | tr -d '[:space:]')
+[ -n "$TICKET" ] || exit 0
+
+printf '%s: %s\\n' "$TICKET" "$FIRST" > "$MSGFILE.coord"
+tail -n +2 "$MSGFILE" >> "$MSGFILE.coord"
+mv "$MSGFILE.coord" "$MSGFILE"
 exit 0
 `;
 
@@ -141,7 +164,7 @@ function devsetup({ repo, strict = false, copilot = true } = {}) {
     const hooks = path.join(dir, '.git', 'hooks');
     fs.mkdirSync(hooks, { recursive: true });
 
-    for (const [name, body] of [['commit-msg', commitMsg()], ['post-commit', postCommit()]]) {
+    for (const [name, body] of [['prepare-commit-msg', prepareCommitMsg()], ['commit-msg', commitMsg()], ['post-commit', postCommit()]]) {
       const f = path.join(hooks, name);
       const existing = L.read(f);
       if (existing && !existing.includes('coord devsetup')) {
@@ -186,7 +209,22 @@ function logCommit(cwd) {
   const g = L.sh('git', ['log', '-1', '--format=%h %s'], path.join(P.root, repo));
   if (!g.ok) return null;
   L.logActivity(repo, 'commit', g.out);
+  autoStart(repo);                                  // Copilot users have no edit hook
   return `${repo} ${g.out}`;
+}
+
+// Same rule as the session hook: exactly one approved ticket for this repo, or nothing.
+function autoStart(repo) {
+  try {
+    if (L.currentTicket(repo)) return;
+    const approved = L.lsMd(P.tickets)
+      .map(f => L.parse(L.read(path.join(P.tickets, f))).fm)
+      .filter(fm => fm.status === 'approved' && fm.to === repo);
+    if (approved.length !== 1) return;
+    require('./rules.js').transition(approved[0].id, 'in_progress', 'work started in ' + repo);
+    L.setCurrentTicket(repo, approved[0].id);
+    L.logActivity(repo, 'auto-start', approved[0].id);
+  } catch { /* never break a commit over bookkeeping */ }
 }
 
 const pathHint = () => `export PATH="${path.join(P.coord, 'bin')}:$PATH"`;

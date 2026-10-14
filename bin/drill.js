@@ -310,7 +310,9 @@ function team() {
   const runHook = () => cp.spawnSync('sh', [path.join(A, '.git', 'hooks', 'commit-msg'), msg], { encoding: 'utf8' });
   fs.writeFileSync(msg, 'fix the thing\n');
   let h = runHook();
-  ok('commit-msg warns but allows a message with no ticket', h.status === 0 && /no ticket ID/.test(h.stderr), h.stderr);
+  // silent by default: prepare-commit-msg already adds the ID when one is known, and a
+  // genuinely ticket-less commit is normal. Nagging every time was the friction.
+  ok('commit-msg says nothing about a message with no ticket', h.status === 0 && !h.stderr.trim(), h.stderr);
   fs.writeFileSync(msg, 'T-042: fix the thing\n');
   ok('commit-msg is quiet for a ticket-prefixed message', runHook().status === 0 && !runHook().stderr.trim());
   fs.writeFileSync(msg, 'no-ticket: typo\n');
@@ -408,6 +410,7 @@ function roster() {
   coord(['setup', '--yes']);                     // put them back for the rest of the drill
 
   dashboardViews(me);
+  noTyping();
 }
 
 // A new dev clones only the board and runs one command.
@@ -458,6 +461,78 @@ function dashboardViews(me) {
       ok('a card that has sat too long is flagged', /class="card aging"/.test(aged) && /sitting too long/.test(aged), aged.slice(0, 200));
     }
   } finally { srv.kill(); }
+}
+
+// The point of the whole thing: a dev who runs no coord commands at all.
+function noTyping() {
+  const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
+  coord(['devsetup'], { human: true });
+
+  // assistant files it, human approves — the dev has done nothing
+  const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Hands-free ticket'], { cwd: A });
+  const id = (made.out.match(/T-\d+/) || [])[0];
+  coord(['approve', id], { human: true });
+
+  // the dev simply starts editing
+  cp.spawnSync(process.execPath, [HOOK, 'edit'], {
+    input: JSON.stringify({ cwd: B, tool_input: { file_path: path.join(B, 'auto.js') } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  const tk = L_loadStatus(id);
+  ok('the board moves itself when work starts', tk === 'in_progress', `status is ${tk}`);
+  ok('the repo is pointed at the ticket automatically',
+    fs.readFileSync(path.join(B, '.git', 'coord-ticket'), 'utf8').trim() === id);
+
+  // ...and commits with a plain message
+  fs.writeFileSync(path.join(B, 'auto.js'), 'module.exports = 2;\n');
+  git(['add', '-A'], B);
+  git(['commit', '-q', '-m', 'add the hands-free thing'], B);
+  const subject = git(['log', '-1', '--format=%s'], B).stdout.trim();
+  ok('the commit message gets the ticket prefix without anyone typing it',
+    subject === `${id}: add the hands-free thing`, subject);
+
+  // a repo with nothing in flight is left completely alone
+  fs.writeFileSync(path.join(A, 'untouched.md'), 'hi\n');
+  git(['add', '-A'], A);
+  git(['commit', '-q', '-m', 'fix typo in README'], A);
+  const plain = git(['log', '-1', '--format=%s'], A).stdout.trim();
+  ok('a commit with nothing in flight is left exactly as typed', plain === 'fix typo in README', plain);
+
+  // two approved tickets for one repo: guessing would be worse than doing nothing
+  fs.rmSync(path.join(B, '.git', 'coord-ticket'), { force: true });
+  const m2 = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Second candidate'], { cwd: A });
+  const id2 = (m2.out.match(/T-\d+/) || [])[0];
+  coord(['approve', id2], { human: true });
+  const m3 = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Third candidate'], { cwd: A });
+  const id3 = (m3.out.match(/T-\d+/) || [])[0];
+  coord(['approve', id3], { human: true });
+  cp.spawnSync(process.execPath, [HOOK, 'edit'], {
+    input: JSON.stringify({ cwd: B, tool_input: { file_path: path.join(B, 'amb.js') } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('with two candidates it guesses nothing', !fs.existsSync(path.join(B, '.git', 'coord-ticket')) &&
+    L_loadStatus(id2) === 'approved' && L_loadStatus(id3) === 'approved',
+    `${L_loadStatus(id2)} / ${L_loadStatus(id3)}`);
+
+  // coord why still answers a commit that carries no ID
+  const w = coord(['why', `${path.join(A, 'untouched.md')}:1`], { cwd: A });
+  ok('coord why falls back to what was open at the time',
+    w.ok && /a guess from timing/.test(w.out) && /this repo asked for it|work for this repo/.test(w.out), w.out);
+
+  ok('coord on reports what the repo is tagged with', /no current ticket|is on T-/.test(coord(['on'], { cwd: B }).out));
+  coord(['on', id], { cwd: B });
+  ok('coord on sets it by hand when you want to', fs.existsSync(path.join(B, '.git', 'coord-ticket')));
+  coord(['on', '--clear'], { cwd: B });
+  ok('coord on --clear removes it', !fs.existsSync(path.join(B, '.git', 'coord-ticket')));
+  ok('check is clean after all of it', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
+}
+
+function L_loadStatus(id) {
+  const d = path.join(CO, 'tickets');
+  const f = fs.readdirSync(d).find(x => x.startsWith(id + '-'));
+  if (!f) return null;
+  const m = /^status: (.+)$/m.exec(fs.readFileSync(path.join(d, f), 'utf8'));
+  return m ? m[1].trim() : null;
 }
 
 function freshDev() {
