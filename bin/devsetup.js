@@ -8,6 +8,20 @@ const L = require('./lib.js');
 const { P } = L;
 
 const COORD_BIN = path.join(P.coord, 'bin', 'coord');
+// Never hardcode what the board is called or where it came from: people clone it under
+// whatever name they like, and these strings end up in a tracked file in every repo.
+const boardName = () => path.basename(P.coord);
+// Only a real remote goes into a tracked file. A board whose origin is a local path
+// (a bare repo on someone's disk, which is how the drill fixture works) must not write
+// that path into every repo for everyone else to read.
+const isRemoteUrl = u => /^[a-z][a-z0-9+.-]*:\/\//i.test(u) || /^[^/\s]+@[^/\s]+:/.test(u);
+const boardUrl = () => {
+  const u = (L.coordGit(['remote', 'get-url', 'origin']).out || '').trim();
+  return isRemoteUrl(u) ? u : '';
+};
+// What `git clone <url>` would actually create, which is not necessarily what this
+// machine called it: the board here may be `.coord` while the repo is named `coord`.
+const cloneName = () => (boardUrl().split('/').pop() || 'coord').replace(/\.git$/, '');
 const AGENTS_BEGIN = '<!-- BEGIN:coord -->', AGENTS_END = '<!-- END:coord -->';
 
 /* ---------- hook bodies (absolute paths are fine here: never committed) ---------- */
@@ -98,9 +112,10 @@ function copilotDoc(repo) {
     // churn in a tracked file and ``coord repos`` is the better answer.
     `This repo is one of ${all.length} in the jetKreate platform${
       others.length === 0 ? '' : others.length <= 4 ? ` (the others: ${others.join(', ')})` : ' — run ``coord repos`` to see them all'}.`,
-    'Coordination for all of them lives in a separate repo, `jetkreate-coord`, cloned beside',
+    'Coordination for all of them lives in a separate repo, `' + boardName() + '`, cloned beside',
     'this one. Its CLI is `coord`. If that command is not found, read that repo\'s README.',
     'It is markdown files, not a service. Read it.',
+    ...(boardUrl() ? ['', '    git clone ' + boardUrl(), '    ./' + cloneName() + '/bin/coord setup'] : []),
     '',
     '## Start of every session',
     '',
@@ -154,7 +169,7 @@ function copilotDoc(repo) {
       '',
       contracts.join(', '),
       '',
-      'Described in `jetkreate-coord/contracts/`. Only this repo edits those files, and only',
+      'Described in `' + boardName() + '/contracts/`. Only this repo edits those files, and only',
       'under an approved ticket. Everyone else reads them.',
     ] : []),
     ...(deps.length ? [
@@ -176,7 +191,7 @@ function copilotDoc(repo) {
     'coord fix               anything automatic that failed, and how to do it by hand',
     '```',
     '',
-    'Full rules: `CLAUDE.md` and `ONBOARDING.md` in the jetkreate-coord repo.',
+    'Full rules: `CLAUDE.md` and `ONBOARDING.md` in the ' + boardName() + ' repo.',
     '',
   ].join('\n');
 }
@@ -186,7 +201,7 @@ const agentsSection = () => [
   '## Platform coordination',
   '',
   'This repo is part of the jetKreate platform. Never edit another repo; file a ticket with',
-  '`coord new` instead (the `jetkreate-coord` repo, cloned beside this one). Commit messages',
+  '`coord new` instead (the `' + boardName() + '` repo, cloned beside this one). Commit messages',
   'start with `JET-nnn:` or `no-ticket:`. See `.github/copilot-instructions.md` for the full set.',
   AGENTS_END,
   '',
