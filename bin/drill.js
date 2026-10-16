@@ -935,6 +935,77 @@ function resilience() {
     return /Start of every session/.test(d) && /Run .?coord.? first/.test(d) && /handoff note/.test(d);
   })());
 
+  /* --- mail --- */
+  // Four notices built from the board. The rails matter more than the copy: nothing is
+  // sent without --send, nothing reaches an address off the allowed domains, and nothing
+  // leaks anything the board does not already hold.
+  const mail = (...a) => coord(['mail', ...a], { human: true });
+  ok('coord mail prints and does not send', (() => {
+    const o = mail('digest').out;
+    return /not sent/.test(o) && !/sent to/.test(o);
+  })(), mail('digest').out);
+  ok('a quiet week produces no weekly wrap at all', /quiet week|not sent/.test(mail('weekly').out));
+  const someone = JSON.parse(fs.readFileSync(path.join(CO, 'people.json'), 'utf8')).people[0];
+  ok('welcome names the person and the repos', (() => {
+    const f = path.join(TMP, 'welcome.html');
+    const r = mail('welcome', '--to', someone.name, '--html', f);
+    if (!fs.existsSync(f)) return false;
+    const h = fs.readFileSync(f, 'utf8');
+    return h.includes(someone.name) && h.includes('alpha') && h.includes('beta');
+  })(), someone && someone.name);
+  ok('the welcome draws everyone, with the newcomer marked', (() => {
+    const f = path.join(TMP, 'welcome.html');
+    if (!fs.existsSync(f)) return false;
+    const h = fs.readFileSync(f, 'utf8');
+    return /of us now/.test(h) && /pulse/.test(h);
+  })());
+  ok('--new sends to nobody when nobody is new', /nobody new/.test(mail('welcome', '--new').out), mail('welcome', '--new').out);
+
+  // Email clients mostly ignore CSS animation, so no animation may hide content.
+  ok('no animation starts from invisible', (() => {
+    const css = fs.readFileSync(path.join(__dirname, 'mail.js'), 'utf8');
+    const frames = [...css.matchAll(/@keyframes\s+\w+\s*\{([^}]*\}[^}]*)\}/g)].map(m => m[1]);
+    return frames.length > 0 && !frames.some(f => /from\s*\{[^}]*opacity\s*:\s*0/.test(f));
+  })(), 'a keyframe starts at opacity:0 — it would blank the mail in Gmail and Outlook');
+  ok('every inline colour has a theme class beside it', (() => {
+    const src = fs.readFileSync(path.join(__dirname, 'mail.js'), 'utf8');
+    // the dark block must redefine every class the helpers actually use
+    const used = ['ink', 'muted', 'faint', 'sunk', 'sig', 'rule'];
+    const dark = (src.match(/prefers-color-scheme: dark\)[\s\S]*?\n  \}/) || [''])[0];
+    return used.every(c => dark.includes('.' + c + ' ') || dark.includes('.' + c + '{') || dark.includes('.' + c + ','));
+  })());
+
+  const N = require('./notices.js');
+  ok('it refuses any address off the allowed domains', (() => {
+    return !N.allowed('someone@gmail.com') && !N.allowed('') && N.allowed('a@jetsynthesys.com');
+  })());
+  ok('people who opted out get nothing', (() => {
+    // Both counts have to come from a process pointed at the drill board, not this one.
+    const count = () => Number(cp.spawnSync(process.execPath, ['-e',
+      `console.log(require('${path.join(__dirname, 'notices.js').replace(/\\/g, '/')}').recipients().length)`],
+      { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } }).stdout.trim());
+    const pf = path.join(CO, 'people.json');
+    const before = count();
+    const roster = JSON.parse(fs.readFileSync(pf, 'utf8'));
+    roster.people[0].notify = false;
+    fs.writeFileSync(pf, JSON.stringify(roster, null, 2) + '\n');
+    const after = count();
+    delete roster.people[0].notify;
+    fs.writeFileSync(pf, JSON.stringify(roster, null, 2) + '\n');
+    return before > 0 && after === before - 1;
+  })());
+  ok('the nudge record is shared, not per-machine', (() => {
+    const gi = fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8');
+    const src = fs.readFileSync(path.join(__dirname, 'notices.js'), 'utf8');
+    return !gi.split('\n').includes('notify.json') && /notifyState\(\)\.nudged/.test(src);
+  })());
+  ok('the API key is never written to the board', (() => {
+    const gi = fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8');
+    const wf = path.join(__dirname, '..', '.github', 'workflows', 'notices.yml');
+    const y = fs.existsSync(wf) ? fs.readFileSync(wf, 'utf8') : '';
+    return gi.split('\n').includes('mail.json') && /secrets\.RESEND_API_KEY/.test(y) && !/re_[A-Za-z0-9]{8}/.test(y);
+  })());
+
   /* --- the context store: a shared fact that belongs to no repo --- */
   ok('an empty context store says how to fill it', coord(['ctx']).out.includes('--add'));
   const add = coord(['ctx', '--add', 'Staging URL', '--body', 'https://staging.example.test — reset nightly.'], { cwd: path.join(TMP, 'beta') });

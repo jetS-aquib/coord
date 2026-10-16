@@ -1,0 +1,68 @@
+# The board sends its own mail. Not a dev machine: one sender, the full board every time,
+# and nothing is skipped because somebody's laptop was shut.
+#
+# Needs one secret on this repo:  RESEND_API_KEY
+# Optional:  COORD_MAIL_FROM  (e.g. "coord <coord@yourdomain.com>" once a domain is verified)
+name: coord notices
+
+on:
+  schedule:
+    # times are UTC. These are tuned for IST (UTC+5:30).
+    - cron: '0 3 * * 1-5'     # 08:30 IST, weekdays — the daily digest
+    - cron: '30 8 * * 1-5'    # 14:00 IST, weekdays — stale nudges, mid-afternoon
+    - cron: '30 11 * * 5'     # 17:00 IST, Friday  — the weekly wrap
+  push:
+    paths: ['people.json']    # someone joined
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 'digest | weekly | nudge | welcome'
+        required: true
+        default: digest
+      send:
+        description: 'actually send (otherwise prints)'
+        type: boolean
+        default: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # the nudge record is committed back
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }   # welcome --new diffs people.json against the previous commit
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Work out which notice this run is
+        id: which
+        run: |
+          case "${{ github.event_name }}:${{ github.event.schedule }}" in
+            push:*)                echo "kind=welcome" >> $GITHUB_OUTPUT; echo "extra=--new" >> $GITHUB_OUTPUT ;;
+            schedule:'0 3 * * 1-5')  echo "kind=digest"  >> $GITHUB_OUTPUT ;;
+            schedule:'30 8 * * 1-5') echo "kind=nudge"   >> $GITHUB_OUTPUT ;;
+            schedule:'30 11 * * 5')  echo "kind=weekly"  >> $GITHUB_OUTPUT ;;
+            *)                     echo "kind=${{ github.event.inputs.kind }}" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Send
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          COORD_MAIL_FROM: ${{ secrets.COORD_MAIL_FROM }}
+          COORD_ROOT: ${{ github.workspace }}
+        run: |
+          SEND=--send
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.send }}" != "true" ]; then SEND=""; fi
+          node bin/coord mail "${{ steps.which.outputs.kind }}" ${{ steps.which.outputs.extra }} $SEND
+
+      - name: Record what was nudged, so nobody is nudged twice
+        if: steps.which.outputs.kind == 'nudge'
+        run: |
+          if ! git diff --quiet -- notify.json; then
+            git config user.name  "coord"
+            git config user.email "coord@users.noreply.github.com"
+            git add notify.json
+            git commit -m "coord: recorded nudges"
+            git push
+          fi

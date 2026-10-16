@@ -43,6 +43,17 @@ function whereWasI() {
   console.log('');
 }
 
+// Names on the roster now that were not there one commit ago. Git is the only record
+// of "new", and it is the one CI has.
+function newcomers() {
+  const prev = L.coordGit(['show', 'HEAD~1:people.json']);
+  if (!prev.ok) return L.people();                       // first commit: everyone is new
+  let before = [];
+  try { before = (JSON.parse(prev.out).people || []).map(p => p.name); } catch { /* unreadable: treat as none */ }
+  const had = new Set(before);
+  return L.people().filter(p => !had.has(p.name));
+}
+
 /* ---------- saying yes or no without typing an id ---------- */
 // A bare number is an id. "JET-193", "jet193" and "193" are the same ticket.
 function fullId(s) {
@@ -123,6 +134,9 @@ const USAGE = `coord — jetKreate cross-repo coordination
   setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
                                  only where it cannot tell (cloning repos, editing ~/.zshrc)
   sync [--quiet]                 pull and push the board (needs a remote on .coord)
+  mail <kind> [--to NAME] [--html FILE] [--send]
+                                 digest | weekly | nudge | welcome — prints by default,
+                                 writes the HTML with --html, only sends with --send
   fix [--yes] [--clear]          anything automatic that failed, and how to do it by hand
   pause [reason] / resume        turn everything coord does off / on, on this machine only
   devsetup [--repo R] [--strict] [--no-copilot]
@@ -548,6 +562,76 @@ const CMDS = {
       L.logFailure('post-commit', e.message, 'coord check');
       throw e;
     }
+  },
+
+  // Notices are generated here and sent from CI, so this command is mostly how you see
+  // one before anybody receives it. Printing is the default on purpose: --send is a
+  // deliberate act, and there is no way to send by accident.
+  mail() {
+    const N = require('./notices.js');
+    const kind = rest[0] || die('usage: coord mail digest|weekly|nudge|welcome [--to NAME] [--html FILE] [--send]');
+    const only = typeof flags.to === 'string' ? flags.to : null;
+    const jobs = [];
+
+    if (kind === 'digest') {
+      for (const p of N.recipients()) {
+        if (only && p.name !== only) continue;
+        const n = N.digest(p);
+        if (n) jobs.push({ to: p.email, who: p.name, n });
+        else console.log(`  ${p.name}: nothing happened — no digest`);
+      }
+    } else if (kind === 'weekly') {
+      const n = N.weekly();
+      if (!n) return console.log('a quiet week — no wrap to send');
+      for (const p of N.recipients()) if (!only || p.name === only) jobs.push({ to: p.email, who: p.name, n });
+    } else if (kind === 'nudge') {
+      for (const x of N.nudges()) {
+        if (only && x.person.name !== only) continue;
+        jobs.push({ to: x.person.email, who: x.person.name, n: N.nudge(x), mark: x.ticket.id });
+      }
+      if (!jobs.length) return console.log('nothing has been sitting long enough to nudge about');
+    } else if (kind === 'welcome') {
+      // --new is what CI uses: whoever appeared on the roster in the last commit, and
+      // nobody else. Without it a scheduled run would welcome the same person forever.
+      const fresh = flags.new ? newcomers() : null;
+      if (fresh && !fresh.length) return console.log('nobody new on the roster');
+      const people = fresh || [only ? L.personNamed(only) : L.people().slice(-1)[0]].filter(Boolean);
+      if (!people.length) die(`nobody on the roster${only ? ` called "${only}"` : ''}`);
+      for (const p of people) {
+        jobs.push({ to: p.email, who: p.name, n: N.welcome(p) });
+        for (const other of N.recipients()) {
+          if (other.name === p.name) continue;
+          jobs.push({ to: other.email, who: other.name, n: N.welcome(p, { toTeam: true }) });
+        }
+      }
+    } else die(`unknown notice "${kind}" — digest, weekly, nudge or welcome`);
+
+    if (typeof flags.html === 'string') {
+      if (!jobs.length) console.log('nothing to write — no notice was generated');
+      else {
+        const f = path.resolve(flags.html);
+        require('fs').writeFileSync(f, jobs[0].n.html);
+        console.log(`wrote "${jobs[0].n.subject}" -> ${f}`);
+      }
+    }
+    if (!flags.send) {
+      console.log(`${jobs.length} notice(s), not sent. Add --send once you are happy.\n`);
+      for (const j of jobs) console.log(`  to ${j.who} <${j.to}>\n    ${j.n.subject}\n    ${j.n.text.slice(0, 160)}\n`);
+      console.log(`from: ${N.from()}${N.apiKey() ? '' : '   (no API key set — sending would fail)'}`);
+      return;
+    }
+    (async () => {
+      for (const j of jobs) {
+        try {
+          const id = await N.send(j.to, j.n);
+          console.log(`  sent to ${j.who}: ${j.n.subject}  [${id}]`);
+          if (j.mark) L.setNotify({ nudged: { ...(L.notifyState().nudged || {}), [j.mark]: L.nowISO() } });
+        } catch (e) {
+          console.log(`  FAILED for ${j.who}: ${e.message}`);
+          L.logFailure('mail', e.message, `coord mail ${kind} --to "${j.who}" --send`);
+        }
+      }
+    })();
   },
 
   // Every automatic thing coord does can fail: a hook crash, a sync that cannot reach

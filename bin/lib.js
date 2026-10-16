@@ -25,6 +25,7 @@ const P = {
   people: path.join(COORD, 'people.json'),
   paths: path.join(COORD, 'paths.json'),
   local: path.join(COORD, 'local.json'),
+  notify: path.join(COORD, 'notify.json'),
 };
 
 /* ---------- where each repo lives ON THIS MACHINE ---------- */
@@ -337,7 +338,7 @@ function coordGit(args) {
 // The board, not the toolchain. `add -A` would sweep half-finished edits to bin/ or
 // hooks/ into a commit labelled "session end" — true of anyone working on coord itself.
 const BOARD_PATHS = ['status', 'tickets', 'decisions', 'contracts', 'context', 'activity',
-  'archive', 'repos.json', 'people.json', 'state.json', '.gitattributes', '.gitignore'];
+  'archive', 'repos.json', 'people.json', 'state.json', 'notify.json', '.gitattributes', '.gitignore'];
 function snapshot(msg) {
   const here = BOARD_PATHS.filter(p => exists(path.join(P.coord, p)));
   if (!here.length || !coordGit(['add', '-A', '--', ...here]).ok) return false;
@@ -355,6 +356,12 @@ const setState = patch => atomicWrite(P.state, JSON.stringify({ ...state(), ...p
 // would conflict on every single sync — two people cannot both be the last to sync.
 const localState = () => { try { return JSON.parse(read(P.local, '{}')); } catch { return {}; } };
 const setLocal = patch => atomicWrite(P.local, JSON.stringify({ ...localState(), ...patch }, null, 2) + '\n');
+
+// notify.json is SHARED and committed: "the board has already nudged about JET-003" is
+// true for everyone. It cannot live on a machine, because the thing that sends runs in
+// CI on a fresh checkout every time and would otherwise nudge daily forever.
+const notifyState = () => { try { return JSON.parse(read(P.notify, '{}')); } catch { return {}; } };
+const setNotify = patch => atomicWrite(P.notify, JSON.stringify({ ...notifyState(), ...patch }, null, 2) + '\n');
 
 /* ---------- actor ---------- */
 // Claude's Bash tool is not a TTY; a human in a terminal is. COORD_ACTOR=human overrides for scripts.
@@ -570,4 +577,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

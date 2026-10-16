@@ -10,3 +10,6 @@ paths.json
 
 # this machine's own clock: when it last synced. Shared, it would conflict every sync
 local.json
+
+# the mail API key lives here on a machine that sends, and in CI secrets otherwise
+mail.json
