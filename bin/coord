@@ -31,7 +31,9 @@ const USAGE = `coord — jetKreate cross-repo coordination
 
   list [--status X]              tickets, newest first
   show <id>                      a ticket or decision in full
-  new --from R --to R --title T [--request --reason --files --acceptance --test]
+  new --from R --to R --title T
+      [--request --understanding --plan --reason --files --acceptance --test]
+  note <id> <text>               add to the thread without moving the ticket
   approve <id> [note]            open -> approved        (human)
   start <id> [note]              approved -> in_progress (assignee)
   review <id> [note]             in_progress -> review   (assignee; Test steps required)
@@ -84,8 +86,11 @@ const CMDS = {
     const id = (rest[0] || die('usage: coord show <id>')).toUpperCase();
     const f = /^D-/i.test(id) ? L.findDecision(id) : L.findTicket(id);
     if (f) {
-      console.log(`# ${path.relative(P.coord, f)}\n`);
-      return console.log(L.read(f));
+      if (flags.raw || /^D-/i.test(id)) {
+        console.log(`# ${path.relative(P.coord, f)}\n`);
+        return console.log(L.read(f));
+      }
+      return showTicket(f);
     }
     // No ticket file. The id may still be one of the JET-nnn tags already in the code —
     // show where it is cited rather than claiming it does not exist.
@@ -116,7 +121,8 @@ const CMDS = {
     }
     const r = R.newTicket({
       from: flags.from, to: flags.to, title: flags.title,
-      request: flags.request, reason: flags.reason, files: flags.files,
+      request: flags.request, understanding: flags.understanding, plan: flags.plan,
+      reason: flags.reason, files: flags.files,
       acceptance: flags.acceptance, test: flags.test,
     });
     console.log(`${r.id} created (open) -> ${path.relative(P.coord, r.file)}`);
@@ -238,6 +244,19 @@ const CMDS = {
       n += hits.length;
     }
     if (!n) console.log(`nothing matches "${rest.join(' ')}"`);
+  },
+
+  // Discussion without commitment. Before you approve something you usually want to ask
+  // one question, not reject it and not wave it through.
+  note() {
+    const id = (rest.shift() || die('usage: coord note <id> "what you want to say"')).toUpperCase();
+    const text = rest.join(' ') || die('say something: coord note ' + id + ' "..."');
+    const t = L.loadTicket(id) || die(`not found: ${id}`);
+    if (t.archived) die(`${id} is archived — reopen it by hand if you need to add to it`);
+    R.addThread(t.file, L.actor(), text);
+    L.snapshot(`coord: note on ${id}`);
+    console.log(`added to ${id}'s thread. It is still ${t.fm.status}.`);
+    if (t.fm.status === 'open') console.log(`Whoever is working on it will see it. To act: coord approve ${id}  /  coord reject ${id} "<why>"`);
   },
 
   // The one kind of shared knowledge that had nowhere to live. A decision is immutable
@@ -503,6 +522,77 @@ const CMDS = {
   drill: () => require('./drill.js').run(),
   help: () => console.log(USAGE),
 };
+
+/* ---------- the ticket, as a person reads it before approving ---------- */
+// Not the raw file. What someone needs to decide: what it thinks you asked for, what it
+// intends to do, and the exact commands for every way of answering.
+function showTicket(file) {
+  const { fm, body } = L.parse(L.read(file));
+  const sec = L.sections(body);
+  const age = fm.created ? `${fmtAge(L.daysAgo(fm.created))} old` : '';
+  const w = s => (s || '').trim() || '—';
+  const block = (label, text) => {
+    const t = w(text);
+    if (t === '—') return;
+    console.log(`\n${label}`);
+    for (const line of t.split('\n')) console.log(line.trim() ? '  ' + line : '');
+  };
+
+  console.log(`${fm.id}  ${String(fm.status).toUpperCase()}`);
+  console.log(`${fm.title}`);
+  console.log(`${fm.from} -> ${fm.to}${fm.filed_by ? `   filed by ${fm.filed_by}` : ''}${age ? '   ' + age : ''}`);
+  if ((fm.decisions || []).length) console.log(`decisions: ${fm.decisions.join(', ')}`);
+
+  block('WHAT WAS ASKED FOR', sec.Request);
+  block('WHAT IT UNDERSTOOD THAT TO MEAN', sec.Understanding);
+  block('WHAT IT PLANS TO DO', sec.Plan);
+  block('WHY', sec.Reason);
+  block('FILES IT EXPECTS TO TOUCH', sec['Related files']);
+  block('DONE WHEN', sec['Acceptance criteria']);
+  block('HOW TO TEST IT', sec['Test steps']);
+  block('THREAD', sec.Thread);
+
+  if (R.EMPTY(sec.Understanding) || R.EMPTY(sec.Plan)) {
+    console.log(`\nThis ticket does not say what it understood or how it will do it.`);
+    console.log(`Before approving, ask the agent that filed it:  "fill in the Understanding and Plan on ${fm.id}"`);
+  }
+  nextSteps(fm);
+}
+
+// Every way of answering, with the id already filled in, so none of it has to be typed
+// from memory. The last two are prompts for your agent, not shell commands.
+function nextSteps(fm) {
+  const id = fm.id, rows = [];
+  if (fm.status === 'open') {
+    rows.push(['looks right', `coord approve ${id}`]);
+    rows.push(['not this', `coord reject ${id} "<why>"`]);
+    rows.push(['one question first', `coord note ${id} "<your question>"`]);
+    rows.push(['change it before approving', `ask your agent:  "revise ${id}: <what to change>"`]);
+  } else if (fm.status === 'approved') {
+    rows.push(['pick it up', `work in ${fm.to} — it moves itself to in_progress`]);
+    rows.push(['changed your mind', `coord reject ${id} "<why>"`]);
+    rows.push(['add context', `coord note ${id} "<...>"`]);
+  } else if (fm.status === 'in_progress') {
+    rows.push(['hand it back', `coord review ${id}   (fill in Test steps first)`]);
+    rows.push(['add context', `coord note ${id} "<...>"`]);
+    rows.push(['stop it', `coord reject ${id} "<why>"`]);
+  } else if (fm.status === 'review') {
+    rows.push(['it works', `coord done ${id}`]);
+    rows.push(['it does not', `coord reject ${id} "<why>"`]);
+    rows.push(['ask about it', `coord note ${id} "<your question>"`]);
+  } else {
+    rows.push(['it is closed', `nothing to do — coord why <file>:<line> finds it again later`]);
+    return print(rows);
+  }
+  print(rows);
+  function print(rs) {
+    console.log(`\nWHAT YOU CAN DO`);
+    const pad = Math.max(...rs.map(r => r[0].length));
+    for (const [label, cmd] of rs) console.log(`  ${label.padEnd(pad)}   ${cmd}`);
+  }
+}
+const fmtAge = d => d * 24 < 1 ? `${Math.max(1, Math.round(d * 1440))}m`
+  : d < 1 ? `${Math.round(d * 24)}h` : `${Math.round(d)}d`;
 
 function printPreflight(r) {
   const yn = b => (b ? 'yes' : 'NO');

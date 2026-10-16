@@ -87,9 +87,40 @@ function setup() {
 function lifecycle() {
   let r = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Add /v1/jobs endpoint',
     '--request', 'Expose GET /v1/jobs returning {id,state}.', '--reason', 'alpha cannot poll job state.',
+    '--understanding', 'One new GET route on the existing router. Assuming no pagination.',
+    '--plan', '1. add the route\n2. add a zod schema for the response',
     '--files', 'src/api/jobs.js'], { cwd: path.join(TMP, 'alpha') });
   const id = (r.out.match(/JET-\d+/) || [])[0];
   ok('coord new creates a ticket in status open', r.ok && !!id && /status: - -> open/.test(readT(id)), r.out);
+
+  // What a person reads before approving: the agent's own restatement and its plan.
+  // Approving a one-line title is rubber-stamping.
+  ok('the ticket records what the agent understood and how it will do it',
+    /## Understanding/.test(readT(id)) && /Assuming no pagination/.test(readT(id)) &&
+    /## Plan/.test(readT(id)) && /add a zod schema/.test(readT(id)), readT(id));
+  const shown = coord(['show', id]);
+  ok('coord show renders it for a person, not as raw markdown',
+    shown.ok && /WHAT IT UNDERSTOOD THAT TO MEAN/.test(shown.out) && !/^---$/m.test(shown.out), shown.out);
+  ok('coord show spells out every way of answering', (() => {
+    const o = shown.out;
+    return /WHAT YOU CAN DO/.test(o) && o.includes('coord approve ' + id) &&
+      o.includes('coord reject ' + id) && o.includes('coord note ' + id) && /revise /.test(o);
+  })(), shown.out);
+  ok('coord show --raw still gives the file', /^---$/m.test(coord(['show', id, '--raw']).out));
+
+  // Discussion without commitment: the common case is one question, not a rejection.
+  const n = coord(['note', id, 'does this need pagination?']);
+  ok('coord note adds to the thread without moving the ticket',
+    n.ok && /does this need pagination\?/.test(readT(id)) && /^status: open$/m.test(readT(id)), n.out);
+  ok('and says the ticket has not moved', /still open/.test(n.out), n.out);
+  ok('a note with nothing in it is refused', !coord(['note', id]).ok);
+
+  // A ticket filed without them should say so rather than look complete.
+  const bare = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Bare ticket'], { cwd: path.join(TMP, 'alpha') });
+  const bid = (bare.out.match(/JET-\d+/) || [])[0];
+  ok('a ticket with no Understanding or Plan warns before approval',
+    /does not say what it understood/.test(coord(['show', bid]).out), coord(['show', bid]).out);
+  coord(['reject', bid, 'drill fixture'], { human: true });
 
   ok('bad repo name refused', !coord(['new', '--from', 'nope', '--to', 'beta', '--title', 'x']).ok);
   ok('invalid transition open -> done refused', !coord(['done', id], { human: true }).ok, coord(['done', id], { human: true }).out);
@@ -219,7 +250,7 @@ function guard() {
     ok(label, r.decision === 'allow', JSON.stringify(r));
   };
 
-  denies('guard blocks Edit into another repo', A, 'Edit', { file_path: path.join(B, 'src.js') }, 'Repos never edit each other');
+  denies('guard blocks Edit into another repo', A, 'Edit', { file_path: path.join(B, 'src.js') }, 'do not edit each other');
   allows('guard allows Edit in your own repo', A, 'Edit', { file_path: path.join(A, 'src.js') });
   denies('guard blocks sed -i into another repo', A, 'Bash', { command: `sed -i "" s/a/b/ ${path.join(B, 'src.js')}` });
   denies('guard blocks redirection into another repo', A, 'Bash', { command: `echo x > ${path.join(B, 'n.md')}` });
@@ -752,7 +783,9 @@ function resilience() {
     input: JSON.stringify({ cwd, tool_name: 'Write', tool_input: { file_path: file } }),
     encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
   }).stdout;
-  const beta = path.join(TMP, 'beta'), alphaFile = path.join(TMP, 'alpha', 'x.js');
+  // Another repo's status file is refused on ownership, never on a ticket — so this
+  // probe measures the guard being on or off, and nothing else.
+  const beta = path.join(TMP, 'beta'), alphaFile = path.join(CO, 'status', 'alpha.md');
   const today = path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`);
   const failLog = path.join(CO, 'activity', 'failures.log');
 
@@ -777,6 +810,12 @@ function resilience() {
   ok('coord check points at it too', ck.out.includes('coord fix'), ck.out);
   ok('coord fix --clear empties it', coord(['fix', '--clear']).ok && !fs.existsSync(failLog));
   ok('failures.log is gitignored', fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').includes('activity/failures.log'));
+  // Ignoring a file does nothing once it is tracked — somebody's hook crashes were
+  // riding along on the shared board for two days before anyone noticed.
+  ok('no machine-local file is actually tracked on the board', (() => {
+    const tracked = git(['ls-files'], path.join(__dirname, '..')).stdout.split('\n');
+    return !tracked.some(f => ['activity/hook-errors.log', 'activity/failures.log', 'paths.json', 'local.json', 'paused'].includes(f));
+  })(), git(['ls-files'], path.join(__dirname, '..')).stdout.split('\n').filter(f => /hook-errors|failures\.log|paths\.json|local\.json|paused/.test(f)).join(' '));
 
   /* --- pause: the escape hatch --- */
   ok('guard blocks a cross-repo write while running', /permissionDecision":"deny/.test(guardCall(beta, alphaFile)));
@@ -900,6 +939,29 @@ function scattered() {
   ok('and from a normal repo into the scattered one',
     /permissionDecision":"deny/.test(guardCall(path.join(TMP, 'beta'), path.join(away, 'index.js'))));
   ok('its own files are still its own', guardCall(away, path.join(away, 'index.js')) === '');
+
+  // Everyone owns every repo, so a sanctioned cross-repo change must not need a second
+  // terminal — but only a ticket somebody approved counts as sanction.
+  const betaDir = path.join(TMP, 'beta'), deltaFile = path.join(away, 'index.js');
+  ok('an unsanctioned cross-repo write is still refused',
+    /permissionDecision":"deny/.test(guardCall(betaDir, deltaFile)));
+  const span = coord(['new', '--from', 'beta', '--to', 'delta', '--title', 'Spanning change',
+    '--request', 'r', '--reason', 'r'], { cwd: betaDir });
+  const sid = (span.out.match(/JET-\d+/) || [])[0];
+  ok('an approved-but-not-started ticket is not yet a licence', (() => {
+    coord(['approve', sid], { human: true });
+    return /permissionDecision":"deny/.test(guardCall(betaDir, deltaFile));
+  })(), sid + ' ' + span.out);
+  ok('an in-progress ticket licenses the write, both ways', (() => {
+    coord(['start', sid], { cwd: betaDir });
+    return guardCall(betaDir, deltaFile) === '' && guardCall(away, path.join(TMP, 'beta', 'jobs.js')) === '';
+  })(), guardCall(betaDir, deltaFile));
+  ok('closing the ticket closes the licence', (() => {
+    coord(['reject', sid, 'done with the span'], { human: true });
+    return /permissionDecision":"deny/.test(guardCall(betaDir, deltaFile));
+  })(), guardCall(betaDir, deltaFile));
+  ok('the licence does not open up a third repo',
+    /permissionDecision":"deny/.test(guardCall(path.join(TMP, 'alpha'), deltaFile)));
   ok('a repo nobody registered is left alone', (() => {
     const outside = path.join(TMP, 'elsewhere', 'notours');
     fs.mkdirSync(outside, { recursive: true });

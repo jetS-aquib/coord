@@ -4,7 +4,10 @@ const path = require('path'), fs = require('fs');
 const L = require('./lib.js');
 const { P } = L;
 
-const TICKET_SECTIONS = ['Request', 'Reason', 'Related files', 'Acceptance criteria', 'Test steps', 'Thread'];
+// Understanding and Plan are what a person actually reads before approving: the agent's
+// own restatement of the ask, and what it intends to do about it. Approving a one-line
+// title is rubber-stamping; approving a restatement catches a misread before any code.
+const TICKET_SECTIONS = ['Request', 'Understanding', 'Plan', 'Reason', 'Related files', 'Acceptance criteria', 'Test steps', 'Thread'];
 const DECISION_SECTIONS = ['Context', 'Options considered', 'Decision', 'Reason', 'Consequences'];
 const EMPTY = s => !s || /^[—\-\s]*$/.test(s);
 
@@ -12,6 +15,14 @@ const EMPTY = s => !s || /^[—\-\s]*$/.test(s);
 const ticketBody = f => `## Request
 
 ${f.request || '—'}
+
+## Understanding
+
+${f.understanding || '—'}
+
+## Plan
+
+${f.plan || '—'}
 
 ## Reason
 
@@ -60,11 +71,11 @@ function addThread(file, who, text) {
 }
 
 /* ---------- create ---------- */
-function newTicket({ from, to, title, request, reason, files, acceptance, test }) {
+function newTicket({ from, to, title, request, understanding, plan, reason, files, acceptance, test }) {
   const who = L.actor();
   const r = L.createWithId(L.TICKET_PREFIX, P.tickets, L.slug(title), id => L.stringify(
     { id, title, from, to, filed_by: L.me() || '', status: 'open', created: L.nowISO(), updated: L.nowISO(), decisions: [] },
-    ticketBody({ request, reason, files, acceptance, test })));
+    ticketBody({ request, understanding, plan, reason, files, acceptance, test })));
   addThread(r.file, who, `created ticket, status: - -> open`);
   return r;
 }
