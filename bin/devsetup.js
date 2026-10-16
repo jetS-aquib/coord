@@ -157,6 +157,7 @@ function copilotDoc(repo) {
     '## Useful',
     '',
     '```',
+    'coord                   what is waiting on a person right now',
     'coord list              what is open',
     'coord show JET-nnn      one ticket in full (works for the tags already in code)',
     'coord why src/x.ts:88   why is this line like this',

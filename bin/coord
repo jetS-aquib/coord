@@ -116,7 +116,7 @@ const CMDS = {
   },
 
   show() {
-    const id = (rest[0] || die('usage: coord show <id>')).toUpperCase();
+    const id = fullId(rest[0] || die('usage: coord show <id>'));
     const f = /^D-/i.test(id) ? L.findDecision(id) : L.findTicket(id);
     if (f) {
       if (flags.raw || /^D-/i.test(id)) {
@@ -297,7 +297,7 @@ const CMDS = {
   // Discussion without commitment. Before you approve something you usually want to ask
   // one question, not reject it and not wave it through.
   note() {
-    const id = (rest.shift() || die('usage: coord note <id> "what you want to say"')).toUpperCase();
+    const id = fullId(rest.shift() || die('usage: coord note <id> "what you want to say"'));
     const text = rest.join(' ') || die('say something: coord note ' + id + ' "..."');
     const t = L.loadTicket(id) || die(`not found: ${id}`);
     if (t.archived) die(`${id} is archived — reopen it by hand if you need to add to it`);
@@ -642,24 +642,26 @@ function showTicket(file) {
 // Every way of answering, with the id already filled in, so none of it has to be typed
 // from memory. The last two are prompts for your agent, not shell commands.
 function nextSteps(fm) {
-  const id = fm.id, rows = [];
+  const id = fm.id, n = id.replace(/^\D+/, ''), rows = [];
+  // The short form, with the number already in it. "coord ok" alone works too whenever
+  // this is the only thing waiting, which is most of the time.
   if (fm.status === 'open') {
-    rows.push(['looks right', `coord approve ${id}`]);
-    rows.push(['not this', `coord reject ${id} "<why>"`]);
-    rows.push(['one question first', `coord note ${id} "<your question>"`]);
+    rows.push(['looks right', `coord ok ${n}`]);
+    rows.push(['not this', `coord no ${n} "<why>"`]);
+    rows.push(['one question first', `coord note ${n} "<your question>"`]);
     rows.push(['change it before approving', `ask your agent:  "revise ${id}: <what to change>"`]);
   } else if (fm.status === 'approved') {
     rows.push(['pick it up', `work in ${fm.to} — it moves itself to in_progress`]);
-    rows.push(['changed your mind', `coord reject ${id} "<why>"`]);
-    rows.push(['add context', `coord note ${id} "<...>"`]);
+    rows.push(['changed your mind', `coord no ${n} "<why>"`]);
+    rows.push(['add context', `coord note ${n} "<...>"`]);
   } else if (fm.status === 'in_progress') {
-    rows.push(['hand it back', `coord review ${id}   (fill in Test steps first)`]);
-    rows.push(['add context', `coord note ${id} "<...>"`]);
-    rows.push(['stop it', `coord reject ${id} "<why>"`]);
+    rows.push(['hand it back', `coord review ${n}   (fill in Test steps first)`]);
+    rows.push(['add context', `coord note ${n} "<...>"`]);
+    rows.push(['stop it', `coord no ${n} "<why>"`]);
   } else if (fm.status === 'review') {
-    rows.push(['it works', `coord done ${id}`]);
-    rows.push(['it does not', `coord reject ${id} "<why>"`]);
-    rows.push(['ask about it', `coord note ${id} "<your question>"`]);
+    rows.push(['it works', `coord ok ${n}`]);
+    rows.push(['it does not', `coord no ${n} "<why>"`]);
+    rows.push(['ask about it', `coord note ${n} "<your question>"`]);
   } else {
     rows.push(['it is closed', `nothing to do — coord why <file>:<line> finds it again later`]);
     return print(rows);
@@ -669,6 +671,9 @@ function nextSteps(fm) {
     console.log(`\nWHAT YOU CAN DO`);
     const pad = Math.max(...rs.map(r => r[0].length));
     for (const [label, cmd] of rs) console.log(`  ${label.padEnd(pad)}   ${cmd}`);
+    if (['open', 'review'].includes(fm.status) && waiting().length === 1) {
+      console.log(`  ${'…or just'.padEnd(pad)}   coord ok   /   coord no "<why>"`);
+    }
   }
 }
 const fmtAge = d => d * 24 < 1 ? `${Math.max(1, Math.round(d * 1440))}m`

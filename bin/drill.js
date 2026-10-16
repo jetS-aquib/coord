@@ -102,9 +102,9 @@ function lifecycle() {
   ok('coord show renders it for a person, not as raw markdown',
     shown.ok && /WHAT IT UNDERSTOOD THAT TO MEAN/.test(shown.out) && !/^---$/m.test(shown.out), shown.out);
   ok('coord show spells out every way of answering', (() => {
-    const o = shown.out;
-    return /WHAT YOU CAN DO/.test(o) && o.includes('coord approve ' + id) &&
-      o.includes('coord reject ' + id) && o.includes('coord note ' + id) && /revise /.test(o);
+    const o = shown.out, n = id.replace(/^\D+/, '');
+    return /WHAT YOU CAN DO/.test(o) && o.includes('coord ok ' + n) &&
+      o.includes('coord no ' + n) && o.includes('coord note ' + n) && /revise /.test(o);
   })(), shown.out);
   ok('coord show --raw still gives the file', /^---$/m.test(coord(['show', id, '--raw']).out));
 
@@ -134,8 +134,19 @@ function lifecycle() {
   ok('the ticket carries a filed_by field', /^filed_by:/m.test(readT(id)), readT(id).split('\n').slice(0, 8).join(' | '));
   ok('an unknown filer asks for anyone rather than naming nobody',
     /Ask whoever asked for this/.test(coord(['approve', id]).out), coord(['approve', id]).out);
-  r = coord(['approve', id, 'go ahead'], { human: true });
-  ok('approve works for the human', r.ok && /status: open -> approved/.test(readT(id)), r.out);
+  // The two verbs a person actually types. Everything long is the agent's job.
+  ok('coord on its own shows what is waiting, not the usage dump', (() => {
+    const o = coord([], { human: true }).out;
+    return /waiting for you to approve it/.test(o) && /coord ok/.test(o) && !/cross-repo coordination/.test(o);
+  })(), coord([], { human: true }).out);
+  ok('a bare number is a ticket id', coord(['show', id.replace(/^\D+/, '')]).out.includes(id));
+  ok('coord no needs a reason', !coord(['no', id.replace(/^\D+/, '')], { human: true }).ok);
+
+  r = coord(['ok'], { human: true });
+  ok('coord ok approves the one thing waiting, with no id at all',
+    r.ok && /status: open -> approved/.test(readT(id)), r.out);
+  ok('and it is recorded as a normal approval, not something new',
+    /approve|approved/.test(readT(id)), readT(id));
 
   r = coord(['start', id], { cwd: path.join(TMP, 'beta') });
   ok('assignee moves approved -> in_progress', r.ok && /approved -> in_progress/.test(readT(id)), r.out);
