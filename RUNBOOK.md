@@ -108,6 +108,39 @@ Neither needs a ticket ID when only one thing is waiting on you.
 
 ---
 
+## Windows + GitHub Copilot
+
+Claude Code has hooks, so it gets everything injected. Copilot has no hook API, so there
+is exactly one thing to do by hand.
+
+**Once, after setup.** It prints this rather than editing a profile for you. Run it in
+PowerShell, then **open a new terminal** — `setx` only affects terminals opened after it:
+
+```powershell
+setx PATH "$env:PATH;C:\path\to\coord\bin"
+```
+
+`coord help` should then print. A `coord.cmd` ships beside the CLI, so PowerShell and
+cmd find it; Git Bash finds `coord` directly.
+
+**Every time you open the repo**, in VS Code's terminal:
+
+```
+coord
+```
+
+It pulls the board first, so what you see is current. This matters more on Copilot than
+on Claude Code: it's your only pull between commits. Claude Code syncs in the background
+every few minutes while you edit; Copilot doesn't.
+
+**When something needs an answer:** `coord ok` or `coord no "<why>"`.
+
+**Before you stop**, ask Copilot to *"update the coord status and leave a handoff note"*.
+Its instruction file in the repo says how. Claude Code writes that note by itself.
+
+Everything else is identical. Git hooks run the same on Windows — Git for Windows runs
+them — so commits get tagged, land on the board and sync without you doing anything.
+
 ## Adding a repo
 
 Any repo, anywhere on your disk. Ask your agent to **"onboard `<name>`"**, or:
