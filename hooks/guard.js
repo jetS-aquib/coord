@@ -16,7 +16,7 @@ function main() {
   const L = require(path.join(__dirname, '..', 'bin', 'lib.js'));
   const data = readInput();
   const cwd = L.real(data.cwd || process.cwd());
-  if (cwd !== L.P.root && !cwd.startsWith(L.P.root + path.sep)) return;   // another project — not ours to police
+  if (!L.onPlatform(cwd)) return;                 // another project — not ours to police
   if (L.paused()) return;                        // paused on this machine: allow everything
 
   const own = L.repoOf(cwd);                       // null => platform-root session (onboarding/admin)
@@ -82,19 +82,19 @@ function bashTargets(cmd) {
 
 /* ---------- the rules ---------- */
 function judge(L, abs, own, why) {
-  const rel = path.relative(L.P.root, abs);
-  if (rel.startsWith('..') || path.isAbsolute(rel)) return null;        // outside the platform entirely
-  const seg = rel.split(path.sep)[0];
-
-  if (seg === '.coord') return judgeCoord(L, rel.split(path.sep).slice(1), own, why);
-
-  if (!L.repos().includes(seg)) return null;                            // not a repo folder
-  if (seg === own) return null;                                         // your own repo — go ahead
+  if (L.within(abs, L.P.coord)) {
+    return judgeCoord(L, path.relative(L.P.coord, abs).split(path.sep), own, why);
+  }
+  // Which repo owns this path — by where each one actually sits on this machine, not by
+  // assuming they are all folders under one root.
+  const seg = Object.entries(L.repoDirs()).find(([, dir]) => L.within(abs, dir));
+  if (!seg) return null;                                                // not a repo of ours
+  if (seg[0] === own) return null;                                      // your own repo — go ahead
 
   const where = own ? `You are in ${own}` : 'This session is at the platform root';
-  return `${where}, and ${why} writes into ${seg}/. Repos never edit each other. ` +
-    `File a ticket instead:  .coord/bin/coord new --from ${own || '<your repo>'} --to ${seg} --title "..."  ` +
-    `then tell the human and stop. Reading ${seg}/ is fine.`;
+  return `${where}, and ${why} writes into ${seg[0]}/. Repos never edit each other. ` +
+    `File a ticket instead:  .coord/bin/coord new --from ${own || '<your repo>'} --to ${seg[0]} --title "..."  ` +
+    `then tell the human and stop. Reading ${seg[0]}/ is fine.`;
 }
 
 function judgeCoord(L, parts, own, why) {

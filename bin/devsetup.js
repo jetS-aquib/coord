@@ -115,6 +115,18 @@ function copilotDoc(repo) {
     '',
     'The `JET-nnn` tags already scattered through this codebase mark why code exists.',
     '`coord show <id>` finds every place one is cited. New tickets continue that series.',
+    '',
+    '## Shared facts',
+    '',
+    '`coord ctx` holds things that are true across the platform and belong to no one repo.',
+    'Read it before guessing at how something outside this repo works, and write down what',
+    'you learn: `coord ctx --add "<title>" --body "..."`.',
+    '',
+    '## If coord gets in the way',
+    '',
+    'Nothing here should slow you down. `coord fix` shows anything automatic that failed,',
+    'with the command that does it by hand. `coord pause` turns all of it off on your',
+    'machine until `coord resume` — commit hooks included.',
     ...(contracts.length ? [
       '',
       `## Contracts ${repo} owns`,
@@ -137,7 +149,9 @@ function copilotDoc(repo) {
     'coord list              what is open',
     'coord show JET-nnn      one ticket in full (works for the tags already in code)',
     'coord why src/x.ts:88   why is this line like this',
+    'coord ctx               shared facts across the repos',
     'coord sync              pull and push the board',
+    'coord fix               anything automatic that failed, and how to do it by hand',
     '```',
     '',
     'Full rules: `CLAUDE.md` and `ONBOARDING.md` in the jetkreate-coord repo.',
@@ -178,8 +192,8 @@ function devsetup({ repo, strict = false, copilot = true } = {}) {
   const out = [];
 
   for (const r of repos) {
-    const dir = path.join(P.root, r);
-    if (!L.exists(path.join(dir, '.git'))) { out.push(`${r}: no .git here — skipped (is it cloned beside the coord repo?)`); continue; }
+    const dir = L.repoDir(r);
+    if (!L.isRepoAt(dir)) { out.push(`${r}: not on this machine — skipped (clone it, or: coord where ${r} <path>)`); continue; }
     const hooks = path.join(dir, '.git', 'hooks');
     fs.mkdirSync(hooks, { recursive: true });
 
@@ -275,7 +289,7 @@ function installClaudeHooks({ file = claudeSettings() } = {}) {
 function logCommit(cwd) {
   const repo = L.repoOf(cwd);
   if (!repo || !L.isOnboarded(repo)) return null;
-  const g = L.sh('git', ['log', '-1', '--format=%h %s'], path.join(P.root, repo));
+  const g = L.sh('git', ['log', '-1', '--format=%h %s'], L.repoDir(repo));
   if (!g.ok) return null;
   L.logActivity(repo, 'commit', g.out);
   autoStart(repo);                                  // Copilot users have no edit hook

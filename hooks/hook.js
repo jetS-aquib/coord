@@ -14,7 +14,7 @@ function main() {
   const L = require(path.join(__dirname, '..', 'bin', 'lib.js'));
   const data = readInput();
   const cwd = L.real(data.cwd || process.cwd());
-  if (cwd !== L.P.root && !cwd.startsWith(L.P.root + path.sep)) return;   // another project — do nothing
+  if (!L.onPlatform(cwd)) return;                                         // another project — do nothing
 
   // Paused on this machine: nothing automatic runs. Say so once at session start —
   // silently doing nothing is how someone spends an afternoon wondering why the board
@@ -38,8 +38,11 @@ function main() {
   if (EVENT === 'edit') {
     const f = data.tool_input && data.tool_input.file_path;
     if (!f) return;
-    const base = repo === 'platform-root' ? L.P.root : path.join(L.P.root, repo);
-    L.logActivity(repo, 'edit', path.relative(base, L.real(path.resolve(f))) || path.basename(f));
+    const base = repo === 'platform-root' ? L.P.root : L.repoDir(repo);
+    // An edit outside the repo (a scratchpad, /tmp) relativises to ../../../.. and fills
+    // the feed with noise. Those are not this repo's work; name the file and move on.
+    const rel = path.relative(base, L.real(path.resolve(f)));
+    L.logActivity(repo, 'edit', !rel || rel.startsWith('..') ? path.basename(f) : rel);
     if (repo !== 'platform-root') autoStart(L, repo);
     return;
   }

@@ -29,13 +29,13 @@ function walk(dir, out = [], depth = 0) {
 const slurp = f => { try { return fs.readFileSync(f, 'utf8').slice(0, MAX_BYTES); } catch { return ''; } };
 
 /* ---------- detection ---------- */
-function detect(name) {
-  const abs = path.join(P.root, name);
+function detect(name, at) {
+  const abs = at ? L.real(path.resolve(at)) : L.repoDir(name);
   const pkg = json(path.join(abs, 'package.json'));
   const reg = L.regGet(name);
 
   const valid = {
-    'direct subfolder of the platform root': fs.existsSync(abs) && path.dirname(L.real(abs)) === P.root,
+    'the folder exists': fs.existsSync(abs),
     'contains .git': fs.existsSync(path.join(abs, '.git')),
     'not a hidden folder': !name.startsWith('.'),
     'not already onboarded': !(reg && reg.status === 'active'),
@@ -139,7 +139,7 @@ function detectDeps(self, abs, pkg, files) {
   const pkgNames = new Map();                 // other repo -> its package.json name
   const ownedPaths = new Map();               // other repo -> contract path prefixes it owns
   for (const o of others) {
-    const op = json(path.join(P.root, o, 'package.json'));
+    const op = json(path.join(L.repoDir(o), 'package.json'));
     if (op && op.name) pkgNames.set(o, op.name);
     const e = L.regGet(o);
     if (e) for (const c of e.contracts || []) ownedPaths.set(c, o);
@@ -194,14 +194,21 @@ function missingExcludes(abs) {
 const failures = rep => Object.entries(rep.valid).filter(([, ok]) => !ok).map(([k]) => k);
 
 /* ---------- apply (mechanical steps only) ---------- */
-function apply(name, { stack, contracts = [], depends_on = [] } = {}) {
-  const rep = detect(name);
+function apply(name, { stack, contracts = [], depends_on = [], at } = {}) {
+  const rep = detect(name, at);
   const bad = failures(rep);
   if (bad.length) throw new Error(`preflight failed for ${name}: ${bad.join('; ')}`);
   const done = [];
 
   L.snapshot(`coord: before onboarding ${name}`);
   done.push('snapshot .coord (before)');
+
+  // Record where it is on THIS machine before anything else reads it. Outside the
+  // platform root that is the only way back to it; inside, it is the default anyway.
+  if (L.real(rep.abs) !== path.join(P.root, name)) {
+    L.setRepoPath(name, rep.abs);
+    done.push(`paths.json: ${name} -> ${rep.abs} (this machine only)`);
+  }
 
   L.regPut({
     name, path: name,

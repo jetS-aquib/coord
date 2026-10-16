@@ -58,6 +58,11 @@ table.tix td:nth-child(2){width:7.5rem;white-space:nowrap}
 table.tix td:nth-child(4){width:3rem}
 table.feed td:nth-child(1){width:3rem}
 table.feed td:nth-child(2),table.feed td:nth-child(3){white-space:nowrap;padding-right:1rem}
+.banner{display:flex;gap:.6rem;align-items:baseline;background:var(--surface);border:1px solid currentColor;
+  border-radius:6px;padding:.5rem .8rem;margin:0 0 1rem;font-size:.8rem}
+.banner b{letter-spacing:.07em;text-transform:uppercase;font-size:.68rem}
+.banner code{color:var(--ink2)}
+.b-critical{color:var(--critical)}.b-warning{color:var(--warning)}
 .dim{color:var(--muted)}.sm{font-size:.72rem}
 .none{color:var(--muted);margin:0;font-size:.8rem}
 .chip{font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;padding:.1rem .4rem;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
@@ -107,9 +112,20 @@ function shell(active, headline, body, meta, warnCount) {
 </header>
 <nav>${links.map(([k, href, label]) =>
   `<a href="${esc(href)}"${k === active ? ' class="on"' : ''}>${esc(label)}</a>`).join('')}</nav>
+${machineBanner()}
 ${body}
 <footer>read-only · refreshes every 5s${warnCount ? ` · ${warnCount} warning(s)` : ''}</footer>
 </div></body></html>`;
+}
+
+// About THIS machine, not the team — the dashboard reads the same files the hooks write,
+// so it is the one screen that can explain why the board stopped moving for you.
+function machineBanner() {
+  const why = L.paused();
+  if (why) return `<div class="banner b-critical"><b>paused</b><span>${esc(why.trim())} — nothing is being recorded on this machine. <code>coord resume</code></span></div>`;
+  const f = L.failures();
+  if (!f.length) return '';
+  return `<div class="banner b-warning"><b>${f.length} failed</b><span>${esc(f.map(x => x.scope).join(', '))} — <code>coord fix</code> lists each one with the command that does it by hand.</span></div>`;
 }
 
 const tickets = () => ticketsFull().map(t => t.fm);
@@ -232,9 +248,13 @@ function teamView() {
     .filter(d => d.status === 'active')
     .sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 5);
 
-  const headline = errs.length ? { tone: 'critical', text: `${errs.length} problem${errs.length > 1 ? 's' : ''} — run coord check` }
+  // "all clear" has to mean it. A paused board or a failed hook is not all clear, even
+  // when every ticket is tidy.
+  const headline = L.paused() ? { tone: 'critical', text: 'paused on this machine' }
+    : errs.length ? { tone: 'critical', text: `${errs.length} problem${errs.length > 1 ? 's' : ''} — run coord check` }
     : needsYou.length ? { tone: 'warning', text: `${needsYou.length} ticket${needsYou.length > 1 ? 's' : ''} waiting on you` }
     : blocked.length ? { tone: 'serious', text: `${blocked.length} repo${blocked.length > 1 ? 's' : ''} blocked or stale` }
+    : L.failures().length ? { tone: 'warning', text: 'coord fix' }
     : { tone: 'good', text: 'all clear' };
 
   const tile = (n, label, tone) =>

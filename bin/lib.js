@@ -23,7 +23,32 @@ const P = {
   state: path.join(COORD, 'state.json'),
   registry: path.join(COORD, 'repos.json'),
   people: path.join(COORD, 'people.json'),
+  paths: path.join(COORD, 'paths.json'),
 };
+
+/* ---------- where each repo lives ON THIS MACHINE ---------- */
+// The board is shared; disks are not. One dev keeps every repo under the platform root,
+// the next has them spread over ~/work and D:\code. So repos.json holds what is true
+// everywhere (name, clone URL) and paths.json holds what is true here. Never committed —
+// a teammate's absolute path is worse than useless on your machine.
+function pathMap() {
+  try { const j = JSON.parse(read(P.paths, '{}')); return j && typeof j.paths === 'object' ? j.paths : {}; }
+  catch { return {}; }
+}
+function setRepoPath(name, dir) {
+  const paths = pathMap();
+  if (dir) paths[name] = real(path.resolve(dir)); else delete paths[name];
+  atomicWrite(P.paths, JSON.stringify({ version: 1, updated: nowISO(), paths }, null, 2) + '\n');
+  _dirs = undefined;
+  return paths[name] || null;
+}
+// The default stays the simple case: a folder next to the board. Nobody who keeps their
+// repos together ever has to know paths.json exists.
+const repoDir = name => pathMap()[name] || path.join(P.root, name);
+const isRepoAt = dir => exists(path.join(dir, '.git'));
+// Windows compares paths without case; a drive letter typed either way must still match.
+const key = p => (isWindows ? p.toLowerCase() : p);
+const within = (abs, dir) => key(abs) === key(dir) || key(abs).startsWith(key(dir) + path.sep);
 
 // The repos already carry `JET-nnn` tags in comments — a documented convention
 // ("issue tags mark why code exists"). coord continues that series rather than
@@ -70,19 +95,42 @@ const day = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${p
 const daysAgo = iso => (Date.now() - new Date(iso).getTime()) / 86400000;
 
 /* ---------- repos ---------- */
-// DISCOVERY: every git subfolder. Membership is the registry below — not this.
-function repos() {                            // direct subfolders with .git, hidden folders (.coord) excluded
-  return fs.readdirSync(P.root, { withFileTypes: true })
-    .filter(d => d.isDirectory() && !d.name.startsWith('.') && exists(path.join(P.root, d.name, '.git')))
+// Every repo ON THIS MACHINE: the registered ones wherever they live, plus any git
+// folder sitting beside the board that nobody has onboarded yet. A repo on the board but
+// not on this disk is simply absent here — that is normal, you clone what you work on.
+let _dirs;
+function repoDirs() {                         // { name: absolute dir } for what is actually here
+  if (_dirs) return _dirs;
+  const out = {};
+  for (const e of registry()) {
+    const dir = real(repoDir(e.name));
+    if (isRepoAt(dir)) out[e.name] = dir;
+  }
+  let here = [];
+  try { here = fs.readdirSync(P.root, { withFileTypes: true }); } catch { /* root may not be readable */ }
+  for (const d of here) {
+    if (!d.isDirectory() || d.name.startsWith('.') || out[d.name]) continue;
+    const dir = real(path.join(P.root, d.name));
     // never a platform repo: this coord dir, or any other clone of it sitting alongside
-    .filter(d => real(path.join(P.root, d.name)) !== P.coord && !exists(path.join(P.root, d.name, 'bin', 'coord')))
-    .map(d => d.name).sort();
+    if (!isRepoAt(dir) || dir === P.coord || exists(path.join(dir, 'bin', 'coord'))) continue;
+    out[d.name] = dir;
+  }
+  return (_dirs = out);
 }
+const repos = () => Object.keys(repoDirs()).sort();
+
 function repoOf(dir) {                        // repo owning a directory, or null
   const r = sh('git', ['rev-parse', '--show-toplevel'], dir);
   if (!r.ok) return null;
-  const top = real(r.out), name = path.basename(top);
-  return path.dirname(top) === P.root && !name.startsWith('.') ? name : null;   // .coord is not a platform repo
+  const top = real(r.out);
+  for (const [name, d] of Object.entries(repoDirs())) if (key(d) === key(top)) return name;
+  return null;                                // .coord, and anything not on the platform
+}
+// Is this directory inside the platform at all — the board, the root, or any repo of it?
+function onPlatform(dir) {
+  const d = real(dir);
+  if (within(d, P.root) || within(d, P.coord)) return true;
+  return Object.values(repoDirs()).some(r => within(d, r));
 }
 
 /* ---------- registry (repos.json) — written only by the CLI ---------- */
@@ -125,13 +173,13 @@ function putPerson(entry) {
 let _me;
 // NEVER read identity from .coord: it carries a bot identity ("coord") for its own
 // snapshot commits. Use the dev's global config, or a platform repo's.
-function gitConfig(key) {
+function gitConfig(k) {
   // Ask from inside a platform repo so git applies its own local > global precedence.
   for (const r of repos()) {
-    const v = sh('git', ['config', key], path.join(P.root, r));
+    const v = sh('git', ['config', k], repoDir(r));
     if (v.ok && v.out) return v.out;
   }
-  const g = sh('git', ['config', '--global', key], os.tmpdir());   // no repos cloned yet
+  const g = sh('git', ['config', '--global', k], os.tmpdir());     // no repos cloned yet
   return g.ok ? g.out : '';
 }
 const gitEmail = () => gitConfig('user.email');
@@ -208,7 +256,7 @@ function walkFiles(dir, exts, fn, depth = 0) {
 
 // Matches of `re` under one repo, as { repo, file, line, text }.
 function scanRepo(repo, exts, re) {
-  const base = path.join(P.root, repo), out = [];
+  const base = repoDir(repo), out = [];
   const rx = new RegExp(re.source, 'g');
   walkFiles(base, exts, f => {
     let text;
@@ -281,8 +329,13 @@ function coordGit(args) {
   if (!top.ok || real(top.out) !== P.coord) return { ok: false, out: '', err: '.coord is not its own git repo — refusing' };
   return sh('git', args, P.coord);
 }
+// The board, not the toolchain. `add -A` would sweep half-finished edits to bin/ or
+// hooks/ into a commit labelled "session end" — true of anyone working on coord itself.
+const BOARD_PATHS = ['status', 'tickets', 'decisions', 'contracts', 'context', 'activity',
+  'archive', 'repos.json', 'people.json', 'state.json', '.gitattributes', '.gitignore'];
 function snapshot(msg) {
-  if (!coordGit(['add', '-A']).ok) return false;
+  const here = BOARD_PATHS.filter(p => exists(path.join(P.coord, p)));
+  if (!here.length || !coordGit(['add', '-A', '--', ...here]).ok) return false;
   if (sh('git', ['diff', '--cached', '--quiet'], P.coord).ok) return false;   // nothing changed
   return coordGit(['commit', '-q', '-m', msg]).ok;
 }
@@ -332,7 +385,7 @@ function readStatus(repo) {
 /* ---------- the ticket you are currently on ---------- */
 // Lives in .git/ so it is per-clone and per-person: two devs in one repo can be on
 // different tickets. Never committed, like .git/info/exclude.
-const ticketPointer = repo => path.join(P.root, repo, '.git', 'coord-ticket');
+const ticketPointer = repo => path.join(repoDir(repo), '.git', 'coord-ticket');
 const currentTicket = repo => read(ticketPointer(repo)).trim();
 function setCurrentTicket(repo, id) {
   const f = ticketPointer(repo);
@@ -454,4 +507,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, isWindows, scanRepo, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, isWindows, scanRepo, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

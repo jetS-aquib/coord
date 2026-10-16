@@ -66,6 +66,9 @@ function setup() {
   // installed git hooks can find it and a clone is recognisable as a coord repo
   fs.mkdirSync(path.join(CO, 'bin'), { recursive: true });
   fs.writeFileSync(path.join(CO, 'bin', 'coord'), `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} ${JSON.stringify(COORD_BIN)} "$@"\n`, { mode: 0o755 });
+  // Tracked from the start, as bin/ is in the real board — a clone of the board has to
+  // carry the CLI, or it looks like an ordinary repo sitting beside the platform.
+  git(['add', '-f', 'bin/coord'], CO);
 
   coord(['list']);
   ok('discovered repos get no status file', !fs.existsSync(path.join(CO, 'status')) || !fs.readdirSync(path.join(CO, 'status')).length,
@@ -789,6 +792,32 @@ function resilience() {
   ok('the paused file is gitignored', fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').split('\n').includes('paused'));
   ok('coord resume brings it back', coord(['resume']).ok && /permissionDecision":"deny/.test(guardCall(beta, alphaFile)));
   ok('resume twice is harmless', coord(['resume']).out.includes('already running'));
+
+  /* --- the context store: a shared fact that belongs to no repo --- */
+  ok('an empty context store says how to fill it', coord(['ctx']).out.includes('--add'));
+  const add = coord(['ctx', '--add', 'Staging URL', '--body', 'https://staging.example.test — reset nightly.'], { cwd: path.join(TMP, 'beta') });
+  ok('coord ctx --add writes a note', add.ok && fs.existsSync(path.join(CO, 'context', 'staging-url.md')), add.out);
+  ok('listing is titles only, so it stays cheap', (() => {
+    const o = coord(['ctx']).out;
+    return o.includes('Staging URL') && !o.includes('reset nightly');
+  })(), coord(['ctx']).out);
+  ok('searching the notes prints them in full', coord(['ctx', 'nightly']).out.includes('reset nightly'));
+  ok('the note records who wrote it', /by: /.test(fs.readFileSync(path.join(CO, 'context', 'staging-url.md'), 'utf8')));
+  ok('coord search covers context notes', coord(['search', 'staging.example']).out.includes('context/staging-url.md'));
+  ok('re-adding the same title updates in place', (() => {
+    const r = coord(['ctx', '--add', 'Staging URL', '--body', 'moved to https://stg.example.test']);
+    return r.out.includes('updated') && fs.readdirSync(path.join(CO, 'context')).length === 1;
+  })());
+  ok('a note with no body is refused', !coord(['ctx', '--add', 'Empty']).ok);
+  ok('coord ctx --rm drops it', coord(['ctx', '--rm', 'staging-url']).ok && !fs.readdirSync(path.join(CO, 'context')).length);
+  ok('dropping one that is not there says so', !coord(['ctx', '--rm', 'nope']).ok);
+  ok('a board snapshot commits the board, not coord\'s own source', (() => {
+    fs.mkdirSync(path.join(CO, 'bin'), { recursive: true });
+    fs.writeFileSync(path.join(CO, 'bin', 'halfdone.js'), '// mid-edit\n');
+    coord(['ctx', '--add', 'Snapshot scope', '--body', 'checking what gets committed']);
+    const staged = git(['status', '--short'], CO).stdout;
+    return /bin\/halfdone\.js/.test(staged);          // still uncommitted, as it should be
+  })(), git(['status', '--short'], CO).stdout);
 
   /* --- no Mac required --- */
   ok('a Windows launcher ships beside the CLI', (() => {

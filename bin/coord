@@ -40,8 +40,11 @@ const USAGE = `coord — jetKreate cross-repo coordination
   drill                          end-to-end self-test in a temp folder
 
   repos                          onboarded / discovered / offboarded
-  onboard <repo> --preflight     read-only report: validation, stack, setup, candidates
-  onboard <repo> --apply         registry + status file + .git/info/exclude + snapshots
+  where [<repo> [<path>]]        where each repo is on THIS machine (--forget <repo>)
+  onboard <repo> [--at <path>] --preflight
+                                 read-only report: validation, stack, setup, candidates
+  onboard <repo> [--at <path>] --apply
+                                 registry + status file + .git/info/exclude + snapshots
          [--stack S --contracts a,b --depends-on c,d]
   offboard <repo> --yes          mark offboarded, archive its status file and tickets
 
@@ -323,10 +326,36 @@ const CMDS = {
     for (const r of off) console.log(`  ${r.name.padEnd(24)} since ${r.offboarded || '?'} (history kept in archive/)`);
   },
 
+  // Repos do not have to live under the platform root. Some devs keep them together,
+  // some keep each one wherever it landed; the board does not care, but this machine
+  // has to know. paths.json is local — your teammate's D:\\code is no use to you.
+  where() {
+    if (typeof flags.forget === 'string') {
+      L.setRepoPath(flags.forget, null);
+      return console.log(`forgot where ${flags.forget} is — falling back to ${path.join(P.root, flags.forget)}`);
+    }
+    const [name, dir] = rest;
+    if (name && dir) {
+      const abs = L.real(path.resolve(process.cwd(), dir));
+      if (!L.isRepoAt(abs)) die(`${abs} is not a git repo`);
+      if (!L.regGet(name)) die(`${name} is not on the board — run: coord onboard ${name} --at ${abs} --preflight`);
+      L.setRepoPath(name, abs);
+      return console.log(`${name} -> ${abs}\nThis machine only; nobody else's board changes.`);
+    }
+    const dirs = L.repoDirs(), mapped = L.pathMap();
+    for (const e of L.registry().filter(r => r.status === 'active')) {
+      const at = dirs[e.name];
+      console.log(`  ${e.name.padEnd(24)} ${at ? at + (mapped[e.name] ? '' : '   (default)') : 'not on this machine'}`);
+    }
+    if (!Object.keys(mapped).length) console.log(`\nAll in the default place, beside the board. Elsewhere?  coord where <repo> <path>`);
+  },
+
   onboard() {
-    const name = rest[0] || die('usage: coord onboard <repo> --preflight | --apply');
+    const name = rest[0] || die('usage: coord onboard <repo> [--at <path>] --preflight | --apply');
+    const at = typeof flags.at === 'string' ? flags.at : undefined;
     if (flags.apply) {
       const done = O.apply(name, {
+        at,
         stack: typeof flags.stack === 'string' ? flags.stack : undefined,
         contracts: list(flags.contracts),
         depends_on: list(flags['depends-on']),
@@ -335,7 +364,7 @@ const CMDS = {
       console.log(`\n${name} is onboarded. Remaining runbook steps: contract stubs, decision record, coord check.`);
       return;
     }
-    printPreflight(O.detect(name));
+    printPreflight(O.detect(name, at));
   },
 
   offboard() {

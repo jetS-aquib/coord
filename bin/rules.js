@@ -173,12 +173,12 @@ function check() {
   const notCloned = [];
   for (const e of L.registry()) {
     const where = `repos.json:${e.name}`;
-    for (const k of ['name', 'path', 'status', 'onboarded']) if (!e[k]) err(where, `missing field "${k}"`);
+    for (const k of ['name', 'status', 'onboarded']) if (!e[k]) err(where, `missing field "${k}"`);
     if (!['active', 'offboarded'].includes(e.status)) err(where, `status "${e.status}" must be active or offboarded`);
     if (e.status === 'active' && !onDisk.has(e.name)) {
       // Not cloned here is normal — you only clone what you work on. Only flag the case
       // where something IS at that path but is not a git repo, which is a real mix-up.
-      if (L.exists(path.join(P.root, e.path))) err(where, `${e.path} exists but is not a git repo`);
+      if (L.exists(L.repoDir(e.name))) err(where, `${L.repoDir(e.name)} exists but is not a git repo`);
       else notCloned.push(e.name);
     }
     for (const d of e.depends_on || []) if (!repoSet.has(d) && d !== e.name) warn(where, `depends_on "${d}" is not an active repo`);
