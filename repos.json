@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-16T12:49:55+05:30",
+  "updated": "2026-10-16T12:50:09+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -47,7 +47,8 @@
       "contracts": [],
       "depends_on": [],
       "onboarded": "2026-10-16",
-      "status": "active"
+      "status": "offboarded",
+      "offboarded": "2026-10-16"
     },
     {
       "name": "iris",
