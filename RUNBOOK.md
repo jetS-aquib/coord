@@ -49,6 +49,23 @@ leaving every other hook you have alone.
 **Re-run it any time.** Every step is idempotent, and it's the right move after you clone
 another repo.
 
+### What it writes into your repos
+
+Each repo gets git hooks in `.git/hooks/` (local, never committed) and one **tracked**
+file, `.github/copilot-instructions.md`, which is how a Copilot session learns the
+platform rules.
+
+If that file already exists and somebody wrote it by hand, **coord does not touch it**:
+
+```
+beta: .github/copilot-instructions.md already has instructions that are not ours — LEFT ALONE
+beta:   to add our rules as a marked block, keeping theirs:  coord devsetup --repo beta --merge
+```
+
+With `--merge` (or by saying yes when setup asks), your file keeps every line it had and
+gains one block between `<!-- BEGIN:coord -->` and `<!-- END:coord -->`. Later runs
+refresh only that block. The same applies to `AGENTS.md` where a repo has one.
+
 ## 3. Finish whatever it listed
 
 Setup ends with the things it couldn't do itself. Usually one line about your PATH.

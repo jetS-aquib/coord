@@ -242,6 +242,11 @@ function shellProfile() {
   if (sh === 'bash') return L.exists(path.join(home, '.bashrc')) ? path.join(home, '.bashrc') : path.join(home, '.bash_profile');
   return path.join(home, '.zshrc');
 }
-const tilde = p => p.replace(os.homedir(), '~');
+// Only a LEADING home directory becomes ~. A blind replace turns
+// /private/tmp/me/work into /private~/work, which is nobody's path.
+const tilde = p => {
+  const h = L.real(os.homedir()), r = L.real(p);
+  return r === h ? '~' : r.startsWith(h + path.sep) ? '~' + r.slice(h.length) : p;
+};
 
 module.exports = { setup, ask, yesish };

@@ -935,6 +935,54 @@ function resilience() {
     return /Start of every session/.test(d) && /Run .?coord.? first/.test(d) && /handoff note/.test(d);
   })());
 
+  /* --- somebody else's instructions --- */
+  // The file coord writes into each repo is TRACKED. Overwriting one a person wrote is
+  // destroying their work, and it is the kind of thing nobody notices until review.
+  const instr = path.join(TMP, 'beta', '.github', 'copilot-instructions.md');
+  const theirs = '# beta\n\n## House style\n\n- zod on every request body.\n';
+  fs.mkdirSync(path.dirname(instr), { recursive: true });
+  fs.writeFileSync(instr, theirs);
+
+  const dev = (...a) => coord(['devsetup', '--repo', 'beta', ...a], { human: false });
+  ok('instructions we did not write are left completely alone', (() => {
+    const r = dev();
+    return fs.readFileSync(instr, 'utf8') === theirs && /LEFT ALONE/.test(r.out);
+  })(), dev().out);
+  ok('and it says exactly how to add ours if you want to', /--merge/.test(dev().out));
+
+  ok('--merge keeps every line of theirs and adds one marked block', (() => {
+    dev('--merge');
+    const after = fs.readFileSync(instr, 'utf8');
+    return after.startsWith(theirs.trim()) && after.includes('BEGIN:coord') && after.includes('END:coord');
+  })(), fs.readFileSync(instr, 'utf8').slice(0, 200));
+
+  ok('re-running refreshes only the block, never the rest', (() => {
+    const before = fs.readFileSync(instr, 'utf8');
+    dev();
+    const after = fs.readFileSync(instr, 'utf8');
+    // their half survives, and exactly one block exists
+    return after.includes('zod on every request body') &&
+      (after.match(/BEGIN:coord/g) || []).length === 1 &&
+      after.startsWith(theirs.trim());
+  })(), fs.readFileSync(instr, 'utf8').slice(0, 160));
+
+  ok('a block already present needs no second permission', (() => {
+    // change the generated content by changing the board, then plain devsetup must update
+    const after = fs.readFileSync(instr, 'utf8');
+    return !/LEFT ALONE/.test(dev().out) && after.includes('BEGIN:coord');
+  })());
+
+  fs.rmSync(path.join(TMP, 'beta', '.github'), { recursive: true, force: true });
+  ok('with no file at all, it writes the whole thing', (() => {
+    dev();
+    const after = fs.readFileSync(instr, 'utf8');
+    return after.startsWith('# beta — platform rules');
+  })(), fs.readFileSync(instr, 'utf8').slice(0, 80));
+  ok('and that one it owns, so a re-run updates it in place', (() => {
+    const r = dev();
+    return !/LEFT ALONE/.test(r.out);
+  })());
+
   /* --- mail --- */
   // Four notices built from the board. The rails matter more than the copy: nothing is
   // sent without --send, nothing reaches an address off the allowed domains, and nothing

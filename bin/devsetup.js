@@ -208,7 +208,8 @@ const agentsSection = () => [
 ].join('\n');
 
 // Managed block, like turbo's own: replaced in place so a re-run updates instead of stacking.
-function withCoordSection(text) {
+// Everything outside the markers is left exactly as it was found.
+function withCoordSection(text, section = agentsSection()) {
   let t = text;
   const b = t.indexOf(AGENTS_BEGIN), e = t.indexOf(AGENTS_END);
   if (b >= 0 && e > b) t = t.slice(0, b) + t.slice(e + AGENTS_END.length);
@@ -219,11 +220,26 @@ function withCoordSection(text) {
       t = t.slice(0, h) + (next >= 0 ? t.slice(next) : '\n');
     }
   }
-  return t.replace(/\s*$/, '\n') + '\n' + agentsSection();
+  return t.replace(/\s*$/, '\n') + '\n' + section;
 }
 
+// Three states, and conflating the last two is how you delete somebody's work: the file
+// is entirely ours, or it is theirs with our block already in it, or it is purely theirs.
+// A marker means "our block lives here" — never "this whole file is ours".
+const wholeFileIsOurs = (text, repo) => !text.trim() || text.startsWith(`# ${repo} — platform rules`);
+const hasOurBlock = text => text.includes(AGENTS_BEGIN);
+
+// The same content, wrapped so it can live inside someone else's file without the
+// top-level heading fighting theirs.
+const coordBlock = repo => [
+  AGENTS_BEGIN,
+  ...copilotDoc(repo).split('\n').slice(1).join('\n').trim().split('\n'),
+  AGENTS_END,
+  '',
+].join('\n');
+
 /* ---------- apply ---------- */
-function devsetup({ repo, strict = false, copilot = true } = {}) {
+function devsetup({ repo, strict = false, copilot = true, merge = false, ask = null } = {}) {
   const repos = repo ? [repo] : L.onboarded();
   if (!repos.length) throw new Error('no onboarded repos — run: coord repos');
   const out = [];
@@ -252,12 +268,29 @@ function devsetup({ repo, strict = false, copilot = true } = {}) {
 
     if (copilot) {
       const f = path.join(dir, '.github', 'copilot-instructions.md');
-      const body = copilotDoc(r);
-      if (L.read(f) !== body) {
-        fs.mkdirSync(path.dirname(f), { recursive: true });
-        const existed = L.exists(f);
-        fs.writeFileSync(f, body);
-        out.push(`${r}: .github/copilot-instructions.md ${existed ? 'updated' : 'written'}  << TRACKED — review and commit`);
+      const existing = L.read(f);
+      if (wholeFileIsOurs(existing, r)) {
+        // our file, or no file: own it whole, with markers so a re-run knows next time
+        const body = copilotDoc(r);
+        if (existing !== body) {
+          fs.mkdirSync(path.dirname(f), { recursive: true });
+          fs.writeFileSync(f, body);
+          out.push(`${r}: .github/copilot-instructions.md ${existing ? 'updated' : 'written'}  << TRACKED — review and commit`);
+        }
+      } else {
+        // somebody wrote their own. Theirs stays; ours becomes one marked block inside
+        // it — and not even that without being asked.
+        const after = withCoordSection(existing, coordBlock(r));
+        // Our block is already in their file, so permission was given once and holds.
+        const already = hasOurBlock(existing);
+        if (after === existing) { /* nothing to change */ }
+        else if (!already && !merge && !(ask && ask(r, f))) {
+          out.push(`${r}: .github/copilot-instructions.md already has instructions that are not ours — LEFT ALONE`);
+          out.push(`${r}:   to add our rules as a marked block, keeping theirs:  coord devsetup --repo ${r} --merge`);
+        } else {
+          fs.writeFileSync(f, after);
+          out.push(`${r}: .github/copilot-instructions.md — ${already ? 'refreshed our block' : 'added our block'}, left the rest untouched  << TRACKED — review and commit`);
+        }
       }
       const agents = path.join(dir, 'AGENTS.md');
       if (L.exists(agents)) {
