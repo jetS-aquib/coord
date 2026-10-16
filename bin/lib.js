@@ -139,8 +139,12 @@ function registry() {
   try { const j = JSON.parse(read(P.registry, '{}')); return Array.isArray(j.repos) ? j.repos : []; }
   catch { return []; }
 }
+// repos.json is SHARED, so nothing in it may describe one machine. Where a repo sits on
+// disk lives in paths.json; `path` here is a leftover from before that existed and is
+// dropped on every write, so an older clone cannot reintroduce it.
+const shareable = ({ path: _drop, ...rest }) => rest;
 const writeRegistry = list => atomicWrite(P.registry,
-  JSON.stringify({ version: 1, updated: nowISO(), repos: [...list].sort((a, b) => a.name.localeCompare(b.name)) }, null, 2) + '\n');
+  JSON.stringify({ version: 1, updated: nowISO(), repos: [...list].map(shareable).sort((a, b) => a.name.localeCompare(b.name)) }, null, 2) + '\n');
 const regGet = name => registry().find(r => r.name === name) || null;
 function regPut(entry) {                       // insert or replace one entry, atomically
   const list = registry().filter(r => r.name !== entry.name);
@@ -475,6 +479,24 @@ function reposFor(name, days = 7) {
   return [...seen.entries()].sort((a, b) => b[1].localeCompare(a[1])).map(([r]) => r);
 }
 
+// Add a "### <timestamp>" block at the top of Handoff notes. Newest first, so a new
+// session reads the latest one without scrolling — and so does the next person.
+function addHandoff(repo, text) {
+  const f = path.join(P.status, `${repo}.md`);
+  const t = read(f);
+  const head = '## Handoff notes';
+  const i = t.indexOf(head);
+  if (i < 0) return false;
+  const cut = i + head.length;
+  const rest = t.slice(cut);
+  // keep the template comment line, if it is still there, above the notes
+  const m = /^\s*\n(<!--[\s\S]*?-->\n)?/.exec(rest);
+  const keep = (m && m[1]) || '';
+  const after = rest.slice(m ? m[0].length : 0).replace(/^\n+/, '');
+  atomicWrite(f, `${t.slice(0, cut)}\n\n${keep}### ${nowISO()}\n\n${text.trim()}\n${after ? '\n' + after : ''}`);
+  return true;
+}
+
 // The newest handoff note in a repo's status file — "what was I doing?"
 function latestHandoff(repo) {
   const t = read(path.join(P.status, `${repo}.md`));
@@ -548,4 +570,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, isWindows, scanRepo, othersOn, lastSync, localState, setLocal, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

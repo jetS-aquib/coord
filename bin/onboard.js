@@ -211,7 +211,7 @@ function apply(name, { stack, contracts = [], depends_on = [], at } = {}) {
   }
 
   L.regPut({
-    name, path: name,
+    name,
     remote: rep.git.remote !== 'none' ? rep.git.remote : '',   // so `coord setup` can clone it elsewhere
     stack: stack || rep.stack.summary,
     contracts, depends_on,

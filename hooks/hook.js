@@ -53,6 +53,7 @@ function main() {
   L.logActivity(repo, EVENT);
 
   if (EVENT === 'session-stop') {
+    autoHandoff(L, repo);                                 // before the snapshot, so it travels with it
     L.snapshot(`coord: session end (${repo})`);          // guarded: commits inside .coord only
     sync(L);                                              // share the board with the rest of the team
   }
@@ -119,6 +120,17 @@ function brief(L, repo, onboarded) {
     const outbox = tickets.filter(t => t.from === repo && !['done', 'rejected'].includes(t.status));
     lines.push(inbox.length ? some(inbox, `Tickets addressed to ${repo}`) : `No open tickets are addressed to ${repo}.`);
     if (outbox.length) lines.push(some(outbox, `Tickets ${repo} is waiting on`));
+
+    // The point of a session boundary: a new session, a /clear or a compaction should
+    // not lose what the last one was in the middle of.
+    const on = L.currentTicket(repo);
+    if (on) lines.push(`${repo} is currently working on ${on}; its commits are tagged with it. "coord show ${on}" has the plan.`);
+    const h = L.latestHandoff(repo);
+    if (h) {
+      const age = L.daysAgo(h.when);                      // NaN if the heading is not a date
+      const when = !isFinite(age) ? 'undated' : age < 1 ? 'earlier today' : age < 2 ? 'yesterday' : `${Math.round(age)} days ago`;
+      lines.push(`Where the last session in ${repo} left off (${when}): ${h.text.replace(/\s+/g, ' ').slice(0, 400)}`);
+    }
   }
 
   // Anything automatic that broke on this machine. Nobody opens a log file; this is
@@ -182,6 +194,46 @@ function heartbeat(L) {
       { detached: true, stdio: 'ignore' });
     child.unref();                                      // never make the human wait on a push
   } catch (e) { logError(e); }
+}
+
+// A session can end in ways nobody plans for: a closed window, /clear, a crash. Asking
+// the agent to write a handoff note works right up until the moment it matters, so write
+// one from what actually happened — unless the agent already wrote its own this session,
+// which will always be the better note.
+function autoHandoff(L, repo) {
+  try {
+    if (repo === 'platform-root') return;
+    const since = lastSessionStart(L, repo);
+    // >=, not >: these timestamps are second-resolution, and a short session can log its
+    // start and its first edit inside the same second.
+    const mine = L.recentActivity(2).filter(a => a.repo === repo && a.ts >= since);
+    const files = [...new Set(mine.filter(a => a.event === 'edit')
+      .map(a => a.line.split('\t').slice(4).join('\t')).filter(Boolean))];
+    const commits = mine.filter(a => a.event === 'commit').length;
+    if (!files.length && !commits) return;                // a session that changed nothing needs no note
+
+    // A handoff heading is normally a timestamp, but nothing stops someone writing prose
+    // there. Compare as dates and treat anything unparseable as old, or one hand-written
+    // heading would switch auto-handoff off for that repo forever.
+    const existing = L.latestHandoff(repo);
+    const had = existing ? Date.parse(existing.when) : NaN;
+    if (isFinite(had) && had >= Date.parse(since)) return;   // the agent wrote one — leave it alone
+
+    const t = L.currentTicket(repo);
+    const shown = files.slice(0, 8).join(', ') + (files.length > 8 ? `, +${files.length - 8} more` : '');
+    L.addHandoff(repo, [
+      `Session ended${t ? ` while on ${t}` : ''}.`,
+      files.length ? `Touched: ${shown}.` : '',
+      commits ? `${commits} commit${commits > 1 ? 's' : ''}.` : 'Nothing committed.',
+      `(written automatically — no one said what is next)`,
+    ].filter(Boolean).join(' '));
+  } catch (e) { logError(e); }
+}
+// The newest session-start recorded for this repo, or the beginning of time.
+function lastSessionStart(L, repo) {
+  let ts = '';
+  for (const a of L.recentActivity(2)) if (a.repo === repo && a.event === 'session-start' && a.ts > ts) ts = a.ts;
+  return ts || '';
 }
 
 // The board follows the work: if exactly one approved ticket is aimed at this repo and

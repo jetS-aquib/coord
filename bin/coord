@@ -18,6 +18,31 @@ const die = m => { console.error(m); process.exit(1); };
 const need = (...ks) => ks.forEach(k => { if (typeof flags[k] !== 'string') die(`missing --${k}`); });
 const confirm = q => { const S = require('./setup.js'); return S.yesish(S.ask(q)); };
 
+// Run from inside a repo, `coord` has to answer "where was I" as well as "what needs
+// me" — that is the whole job at a session boundary. Claude Code gets this injected by a
+// hook; a Copilot session gets it by running this.
+function whereWasI() {
+  const repo = L.repoOf(process.cwd());
+  if (!repo || !L.isOnboarded(repo)) return;
+  const out = [];
+  const on = L.currentTicket(repo);
+  if (on) {
+    const t = L.loadTicket(on);
+    out.push(`on ${on}${t ? `  ${t.fm.title}` : ''}   (commits here are tagged with it)`);
+  }
+  const h = L.latestHandoff(repo);
+  if (h) {
+    const age = L.daysAgo(h.when);
+    const when = !isFinite(age) ? 'undated' : age < 1 ? 'earlier today' : age < 2 ? 'yesterday' : `${Math.round(age)}d ago`;
+    out.push(`last session here, ${when}:`);
+    for (const line of h.text.split('\n').slice(0, 4)) if (line.trim()) out.push('  ' + line.trim());
+  }
+  if (!out.length) return;
+  console.log(`${repo}`);
+  for (const l of out) console.log('  ' + l);
+  console.log('');
+}
+
 /* ---------- saying yes or no without typing an id ---------- */
 // A bare number is an id. "JET-193", "jet193" and "193" are the same ticket.
 function fullId(s) {
@@ -570,6 +595,7 @@ const CMDS = {
   // `coord` on its own. Not the usage dump — the question a person opens a terminal to
   // ask, which is "is anything waiting on me?"
   status() {
+    whereWasI();
     const mine = waiting();
     if (mine.length === 1) {
       const t = mine[0];

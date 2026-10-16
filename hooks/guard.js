@@ -66,9 +66,12 @@ function bashTargets(cmd) {
     const p = m[1] || m[2] || m[3];
     if (p && !p.startsWith('/dev/') && !p.startsWith('&')) out.push({ path: p, why: 'this shell redirection' });
   }
-  // write-ish commands: every path-looking argument
-  if (WRITEISH.test(cmd)) {
-    for (const tok of cmd.split(/\s+/)) {
+  // Write-ish commands: every path-looking argument — but only within the segment that
+  // actually contains one. A single `cp` used to make every path in a long "a && b && c"
+  // line look like a write target, including paths belonging to a plain `cat` further on.
+  for (const seg of cmd.split(/\n|;|&&|\|\||\|/)) {
+    if (!WRITEISH.test(seg)) continue;
+    for (const tok of seg.split(/\s+/)) {
       const p = tok.replace(/^['"]|['"]$/g, '');
       if (p.includes('/') && !p.startsWith('-') && !p.startsWith('/dev/')) out.push({ path: p, why: 'this shell command' });
     }

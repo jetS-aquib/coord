@@ -823,6 +823,41 @@ function resilience() {
   ok('failures.log is gitignored', fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').includes('activity/failures.log'));
   // Ignoring a file does nothing once it is tracked — somebody's hook crashes were
   // riding along on the shared board for two days before anyone noticed.
+  // The other half of the same rule: the files that ARE shared must say nothing about
+  // one machine, or a pull would hand everyone someone else's disk layout.
+  // Every string in a shared file, checked one by one. "/models" is an API route, not a
+  // disk path, so look for what only a filesystem has. `remote` is exempt: a clone URL is
+  // shared on purpose, and in this drill it happens to be a local bare repo.
+  const machineSpecific = () => {
+    const DISK = /^(\/(Users|home|var|tmp|private|mnt|opt|srv)\/|[A-Za-z]:[\\\\/])/;
+    const hits = [];
+    const walk = (v, where) => {
+      if (typeof v === 'string') {
+        if (DISK.test(v) || v.includes(os.homedir()) || v.includes(TMP)) hits.push(`${where} = ${v}`);
+      } else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${where}[${i}]`));
+      else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) if (k !== 'remote') walk(x, `${where}.${k}`);
+    };
+    for (const f of ['repos.json', 'people.json', 'state.json']) {
+      walk(JSON.parse(fs.readFileSync(path.join(CO, f), 'utf8')), f);
+    }
+    return hits;
+  };
+  ok('nothing shared describes one machine', !machineSpecific().length, machineSpecific().join('; '));
+  ok('the registry carries no path field at all',
+    !JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.some(r => 'path' in r),
+    fs.readFileSync(path.join(CO, 'repos.json'), 'utf8').slice(0, 300));
+  ok('and a path field from an older board is dropped on the next write', (() => {
+    const f = path.join(CO, 'repos.json');
+    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+    j.repos[0].path = '/somebody/elses/disk/' + j.repos[0].name;
+    fs.writeFileSync(f, JSON.stringify(j, null, 2) + '\n');
+    coord(['where']);                                  // any command that touches the registry
+    cp.spawnSync(process.execPath, ['-e',
+      `const L=require('${path.join(__dirname, 'lib.js').replace(/\\/g, '/')}');L.writeRegistry(L.registry())`],
+      { env: { ...process.env, COORD_ROOT: CO } });
+    return !/somebody\/elses\/disk/.test(fs.readFileSync(f, 'utf8'));
+  })(), fs.readFileSync(path.join(CO, 'repos.json'), 'utf8').slice(0, 200));
+
   ok('no machine-local file is actually tracked on the board', (() => {
     const tracked = git(['ls-files'], path.join(__dirname, '..')).stdout.split('\n');
     return !tracked.some(f => ['activity/hook-errors.log', 'activity/failures.log', 'paths.json', 'local.json', 'paused'].includes(f));
@@ -847,6 +882,58 @@ function resilience() {
   ok('the paused file is gitignored', fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').split('\n').includes('paused'));
   ok('coord resume brings it back', coord(['resume']).ok && /permissionDecision":"deny/.test(guardCall(beta, alphaFile)));
   ok('resume twice is harmless', coord(['resume']).out.includes('already running'));
+
+  /* --- crossing a session boundary --- */
+  // A new window, a /clear, a compaction, a crash. Everything the next session needs has
+  // to be on disk, because the conversation that knew it is gone.
+  const sess = path.join(TMP, 'beta');
+  const statusOf = () => fs.readFileSync(path.join(CO, 'status', 'beta.md'), 'utf8');
+  const brief = cwd => {
+    const r = hook('session-start', { cwd });
+    try { return JSON.parse(r.stdout || '{}').hookSpecificOutput.additionalContext || ''; } catch { return ''; }
+  };
+  const notesIn = t => (t.match(/^### /gm) || []).length;
+
+  const notes0 = notesIn(statusOf());
+  hook('session-start', { cwd: sess });
+  hook('edit', { cwd: sess, tool_input: { file_path: path.join(sess, 'src', 'queue.js') } });
+  hook('session-stop', { cwd: sess });
+  ok('a session that ends writes its own handoff note', notesIn(statusOf()) === notes0 + 1, statusOf().slice(-400));
+  ok('and the note says what it touched', /queue\.js/.test(statusOf()), statusOf().slice(-300));
+  ok('the notes stay separate blocks', /\n\n### note 1/.test(statusOf()), JSON.stringify(statusOf().slice(-260)));
+  ok('it admits it was written automatically', /written automatically/.test(statusOf()));
+  ok('the next session is told where the last one left off',
+    /left off/.test(brief(sess)) && /queue\.js/.test(brief(sess)), brief(sess));
+
+  // The agent's own note is always better than a generated one.
+  hook('session-start', { cwd: sess });
+  hook('edit', { cwd: sess, tool_input: { file_path: path.join(sess, 'src', 'other.js') } });
+  cp.spawnSync(process.execPath, ['-e',
+    `require('${path.join(__dirname, 'lib.js').replace(/\\/g, '/')}').addHandoff('beta','Deliberate note: next is the empty state.')`],
+    { env: { ...process.env, COORD_ROOT: CO } });
+  const n2 = notesIn(statusOf());
+  hook('session-stop', { cwd: sess });
+  // ^### with /m, so the "### <timestamp>" inside the template's HTML comment is skipped.
+  const topNote = () => (statusOf().split(/^### /m)[1] || '');
+  ok('a session does not overwrite the note the agent already wrote',
+    notesIn(statusOf()) === n2 && /Deliberate note/.test(topNote()),
+    `notes ${notesIn(statusOf())} vs ${n2}; top: ${topNote().slice(0, 90)}`);
+
+  // A session that changed nothing should leave no trace.
+  hook('session-start', { cwd: sess });
+  const n3 = notesIn(statusOf());
+  hook('session-stop', { cwd: sess });
+  ok('a session that changed nothing writes no note', notesIn(statusOf()) === n3);
+
+  // The ticket a repo is on survives too — it lives in .git/, not in any conversation.
+  ok('coord inside a repo answers "where was I"', (() => {
+    const o = coord([], { cwd: sess, human: true }).out;
+    return /beta/.test(o) && /last session here/.test(o);
+  })(), coord([], { cwd: sess, human: true }).out);
+  ok('Copilot is told to run it, since it gets no hook', (() => {
+    const d = require('./devsetup.js').copilotDoc('beta');
+    return /Start of every session/.test(d) && /Run .?coord.? first/.test(d) && /handoff note/.test(d);
+  })());
 
   /* --- the context store: a shared fact that belongs to no repo --- */
   ok('an empty context store says how to fill it', coord(['ctx']).out.includes('--add'));
