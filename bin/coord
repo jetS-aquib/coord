@@ -17,6 +17,34 @@ const list = v => (typeof v === 'string' ? v.split(',').map(s => s.trim()).filte
 const die = m => { console.error(m); process.exit(1); };
 const need = (...ks) => ks.forEach(k => { if (typeof flags[k] !== 'string') die(`missing --${k}`); });
 const confirm = q => { const S = require('./setup.js'); return S.yesish(S.ask(q)); };
+
+/* ---------- saying yes or no without typing an id ---------- */
+// A bare number is an id. "JET-193", "jet193" and "193" are the same ticket.
+function fullId(s) {
+  const m = /^(?:jet-?)?(\d+)$/i.exec(String(s || '').trim());
+  return m ? `${L.TICKET_PREFIX}-${L.pad3(+m[1])}` : String(s || '').toUpperCase();
+}
+// Tickets a person has to answer: open ones to approve, reviewed ones to close. Yours
+// first — the one whose agent filed it — but never only yours, or someone on leave
+// becomes a blocker.
+function waiting() {
+  const me = L.me();
+  const all = L.lsMd(P.tickets).map(f => ({ fm: L.parse(L.read(path.join(P.tickets, f))).fm }))
+    .filter(t => ['open', 'review'].includes(t.fm.status));
+  const mine = all.filter(t => t.fm.filed_by && t.fm.filed_by === me);
+  return mine.length ? mine : all;
+}
+function pick(arg, verb) {
+  if (arg) {
+    const t = L.loadTicket(fullId(arg)) || die(`not found: ${fullId(arg)}`);
+    return t;
+  }
+  const mine = waiting();
+  if (mine.length === 1) return L.loadTicket(mine[0].fm.id);
+  if (!mine.length) die('nothing is waiting on you. "coord list" shows everything.');
+  die(`${mine.length} things are waiting on you — say which:\n` +
+    mine.map(t => `  coord ${verb} ${t.fm.id.replace(/^\D+/, '')}   ${t.fm.title}`).join('\n'));
+}
 // Everything here is as true as the last sync. Saying so costs one line and stops
 // people trusting a board that stopped updating an hour ago.
 function freshness() {
@@ -28,6 +56,11 @@ function freshness() {
 }
 
 const USAGE = `coord — jetKreate cross-repo coordination
+
+  coord                          what is waiting on you, and the one word to answer it
+  ok [<id>]                      yes — approves an open ticket, closes one in review
+  no [<id>] <why>                no — rejects it, at any point
+    …both take a bare number (ok 193) and need no id at all when only one thing waits
 
   list [--status X]              tickets, newest first
   show <id>                      a ticket or decision in full
@@ -145,6 +178,21 @@ const CMDS = {
     if (!t) die(`no such ticket: ${id}`);
     L.setCurrentTicket(repo, t.fm.id);
     console.log(`${repo} is on ${t.fm.id} — commits here are tagged automatically now`);
+  },
+
+  // The two commands a person actually types. Everything else is the agent's job, so
+  // these are the ones that had to get out of the way: one word, no id when there is
+  // nothing to confuse it with.
+  ok() {
+    const t = pick(rest[0], 'ok');
+    move(t.fm.status === 'review' ? 'done' : 'approved', t.fm.id, rest.slice(1).join(' '));
+  },
+  no() {
+    const first = rest[0];
+    const hasId = first && /^(jet-?)?\d+$/i.test(first);
+    const t = pick(hasId ? first : undefined, 'no');
+    const why = (hasId ? rest.slice(1) : rest).join(' ') || die(`say why:  coord no ${t.fm.id} "<reason>"`);
+    move('rejected', t.fm.id, why);
   },
 
   approve: () => move('approved'),
@@ -519,6 +567,38 @@ const CMDS = {
     console.log('coord is back on. Work done while it was paused was not recorded — "coord check" if you want to be sure nothing is off.');
   },
 
+  // `coord` on its own. Not the usage dump — the question a person opens a terminal to
+  // ask, which is "is anything waiting on me?"
+  status() {
+    const mine = waiting();
+    if (mine.length === 1) {
+      const t = mine[0];
+      console.log(`${t.fm.id}  ${t.fm.title}`);
+      console.log(`${t.fm.from} -> ${t.fm.to}, ${t.fm.status === 'open' ? 'waiting for you to approve it' : 'built and waiting for you to check it'}\n`);
+      console.log(`  read it   coord show ${t.fm.id}`);
+      console.log(`  yes       coord ok`);
+      console.log(`  no        coord no "<why>"`);
+      return;
+    }
+    if (mine.length > 1) {
+      console.log(`${mine.length} things are waiting on you:\n`);
+      for (const t of mine) console.log(`  ${t.fm.id}  ${t.fm.status.padEnd(7)}  ${t.fm.title}`);
+      console.log(`\n  read one  coord show ${mine[0].fm.id}`);
+      console.log(`  yes       coord ok ${mine[0].fm.id.replace(/^\D+/, '')}`);
+      return;
+    }
+    console.log('Nothing is waiting on you.');
+    const live = L.lsMd(P.tickets).map(f => L.parse(L.read(path.join(P.tickets, f))).fm)
+      .filter(fm => !['done', 'rejected'].includes(fm.status));
+    if (live.length) {
+      console.log(`\n${live.length} in flight:`);
+      for (const fm of live.slice(0, 6)) console.log(`  ${fm.id}  ${fm.status.padEnd(11)} ${fm.from} -> ${fm.to}  ${fm.title}`);
+    }
+    const f = L.failures();
+    if (f.length) console.log(`\n${f.length} automation(s) failed here — coord fix`);
+    console.log(`\nEverything else: coord help`);
+  },
+
   drill: () => require('./drill.js').run(),
   help: () => console.log(USAGE),
 };
@@ -627,9 +707,12 @@ function printPreflight(r) {
   console.log(`\nvalidation: ${bad.length ? 'FAILED — ' + bad.join('; ') : 'passed'}`);
 }
 
-function move(to) {
-  const id = (rest.shift() || '').toUpperCase() || die(`usage: coord ${to === 'approved' ? 'approve' : to} <id> [note]`);
-  const t = R.transition(id, to, rest.join(' '));
+// id/note come from the long verbs' argv, or are handed in by `ok`/`no`, which worked
+// out which ticket was meant without being told.
+function move(to, forceId, forceNote) {
+  const id = forceId || fullId(rest.shift() || '') ||
+    die(`usage: coord ${to === 'approved' ? 'approve' : to} <id> [note]`);
+  const t = R.transition(id, to, forceNote !== undefined ? forceNote : rest.join(' '));
   console.log(`${id}: ${t.from} -> ${to}`);
   if (t.onBehalf) console.log(`note: filed by ${t.onBehalf} — recorded as done by ${L.me() || 'you'}`);
   if (to === 'approved') console.log(`${id} is open to any of us now: coord start ${id}`);
@@ -647,7 +730,7 @@ function move(to) {
 
 try {
   L.ensureStatusFiles();                       // a new repo gets a status file on any CLI use
-  (CMDS[cmd] || CMDS.help)();
+  (CMDS[cmd] || (cmd ? CMDS.help : CMDS.status))();
 } catch (e) {
   die(e.message);
 }
