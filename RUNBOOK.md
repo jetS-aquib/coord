@@ -108,6 +108,25 @@ Neither needs a ticket ID when only one thing is waiting on you.
 
 ---
 
+## Terminal, or just say it to your agent?
+
+Your agent can run shell commands, so almost everything works either way. One rule:
+**decisions you type, questions you ask.**
+
+| | |
+| --- | --- |
+| **type it** | `coord ok` · `coord no "<why>"` — a decision has to come from a person, and the CLI refuses an agent that tries |
+| **type it** | `coord` at the start of a session — but only on Copilot; Claude Code has already injected it |
+| **say it** | everything else, in plain English. "what's JET-197 about?", "why is this line like this?", "the API needs to return job state", "leave a handoff note" |
+
+Ask your agent to approve a ticket and it will tell you to do it yourself. That refusal is
+the point: a gate an agent can walk through is not a gate.
+
+**Nothing runs in the background.** No server, no daemon, no account — every command
+starts, does one thing and exits. The one exception is optional: `node
+coord/dashboard/server.js` serves the board at `localhost:4747`. Start it when you want
+the overview, close it when you don't; nothing else depends on it.
+
 ## Windows + GitHub Copilot
 
 Claude Code has hooks, so it gets everything injected. Copilot has no hook API, so there
