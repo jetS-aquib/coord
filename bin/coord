@@ -54,6 +54,25 @@ function newcomers() {
   return L.people().filter(p => !had.has(p.name));
 }
 
+// `coord` is the one command a Copilot session runs by hand, and it is the only moment
+// that session will ever pull. Claude Code has hooks that sync on start, stop and every
+// few minutes while editing; Copilot has nothing but the post-commit hook, so without
+// this a Copilot user reads a board that is as old as their last commit.
+const STALE_MINUTES = 5;
+function freshen() {
+  try {
+    if (L.paused() || !L.coordGit(['remote']).out) return;
+    const s = L.lastSync();
+    if (s && s.minutes < STALE_MINUTES) return;
+    process.stdout.write('syncing... ');
+    const r = require('child_process').spawnSync(process.execPath, [__filename, 'sync', '--quiet'],
+      { encoding: 'utf8', timeout: 20000 });
+    // A board you cannot reach is still a board. Show what is on disk and say so.
+    process.stdout.write(r.status === 0 ? '\r             \r' : '\r');
+    if (r.status !== 0) console.log('could not reach the board — showing what is on this machine\n');
+  } catch { /* never let a network call stop the command that answers "what now" */ }
+}
+
 /* ---------- saying yes or no without typing an id ---------- */
 // A bare number is an id. "JET-193", "jet193" and "193" are the same ticket.
 function fullId(s) {
@@ -511,11 +530,18 @@ const CMDS = {
     const branch = L.coordGit(['rev-parse', '--abbrev-ref', 'HEAD']).out || 'main';
     const upstream = L.coordGit(['rev-parse', '--verify', '--quiet', `origin/${branch}`]).ok;
     if (upstream) {                                  // nothing to rebase onto on a fresh remote
-      const pull = L.coordGit(['rebase', `origin/${branch}`]);
+      // --autostash: snapshot only commits the board, so anyone editing coord's own
+      // source has unstaged changes at all times. Without this, every sync they run
+      // fails with "cannot rebase", which reads like a conflict and is not one.
+      const pull = L.coordGit(['rebase', '--autostash', `origin/${branch}`]);
       if (!pull.ok) {
+        const conflicted = L.sh('git', ['diff', '--name-only', '--diff-filter=U'], L.P.coord).out;
         L.coordGit(['rebase', '--abort']);
-        return stop(`cannot rebase onto origin/${branch} — someone changed the same file`,
-          `cd ${L.P.coord} && git pull --rebase    # resolve, then: coord check`);
+        return conflicted
+          ? stop(`${branch}: both you and someone else changed ${conflicted.split('\n').join(', ')}`,
+            `cd ${L.P.coord} && git pull --rebase    # resolve, then: coord check`)
+          : stop(`could not replay your changes onto origin/${branch}: ${(pull.err || '').split('\n')[0]}`,
+            `cd ${L.P.coord} && git status    # then: git pull --rebase`);
       }
     } else say(`origin/${branch} does not exist yet — publishing the board for the first time`);
 
@@ -685,6 +711,7 @@ const CMDS = {
   // `coord` on its own. Not the usage dump — the question a person opens a terminal to
   // ask, which is "is anything waiting on me?"
   status() {
+    freshen();
     whereWasI();
     const mine = waiting();
     if (mine.length === 1) {
