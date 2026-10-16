@@ -4,3 +4,6 @@ activity/hook-errors.log
 activity/failures.log
 # "coord pause" — off on THIS machine only; never anyone else's business
 paused
+
+# where each repo sits on THIS machine — everyone's disk is different
+paths.json
