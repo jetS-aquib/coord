@@ -319,7 +319,10 @@ ${section('Today', activityFeed().length ? `<table class="feed">${activityFeed()
 
 `;
   return shell('team', headline, body,
-    `${L.onboarded().length} repos · last archive ${L.state().lastArchive ? ago(L.state().lastArchive) + ' ago' : 'never'}`,
+    // How old the board is belongs next to the board, not buried in a CLI.
+    `${L.onboarded().length} repos · ${L.coordGit(['remote']).out
+      ? (L.lastSync() ? `synced ${ago(L.lastSync().at)} ago` : 'never synced')
+      : 'local only'}`,
     probs.filter(p => p.level === 'warn').length);
 }
 

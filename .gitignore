@@ -7,3 +7,6 @@ paused
 
 # where each repo sits on THIS machine — everyone's disk is different
 paths.json
+
+# this machine's own clock: when it last synced. Shared, it would conflict every sync
+local.json

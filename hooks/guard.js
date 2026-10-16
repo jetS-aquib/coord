@@ -91,10 +91,32 @@ function judge(L, abs, own, why) {
   if (!seg) return null;                                                // not a repo of ours
   if (seg[0] === own) return null;                                      // your own repo — go ahead
 
+  // Everyone here owns every repo, so a change that genuinely spans two of them is
+  // normal work, not a violation. What the guard is for is the UNSANCTIONED version —
+  // an agent wandering next door on its own. An in-progress ticket between these two
+  // repos is a person having already said yes, in writing, with an id on it.
+  const lic = licence(L, own, seg[0]);
+  if (lic) return null;
+
   const where = own ? `You are in ${own}` : 'This session is at the platform root';
-  return `${where}, and ${why} writes into ${seg[0]}/. Repos never edit each other. ` +
-    `File a ticket instead:  .coord/bin/coord new --from ${own || '<your repo>'} --to ${seg[0]} --title "..."  ` +
-    `then tell the human and stop. Reading ${seg[0]}/ is fine.`;
+  return `${where}, and ${why} writes into ${seg[0]}/. Repos do not edit each other unless a ticket says so. ` +
+    `Either work in ${seg[0]} from its own session, or open the change properly:  ` +
+    `.coord/bin/coord new --from ${own || '<your repo>'} --to ${seg[0]} --title "..."  ` +
+    `— once someone approves it and it is in progress, this write is allowed from here. Reading ${seg[0]}/ is always fine.`;
+}
+
+// An in_progress ticket linking the two repos, either direction. Cheap enough to run
+// only on the path that is about to be denied.
+function licence(L, own, other) {
+  if (!own) return null;                                                // platform-root session: no repo to speak for
+  try {
+    for (const f of L.lsMd(L.P.tickets)) {
+      const { fm } = L.parse(L.read(path.join(L.P.tickets, f)));
+      if (fm.status !== 'in_progress') continue;
+      if ((fm.from === own && fm.to === other) || (fm.from === other && fm.to === own)) return fm.id;
+    }
+  } catch { /* unreadable board: fall through to the deny */ }
+  return null;
 }
 
 function judgeCoord(L, parts, own, why) {

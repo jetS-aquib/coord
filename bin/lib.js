@@ -24,6 +24,7 @@ const P = {
   registry: path.join(COORD, 'repos.json'),
   people: path.join(COORD, 'people.json'),
   paths: path.join(COORD, 'paths.json'),
+  local: path.join(COORD, 'local.json'),
 };
 
 /* ---------- where each repo lives ON THIS MACHINE ---------- */
@@ -341,8 +342,15 @@ function snapshot(msg) {
 }
 
 /* ---------- state ---------- */
+// state.json is SHARED: it travels with the board, so only things that are true for
+// everyone belong in it (lastArchive — the archive moved files for all of us).
 const state = () => { try { return JSON.parse(read(P.state, '{}')); } catch { return {}; } };
 const setState = patch => atomicWrite(P.state, JSON.stringify({ ...state(), ...patch }, null, 2) + '\n');
+
+// local.json is this machine's own: when I last synced, when I last nagged. Shared, it
+// would conflict on every single sync — two people cannot both be the last to sync.
+const localState = () => { try { return JSON.parse(read(P.local, '{}')); } catch { return {}; } };
+const setLocal = patch => atomicWrite(P.local, JSON.stringify({ ...localState(), ...patch }, null, 2) + '\n');
 
 /* ---------- actor ---------- */
 // Claude's Bash tool is not a TTY; a human in a terminal is. COORD_ACTOR=human overrides for scripts.
@@ -420,6 +428,39 @@ function recentActivity(days = 3) {
     }
   }
   return out;
+}
+
+/* ---------- who else is in this file ---------- */
+// Not a lock and not a presence server — just the activity log, which already records
+// every edit, read back the other way round. Two people on one component usually find
+// out at merge time; this is the same information a few hours earlier, and it costs
+// nobody a new habit because the edits were already being logged.
+function othersOn(repo, file, minutes = 180) {
+  const me_ = me(), cut = Date.now() - minutes * 60000, seen = new Map();
+  for (const a of recentActivity(2)) {
+    if (a.repo !== repo || !a.who || a.who === me_) continue;
+    if (!['edit', 'commit'].includes(a.event)) continue;
+    const extra = a.line.split('\t').slice(4).join('\t');
+    if (!extra || !sameFile(extra, file)) continue;
+    if (new Date(a.ts).getTime() < cut) continue;
+    const prev = seen.get(a.who);
+    if (!prev || a.ts > prev.ts) seen.set(a.who, { who: a.who, ts: a.ts, event: a.event });
+  }
+  return [...seen.values()].sort((a, b) => b.ts.localeCompare(a.ts));
+}
+// An edit logs a path; a commit logs "<sha> <subject>". Match a path either way, and
+// compare on the basename too so a commit message mentioning the file still counts.
+function sameFile(extra, file) {
+  const norm = s => s.replace(/\\/g, '/');
+  const f = norm(file), b = f.split('/').pop();
+  const e = norm(extra);
+  return e === f || e.endsWith('/' + f) || f.endsWith('/' + e) || (b.length > 3 && e.includes(b));
+}
+
+// How stale is the board? You cannot trust what you are looking at without this.
+function lastSync() {
+  const s = localState().lastSync;
+  return s ? { at: s, minutes: Math.round((Date.now() - new Date(s).getTime()) / 60000) } : null;
 }
 
 // Repos a person has actually touched lately. Tickets carry no assignee, so this is
@@ -507,4 +548,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, isWindows, scanRepo, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, real, TOOLS, isWindows, scanRepo, othersOn, lastSync, localState, setLocal, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

@@ -42,8 +42,11 @@ function main() {
     // An edit outside the repo (a scratchpad, /tmp) relativises to ../../../.. and fills
     // the feed with noise. Those are not this repo's work; name the file and move on.
     const rel = path.relative(base, L.real(path.resolve(f)));
-    L.logActivity(repo, 'edit', !rel || rel.startsWith('..') ? path.basename(f) : rel);
-    if (repo !== 'platform-root') autoStart(L, repo);
+    const name = !rel || rel.startsWith('..') ? path.basename(f) : rel;
+    const others = repo === 'platform-root' ? [] : L.othersOn(repo, name);
+    L.logActivity(repo, 'edit', name);
+    if (repo !== 'platform-root') { autoStart(L, repo); heartbeat(L); }
+    if (others.length && firstTimeToday(L, repo, name)) warnOverlap(name, others);
     return;
   }
 
@@ -128,10 +131,57 @@ function brief(L, repo, onboarded) {
   emit(lines.join('\n'));
 }
 
-function emit(text) {
-  process.stdout.write(JSON.stringify({
-    hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text },
-  }));
+// fs.writeSync, not process.stdout.write: stdout to a pipe is asynchronous, and this
+// process calls process.exit() the moment main() returns. An async write can be dropped.
+// Declarations, not consts: main() is called at the top of this file, so anything it
+// reaches has to be hoisted. A const here is in the temporal dead zone and throws.
+function say(obj) { try { fs.writeSync(1, JSON.stringify(obj)); } catch { /* nobody listening */ } }
+function emit(text) { say({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text } }); }
+
+// Somebody else has this file open. Not a lock — a sentence, once, at the moment it is
+// still cheap to go and ask them.
+// Say it once. The same sentence on every keystroke in a shared file is how a helpful
+// tool becomes one people turn off.
+const REMIND_AFTER_HOURS = 4;
+function firstTimeToday(L, repo, file) {
+  const key = `${repo}:${file}`;
+  const warned = L.localState().warned || {};
+  const last = warned[key];
+  if (last && (Date.now() - new Date(last).getTime()) < REMIND_AFTER_HOURS * 3600000) return false;
+  L.setLocal({ warned: { ...warned, [key]: L.nowISO() } });
+  return true;
+}
+
+function warnOverlap(file, others) {
+  const who = others.map(o => `${o.who} (${o.event === 'commit' ? 'committed' : 'edited'} it ${ago(o.ts)})`).join(', ');
+  say({
+    hookSpecificOutput: {
+      hookEventName: 'PostToolUse',
+      additionalContext: `coord: ${who} — same file, ${file}. Worth a word before this turns into a merge conflict. ` +
+        `"coord who" shows where everyone is. This comes off the board, so it is as fresh as the last sync.`,
+    },
+  });
+}
+function ago(ts) {
+  const m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+  return m < 60 ? `${m}m ago` : `${Math.round(m / 60)}h ago`;
+}
+
+// Push what just happened, at most every few minutes. Session start and stop are too
+// coarse to notice a collision while it still matters, and a sync per keystroke would
+// be absurd — the activity logs merge by union, so frequent small appends are the one
+// thing this board is actually safe doing often.
+const HEARTBEAT_MINUTES = 4;                          // read inside heartbeat(), after main()
+function heartbeat(L) {
+  try {
+    const last = L.localState().lastSync;
+    if (last && (Date.now() - new Date(last).getTime()) < HEARTBEAT_MINUTES * 60000) return;
+    L.setLocal({ lastSync: L.nowISO() });              // claim it first: no thundering herd
+    const child = require('child_process').spawn(
+      process.execPath, [path.join(__dirname, '..', 'bin', 'coord'), 'sync', '--quiet'],
+      { detached: true, stdio: 'ignore' });
+    child.unref();                                      // never make the human wait on a push
+  } catch (e) { logError(e); }
 }
 
 // The board follows the work: if exactly one approved ticket is aimed at this repo and

@@ -54,30 +54,55 @@ function setup({ yes = false, noPath = false } = {}) {
   step(3, 'Locating the repos');
   const active = L.registry().filter(r => r.status === 'active');
   if (!active.length) say('  the registry is empty — nothing onboarded yet');
-  const here = new Set(L.repos());
-  const missing = active.filter(r => !here.has(r.name));
-  for (const r of active) say(`  ${here.has(r.name) ? '[x]' : '[ ]'} ${r.name}${here.has(r.name) ? '' : '  not cloned here'}`);
+  let here = new Set(L.repos());
+  const mapped = L.pathMap();
+  for (const r of active) {
+    const at = L.repoDirs()[r.name];
+    say(`  ${here.has(r.name) ? '[x]' : '[ ]'} ${r.name.padEnd(24)} ${at ? (mapped[r.name] ? at : 'beside the board') : 'not on this machine'}`);
+  }
 
   backfillRemotes(active, here, say);
 
+  // A repo missing from the default place is usually one of three things: you do not
+  // work on it, you keep it somewhere else, or you have not cloned it yet. Guessing
+  // "clone it" for all three is how a setup script makes a second copy of a repo
+  // somebody already has open in their editor.
+  const missing = active.filter(r => !here.has(r.name));
   if (missing.length) {
-    const withUrl = missing.filter(r => r.remote);
-    say(`\n  ${missing.length} repo(s) are on the board but not on this machine.`);
-    say('  That is fine if you do not work on them — they just stay off your disk.');
-    const a = interactive && withUrl.length
-      ? ask(`  Clone ${withUrl.length} of them into ${P.root} now?`)
-      : 'n';
-    if (yesish(a)) {
-      for (const r of withUrl) {
+    say(`\n  ${missing.length} repo(s) on the board are not beside it on this machine.`);
+    say('  Fine if you do not work on them, or if you keep them somewhere else.');
+    for (const r of missing) {
+      // A guess is a guess. Pointing someone's board at the wrong copy of a repo without
+      // asking is worse than asking — with no terminal it goes on the list instead.
+      const guess = guessLocation(r.name);
+      if (guess && interactive && yesish(ask(`  Found ${r.name} at ${tilde(guess)} — use that one?`))) {
+        L.setRepoPath(r.name, guess); here = new Set(L.repos());
+        say(`  ${r.name} -> ${tilde(guess)}`);
+        continue;
+      }
+      if (guess && !interactive) {
+        todo.push(`${r.name} looks like it is at ${tilde(guess)}. If that is the one you work on:  coord where ${r.name} ${guess}`);
+        continue;
+      }
+      const a = interactive
+        ? ask(`  ${r.name}: [c]lone it, give me a [p]ath, or [s]kip?`, { def: r.remote ? 'c' : 's', choices: 'c/p/s' })
+        : 's';
+      if (/^c/i.test(a) && r.remote) {
         process.stdout.write(`  cloning ${r.name}... `);
         const res = L.sh('git', ['clone', '--quiet', r.remote, path.join(P.root, r.name)], P.root);
         say(res.ok ? 'done' : `failed: ${res.err.split('\n')[0]}`);
-        if (res.ok) here.add(r.name);
+        if (res.ok) here = new Set(L.repos());
+      } else if (/^p/i.test(a)) {
+        const p = ask(`  Full path to ${r.name}?`, { def: '', choices: 'path' });
+        const abs = p && L.real(path.resolve(p.replace(/^~/, os.homedir())));
+        if (abs && L.isRepoAt(abs)) { L.setRepoPath(r.name, abs); here = new Set(L.repos()); say(`  ${r.name} -> ${abs}`); }
+        else { say(`  ${p || '(nothing)'} is not a git repo — skipped`); todo.push(`tell coord where ${r.name} is:  coord where ${r.name} <path>`); }
+      } else {
+        todo.push(r.remote
+          ? `${r.name}: clone it  (git clone ${r.remote} ${path.join(P.root, r.name)})  or, if you already have it:  coord where ${r.name} <path>`
+          : `${r.name} has no clone URL recorded — ask whoever onboarded it, or: coord where ${r.name} <path>`);
       }
-    } else if (withUrl.length) {
-      todo.push(`clone the repos you need:\n${withUrl.map(r => `       git clone ${r.remote} ${path.join(P.root, r.name)}`).join('\n')}`);
     }
-    for (const r of missing.filter(r => !r.remote)) todo.push(`${r.name} has no clone URL recorded — ask whoever onboarded it`);
   }
 
   /* 3b. who you are */
@@ -196,6 +221,19 @@ function claudeHooks(say, todo) {
 const pathLine = () => L.isWindows
   ? `setx PATH "$env:PATH;${BIN}"`
   : `export PATH="${BIN}:$PATH"`;
+
+// Before asking, look where people actually put things: beside the board, one level up,
+// and the usual ~/work-style folders. Costs nothing and saves the question most of the time.
+function guessLocation(name) {
+  const home = os.homedir();
+  const roots = [P.root, path.dirname(P.root), home,
+    ...['work', 'code', 'projects', 'dev', 'src', 'repos', 'Developer'].map(d => path.join(home, d))];
+  for (const r of roots) {
+    const c = path.join(r, name);
+    if (L.isRepoAt(c) && L.real(c) !== path.join(P.root, name)) return L.real(c);
+  }
+  return null;
+}
 
 function shellProfile() {
   const sh = path.basename(process.env.SHELL || 'zsh');

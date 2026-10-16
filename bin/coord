@@ -17,6 +17,15 @@ const list = v => (typeof v === 'string' ? v.split(',').map(s => s.trim()).filte
 const die = m => { console.error(m); process.exit(1); };
 const need = (...ks) => ks.forEach(k => { if (typeof flags[k] !== 'string') die(`missing --${k}`); });
 const confirm = q => { const S = require('./setup.js'); return S.yesish(S.ask(q)); };
+// Everything here is as true as the last sync. Saying so costs one line and stops
+// people trusting a board that stopped updating an hour ago.
+function freshness() {
+  if (!L.coordGit(['remote']).out) return 'This board is local only — nothing here came from anyone else.';
+  const s = L.lastSync();
+  if (!s) return 'This board has never synced — run: coord sync';
+  return s.minutes < 10 ? `Board is current (synced ${s.minutes}m ago).`
+    : `Board is ${s.minutes < 120 ? s.minutes + 'm' : Math.round(s.minutes / 60) + 'h'} old — "coord sync" for the latest.`;
+}
 
 const USAGE = `coord — jetKreate cross-repo coordination
 
@@ -277,6 +286,7 @@ const CMDS = {
     if (L.paused()) console.log(`coord is PAUSED on this machine (${L.paused().trim()}) — nothing automatic is running. coord resume\n`);
     const f = L.failures();
     if (f.length) console.log(`${f.length} automation(s) failed here (${f.map(x => x.scope).join(', ')}) — see: coord fix\n`);
+    console.log(freshness() + '\n');
     const probs = R.check();
     const real = probs.filter(p => p.level !== 'info');
     if (!real.length) console.log('check: OK');
@@ -311,6 +321,7 @@ const CMDS = {
       const where = p.repo ? `${p.repo}  ${p.ts.slice(0, 16).replace('T', ' ')}` : 'no activity yet';
       console.log(`  ${(p.name + (p.name === you ? ' (you)' : '')).padEnd(22)} ${String(p.tool).padEnd(12)} ${where}`);
     }
+    console.log('\n' + freshness());
   },
 
   repos() {
@@ -401,10 +412,19 @@ const CMDS = {
       }
     } else say(`origin/${branch} does not exist yet — publishing the board for the first time`);
 
-    const push = L.coordGit(['push', '-u', 'origin', branch]);
+    let push = L.coordGit(['push', '-u', 'origin', branch]);
+    if (!push.ok && upstream) {
+      // Someone pushed between our fetch and our push. That is the normal case with
+      // several people syncing on a timer, not an error — rebase on what landed and
+      // try once more before bothering anybody.
+      L.coordGit(['fetch', '--quiet', 'origin']);
+      if (L.coordGit(['rebase', `origin/${branch}`]).ok) push = L.coordGit(['push', 'origin', branch]);
+      else L.coordGit(['rebase', '--abort']);
+    }
     if (!push.ok) return stop(`push failed: ${push.err.split('\n')[0]}`, `cd ${L.P.coord} && git push`);
     L.clearFailures('sync');                       // a good sync clears the backlog of bad ones
 
+    L.setLocal({ lastSync: L.nowISO() });           // this machine's clock, never the board's
     const n = L.coordGit(['rev-list', '--count', `origin/${branch}..${branch}`]).out;
     say(`synced with origin/${branch}${n && n !== '0' ? ` (${n} ahead)` : ''}`);
     const probs = R.check().filter(p => p.level === 'error');

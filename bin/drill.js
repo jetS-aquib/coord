@@ -42,6 +42,7 @@ function run() {
     archiving(id);
     superseding(did);
     resilience();
+    scattered();
     ok('coord check reports no errors', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
   } catch (e) {
     fail++; console.log(`FAIL  drill crashed: ${e.message}\n${e.stack}`);
@@ -618,8 +619,12 @@ function freshDev() {
   const out = r.stdout;
   ok('setup walks all six steps', /\[1\/6\][\s\S]*\[6\/6\]/.test(out), out.slice(0, 120));
   ok('setup sees the board has every repo registered', /\[ \] alpha|\[x\] alpha/.test(out), out);
-  ok('setup reports repos it cannot find locally', /not cloned here/.test(out), out);
-  ok('setup offers the clone command for them', /git clone/.test(out), out);
+  ok('setup reports repos it cannot find locally', /not on this machine/.test(out), out);
+  ok('setup gives an actionable next step for each', /coord where/.test(out), out);
+  // A guessed location is offered, never adopted: with no terminal to confirm at, it
+  // must end up on the to-do list rather than silently pointing at the wrong clone.
+  ok('setup never adopts a guessed path unasked', !fs.existsSync(path.join(board, 'paths.json')),
+    fs.existsSync(path.join(board, 'paths.json')) ? fs.readFileSync(path.join(board, 'paths.json'), 'utf8') : '');
   ok('setup never edits a shell profile without being asked',
     !fs.existsSync(path.join(home, '.zshrc')) && /not on your PATH|export PATH=/.test(out));
   ok('setup ends with what is left to do', /thing\(s\) left for you|Setup complete/.test(out), out.slice(-200));
@@ -858,6 +863,94 @@ function resilience() {
   ok('it refuses to touch settings it cannot parse',
     D.installClaudeHooks({ file: settings })[0].includes('not valid JSON') &&
     fs.readFileSync(settings, 'utf8') === '{ this is not json');
+}
+
+// Not everyone keeps their repos in one folder. The board must not care, and the guard
+// must not quietly stop working for the people who don't.
+function scattered() {
+  const away = path.join(TMP, 'elsewhere', 'delta');
+  fs.mkdirSync(away, { recursive: true });
+  git(['init', '-q'], away); git(['config', 'user.email', 'd@d'], away); git(['config', 'user.name', 'drill'], away);
+  fs.writeFileSync(path.join(away, 'package.json'), JSON.stringify({ name: 'delta' }));
+  fs.writeFileSync(path.join(away, 'index.js'), 'module.exports = 1;\n');
+  git(['add', '-A'], away); git(['commit', '-qm', 'init'], away);
+
+  ok('a repo outside the root is invisible until you say where it is',
+    !coord(['repos']).out.includes('delta'), coord(['repos']).out);
+  const pre = coord(['onboard', 'delta', '--at', away, '--preflight']);
+  ok('preflight works on a repo anywhere on disk', pre.ok && /\[x\] contains \.git/.test(pre.out), pre.out);
+  const ap = coord(['onboard', 'delta', '--at', away, '--apply'], { human: true });
+  ok('onboarding records where it is, on this machine only',
+    ap.ok && /paths\.json/.test(ap.out) && fs.existsSync(path.join(CO, 'paths.json')), ap.out);
+  ok('paths.json is gitignored — your disk is not theirs',
+    fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').split('\n').includes('paths.json'));
+  ok('the registry stays machine-independent', (() => {
+    const e = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === 'delta');
+    return e && !JSON.stringify(e).includes(TMP);     // no absolute path travels to anyone else
+  })(), fs.readFileSync(path.join(CO, 'repos.json'), 'utf8').slice(0, 300));
+  ok('coord where lists it', /delta/.test(coord(['where']).out), coord(['where']).out);
+
+  const guardCall = (cwd, file) => cp.spawnSync(process.execPath, [GUARD], {
+    input: JSON.stringify({ cwd, tool_name: 'Write', tool_input: { file_path: file } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  }).stdout;
+  const betaFile = path.join(TMP, 'beta', 'jobs.js');
+  ok('the guard still fires from a scattered repo into a normal one',
+    /permissionDecision":"deny/.test(guardCall(away, betaFile)), guardCall(away, betaFile));
+  ok('and from a normal repo into the scattered one',
+    /permissionDecision":"deny/.test(guardCall(path.join(TMP, 'beta'), path.join(away, 'index.js'))));
+  ok('its own files are still its own', guardCall(away, path.join(away, 'index.js')) === '');
+  ok('a repo nobody registered is left alone', (() => {
+    const outside = path.join(TMP, 'elsewhere', 'notours');
+    fs.mkdirSync(outside, { recursive: true });
+    git(['init', '-q'], outside);
+    return guardCall(outside, path.join(outside, 'x.js')) === '';
+  })());
+
+  const hook = (event, payload) => cp.spawnSync(process.execPath, [HOOK, event], {
+    input: JSON.stringify(payload), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('it gets briefed like any other repo', /delta/.test(
+    JSON.parse(hook('session-start', { cwd: away }).stdout || '{}').hookSpecificOutput.additionalContext));
+  ok('tickets can be filed at it', coord(['new', '--from', 'beta', '--to', 'delta', '--title', 'Across disks'],
+    { cwd: path.join(TMP, 'beta') }).ok);
+  ok('coord where --forget puts it back to the default', (() => {
+    if (!coord(['where', '--forget', 'delta']).ok) return false;
+    const m = JSON.parse(fs.readFileSync(path.join(CO, 'paths.json'), 'utf8')).paths;
+    return !m.delta && /delta\s+not on this machine/.test(coord(['where']).out);
+  })(), coord(['where']).out);
+
+  /* --- two people in one file --- */
+  // Activity lines only name a person the roster knows, so put a second person on it.
+  const pf = path.join(CO, 'people.json');
+  const roster = JSON.parse(fs.readFileSync(pf, 'utf8'));
+  roster.people.push({ name: 'Riya', email: 'riya@d', tool: 'copilot', since: '2026-01-01' });
+  fs.writeFileSync(pf, JSON.stringify(roster, null, 2) + '\n');
+
+  const today = path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`);
+  const stamp = m => new Date(Date.now() - m * 60000).toISOString();
+  fs.appendFileSync(today, `${stamp(20)}\tbeta\tedit\tRiya\tsrc/Checkout.tsx\n`);
+  const r = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'src', 'Checkout.tsx') } });
+  const ctx = (JSON.parse(r.stdout || '{}').hookSpecificOutput || {}).additionalContext || '';
+  ok('editing a file someone else is in says so', /Riya/.test(ctx) && /Checkout\.tsx/.test(ctx), r.stdout);
+  ok('the warning is honest about how fresh it is', /last sync/.test(ctx), ctx);
+  // Said once, not on every keystroke — a tool that repeats itself gets switched off.
+  ok('it says it once, not on every edit', (() => {
+    const r2 = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'src', 'Checkout.tsx') } });
+    return !/coord:/.test(r2.stdout || '');
+  })());
+  ok('a file only you have touched says nothing', (() => {
+    const r3 = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'src', 'Mine.tsx') } });
+    return !/coord:/.test(r3.stdout || '');
+  })());
+  fs.appendFileSync(today, `${stamp(600)}\tbeta\tedit\tRiya\tsrc/Old.tsx\n`);
+  ok('a touch from yesterday is not a collision', (() => {
+    const r3 = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'src', 'Old.tsx') } });
+    return !/Riya/.test(r3.stdout || '');
+  })());
+  ok('the heartbeat clock is local, never shared',
+    !fs.readFileSync(path.join(CO, 'state.json'), 'utf8').includes('lastSync') &&
+    fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8').split('\n').includes('local.json'));
 }
 
 function superseding(did) {
