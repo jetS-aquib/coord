@@ -39,6 +39,7 @@ function run() {
     guard();
     copilot();
     quiet();
+    captured();
     team();
     onboarding();
     archiving(id);
@@ -400,6 +401,111 @@ function quiet() {
     git(['ls-files', 'local.json'], CO).stdout.trim() === '');
 }
 
+// Batch 3: the board was empty after four days not because nothing happened but because
+// writing it down is a separate act performed after the interesting part is over. These
+// assertions are about the note writing itself — and, just as much, about it staying
+// honest: a note that guesses a reason is worse than no note, because the next person
+// believes it.
+function captured() {
+  const L = require('./lib.js');
+  // In a child with COORD_ROOT set, never in-process: lib resolves its paths once at
+  // load, so calling capture() here would read and write the real board instead of the
+  // fixture — and quietly pass while testing nothing.
+  const CAP = path.join(__dirname, 'capture.js');
+  const C = {
+    capture: ({ since }) => {
+      const r = cp.spawnSync(process.execPath,
+        ['-e', `process.stdout.write(String(require(process.argv[1]).capture({ since: process.argv[2] }) || ''))`, CAP, since],
+        { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } });
+      return r.stdout.trim() || null;
+    },
+  };
+  const log = path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`);
+  // Whoever the FIXTURE thinks we are, which is not who this process thinks we are.
+  const me = cp.spawnSync(process.execPath, ['-e', 'process.stdout.write(require(process.argv[1]).me() || "")',
+    path.join(__dirname, 'lib.js')], { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } }).stdout;
+  // L.nowISO(), not toISOString(): the activity log is written with this machine's
+  // offset, and these timestamps are compared as strings. A UTC 'Z' here would sort
+  // against a +05:30 line as if the clock said something different.
+  const at = () => L.nowISO();
+  const add = (repo, event, who, extra) => fs.appendFileSync(log, [at(), repo, event, who, extra].join('\t') + '\n');
+  const noteFile = () => L.lsMd(path.join(CO, 'context')).filter(n => n.startsWith('together-'));
+  // Earlier sections of this drill have been editing the same fixture all along. The
+  // window starts now, so only what this section does is in scope.
+  for (const n of noteFile()) fs.rmSync(path.join(CO, 'context', n));
+  // Wait for the clock to tick first. These timestamps are second-resolution and the
+  // window is "ts < since", so an edit logged in the same second as `since` is inside
+  // it — which made this section pass or fail depending on when in the second it ran.
+  const tick = at();
+  while (at() === tick) { /* at most one second, once */ }
+  const since = at();
+
+  // One repo is just work. Only two is a fact nobody writes down.
+  add('alpha', 'edit', me, 'src/only.js');
+  ok('one repo in a sitting writes no note', C.capture({ since }) === null, noteFile().join(','));
+
+  // The cross-repo line is also logged against the near repo as a bare basename, because
+  // an edit outside the repo has no sensible relative path. Filing the far repo's file
+  // under the near one would be a quiet lie in a note people are meant to trust.
+  add('alpha', 'edit', me, 'shared.js');
+  add('alpha', 'cross-repo', me, 'alpha + beta — shared.js');
+  add('alpha', 'commit', me, 'abc123 JET-500: widen the job state enum');
+  const slug = C.capture({ since });
+  ok('two repos in a sitting writes one note', !!slug && noteFile().length === 1, String(slug));
+
+  const read = () => fs.readFileSync(path.join(CO, 'context', slug + '.md'), 'utf8');
+  let note = read();
+  ok('it names both repos', /alpha and beta changed together/.test(note), note.slice(0, 200));
+  ok('each file is filed under the repo it actually belongs to',
+    /\*\*alpha\*\* — src\/only\.js/.test(note) && /\*\*beta\*\* — shared\.js/.test(note)
+    && !/\*\*alpha\*\*[^\n]*shared\.js/.test(note), note);
+  ok('it carries the commit subject, which is the dev\'s own words',
+    /JET-500: widen the job state enum/.test(note));
+  ok('it says a machine wrote it', /Written automatically/.test(note));
+  // The one thing it must never do is supply a reason it does not have.
+  ok('and says plainly that the reason is not in it', /is not recorded here/.test(note), note.slice(-250));
+
+  // A day of going back and forth is one story, not six notes.
+  add('beta', 'edit', me, 'src/later.js');
+  const again = C.capture({ since });
+  note = read();
+  ok('a second sitting the same day updates that note rather than adding another',
+    again === slug && noteFile().length === 1 && /later\.js/.test(note), noteFile().join(','));
+  ok('and the earlier files are still in it', /src\/only\.js/.test(note) && /shared\.js/.test(note), note);
+
+  // The valuable half of the note is the sentence a person adds. Losing it on the next
+  // automatic run would teach everyone not to bother writing one.
+  fs.writeFileSync(path.join(CO, 'context', slug + '.md'),
+    read().trimEnd() + '\n\nThe enum had to widen on both sides in one go or the UI crashes on an unknown state.\n');
+  add('alpha', 'edit', me, 'src/third.js');
+  C.capture({ since });
+  note = read();
+  ok('a sentence a person wrote survives the next automatic run',
+    /the UI crashes on an unknown state/.test(note), note.slice(-300));
+  ok('and it is still one note, now with the new file too',
+    noteFile().length === 1 && /third\.js/.test(note));
+
+  // The activity log is shared, so somebody else's afternoon is in it too.
+  {
+    add('alpha', 'edit', 'Someone Else', 'theirs.js');
+    add('alpha', 'cross-repo', 'Someone Else', 'alpha + beta — theirs.js');
+    C.capture({ since });
+    ok('somebody else\'s work in the shared log is not written up as yours',
+      !/theirs\.js/.test(read()), read().slice(0, 400));
+  }
+
+  // And the wiring: a real session end produces one, through the hook, silently.
+  fs.rmSync(path.join(CO, 'context', slug + '.md'));
+  const r = cp.spawnSync(process.execPath, [HOOK, 'session-stop'], {
+    input: JSON.stringify({ cwd: path.join(TMP, 'alpha'), session_id: 'cap1' }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('session end writes it without printing anything at the session', r.status === 0 && !r.stdout, r.stdout + r.stderr);
+
+  // Leave the fixture as this section found it: the context store is asserted on later.
+  for (const n of noteFile()) fs.rmSync(path.join(CO, 'context', n));
+}
+
 function guard() {
   const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
   const ask = (cwd, tool, input) => {
@@ -537,6 +643,10 @@ function team() {
   // about not making a person read a workflow has to be in it too.
   ok('and tells the agent not to narrate internal states at people',
     /Never show them an internal state name/.test(cpDoc) && /waiting \/ go \/ done/.test(cpDoc));
+  // The note is written from the activity log, which cannot know why. The agent can, and
+  // this is the only place a Copilot session is told to write it down.
+  ok('and tells it to fill in the why on a note that was written for it',
+    /together-<repos>-<date>/.test(cpDoc) && /You know why/.test(cpDoc), cpDoc.slice(-700));
 
   // commit-msg: warn by default, reject under --strict
   const msg = path.join(TMP, 'msg.txt');

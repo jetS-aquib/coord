@@ -56,7 +56,8 @@ function main() {
   L.logActivity(repo, EVENT);
 
   if (EVENT === 'session-stop') {
-    autoHandoff(L, repo);                                 // before the snapshot, so it travels with it
+    autoHandoff(L, repo);                                 // before the snapshot, so they travel with it
+    captureWork(L, repo);
     L.snapshot(`coord: session end (${repo})`);          // guarded: commits inside .coord only
     sync(L);                                              // share the board with the rest of the team
   }
@@ -231,6 +232,18 @@ function lastSessionStart(L, repo) {
   let ts = '';
   for (const a of L.recentActivity(2)) if (a.repo === repo && a.event === 'session-start' && a.ts > ts) ts = a.ts;
   return ts || '';
+}
+
+// If this sitting touched more than one repo, write down that it did. Nobody ever
+// records that, and it is the first thing missing months later when someone asks why
+// both ends changed on the same afternoon. Silent, never blocking, and the note says
+// outright that it was written by a machine and that the reason is not in it.
+function captureWork(L, repo) {
+  try {
+    const slug = require(path.join(__dirname, '..', 'bin', 'capture.js'))
+      .capture({ since: lastSessionStart(L, repo) });
+    if (slug) L.logActivity(repo, 'context', slug);
+  } catch (e) { logError(e); }
 }
 
 // This edit landed in a different repo than the session is in, which means the guard

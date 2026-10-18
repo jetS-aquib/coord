@@ -126,6 +126,18 @@ which someone approves with `coord ok`.
 
 That's the whole of it. There's no request to file for work inside your own repo, ever.
 
+### And then it writes it down
+
+When you stop, if that sitting touched two repos, coord leaves a note in `context/` —
+which repos, which files, which commits. You didn't ask for it and you can delete it.
+
+It knows *what* changed and not *why*, and it says so. Your agent is told to add the why
+before it finishes, because it's the one that knows. One sentence:
+
+> The enum had to widen on both sides in one go or the UI crashes on an unknown state.
+
+Months later that sentence is the only thing anyone needed. `coord ctx` finds it.
+
 ---
 
 ## Terminal, or just say it to your agent?
