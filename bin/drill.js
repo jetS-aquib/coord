@@ -38,6 +38,7 @@ function run() {
     hooks(id);
     guard();
     copilot();
+    quiet();
     team();
     onboarding();
     archiving(id);
@@ -113,11 +114,11 @@ function lifecycle() {
   const n = coord(['note', id, 'does this need pagination?']);
   ok('coord note adds to the thread without moving the ticket',
     n.ok && /does this need pagination\?/.test(readT(id)) && /^status: open$/m.test(readT(id)), n.out);
-  ok('and says the ticket has not moved', /still open/.test(n.out), n.out);
+  ok('and says nothing moved', /Nothing moved/.test(n.out) && /still waiting/.test(n.out), n.out);
   ok('a note with nothing in it is refused', !coord(['note', id]).ok);
 
   // A ticket filed without them should say so rather than look complete.
-  const bare = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Bare ticket'], { cwd: path.join(TMP, 'alpha') });
+  const bare = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Bare one'], { cwd: path.join(TMP, 'alpha') });
   const bid = (bare.out.match(/JET-\d+/) || [])[0];
   ok('a ticket with no Understanding or Plan warns before approval',
     /does not say what it understood/.test(coord(['show', bid]).out), coord(['show', bid]).out);
@@ -262,14 +263,22 @@ function copilot() {
   const denied = r => {
     try { return JSON.parse(r.stdout).permissionDecision === 'deny'; } catch { return false; }
   };
+  const asked = r => { try { return JSON.parse(r.stdout).permissionDecision === 'ask'; } catch { return false; } };
+
   let r = askCp(A, 'createFile', { path: path.join(B, 'src.js') });
-  ok('copilot dialect: a cross-repo write is denied', denied(r), r.stdout.slice(0, 120) + ' exit ' + r.status);
-  ok('copilot dialect: and it exits 2, which denies even if stdout is ignored', r.status === 2, 'exit ' + r.status);
-  ok('copilot dialect: the reason reaches the agent on stderr too', /do not edit each other/.test(r.stderr), r.stderr.slice(0, 80));
+  ok('copilot dialect: a cross-repo write is put to the person', asked(r), r.stdout.slice(0, 120) + ' exit ' + r.status);
+  // An "ask" that exited 2 would be a refusal, which is the opposite of asking.
+  ok('copilot dialect: and asking does NOT exit 2', r.status === 0, 'exit ' + r.status);
+
+  // A refusal is a different thing and still uses the strongest signal the harness has.
+  r = askCp(A, 'createFile', { path: path.join(CO, 'repos.json') });
+  ok('copilot dialect: what the CLI owns is still refused', denied(r), r.stdout.slice(0, 120));
+  ok('copilot dialect: a refusal exits 2, which denies even if stdout is ignored', r.status === 2, 'exit ' + r.status);
+  ok('copilot dialect: the reason reaches the agent on stderr too', /written only by the CLI/.test(r.stderr), r.stderr.slice(0, 80));
 
   // One answer, both dialects, so neither harness has to be detected correctly to be obeyed.
   const both = JSON.parse(r.stdout);
-  ok('one deny carries both dialects at once',
+  ok('one answer carries both dialects at once',
     both.permissionDecision === 'deny' && both.hookSpecificOutput.permissionDecision === 'deny'
     && both.hookSpecificOutput.hookEventName === 'PreToolUse');
 
@@ -284,11 +293,11 @@ function copilot() {
   r = askCp(A, 'runInTerminal', { command: `cat ${path.join(B, 'src.js')}` });
   ok('copilot dialect: a shell read of another repo is allowed', r.status === 0 && !r.stdout.trim(), r.stdout.slice(0, 80));
   r = askCp(A, 'runInTerminal', { command: `echo x > ${path.join(B, 'n.md')}` });
-  ok('copilot dialect: a shell write into another repo is denied', denied(r), r.stdout.slice(0, 80));
+  ok('copilot dialect: a shell write into another repo is put to the person', asked(r), r.stdout.slice(0, 80));
   r = askCp(A, 'editFile', { filePath: path.join(A, 'src.js') });
   ok('copilot dialect: your own repo is yours', r.status === 0 && !r.stdout.trim(), r.stdout.slice(0, 80));
   r = askCp(A, 'applyPatch', { targetFile: path.join(B, 'src.js') });
-  ok('copilot dialect: every spelling of the file argument is seen', denied(r), r.stdout.slice(0, 80));
+  ok('copilot dialect: every spelling of the file argument is seen', asked(r), r.stdout.slice(0, 80));
 
   // The briefing has to arrive in a Copilot session too, or a Copilot dev is back to
   // typing "coord" by hand, which was the whole point of this.
@@ -330,6 +339,67 @@ function copilot() {
     fs.readdirSync(path.dirname(cfgFile)).some(n => n.includes('.bak.')), fs.readdirSync(path.dirname(cfgFile)).join(','));
 }
 
+// Batch 2: the lifecycle still runs, but a dev should never have to see it. These are
+// the assertions that keep it that way — the moment an internal state name or the word
+// "ticket" reaches a person, someone has been given a process to learn.
+function quiet() {
+  const L = require('./lib.js');
+  const INTERNAL = /\bin_progress\b|\bapproved\b|\brejected\b/;
+
+  ok('every internal state has a plain word', L.TICKET_STATUS.every(st => L.plain(st) && !INTERNAL.test(L.plain(st))),
+    L.TICKET_STATUS.map(st => st + '->' + L.plain(st)).join(' '));
+  ok('and there are only three of them, plus dropped',
+    new Set(L.TICKET_STATUS.map(st => L.plain(st))).size === 4, [...new Set(L.TICKET_STATUS.map(st => L.plain(st)))].join(' '));
+
+  for (const args of [['list'], ['show', 'JET-001'], []]) {
+    const out = coord(args, { human: true }).out;
+    ok(`"coord ${args.join(' ') || '(bare)'}" shows no internal state name`, !INTERNAL.test(out), out.slice(0, 200));
+    ok(`"coord ${args.join(' ') || '(bare)'}" does not say "ticket"`, !/\bticket\b/i.test(out), out.slice(0, 200));
+  }
+
+  const help = coord(['help']).out, all = coord(['help', '--all']).out;
+  ok('the default help does not list the commands an agent runs',
+    !/approve <id>/.test(help) && !/coord start/.test(help) && !/review <id>/.test(help), help.slice(0, 300));
+  ok('help --all does', /approve <id>/.test(all) && /review <id>/.test(all));
+  ok('and the hidden commands still work', coord(['approve', 'JET-001'], { human: true }).out !== undefined);
+
+  /* --- ask once, then stay out of the way --- */
+  const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
+  const tryWrite = (session, file) => {
+    const r = cp.spawnSync(process.execPath, [GUARD], {
+      input: JSON.stringify({ cwd: A, session_id: session, tool_name: 'Write', tool_input: { file_path: file } }),
+      encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+    });
+    if (!r.stdout.trim()) return 'allow';
+    try { return JSON.parse(r.stdout).permissionDecision; } catch { return 'unparseable: ' + r.stdout.slice(0, 60); }
+  };
+  const land = (session, file) => cp.spawnSync(process.execPath, [HOOK, 'edit'], {
+    input: JSON.stringify({ cwd: A, session_id: session, tool_input: { file_path: file } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  const other = path.join(B, 'shared.js');
+
+  ok('the first cross-repo write is a question, not a refusal', tryWrite('s1', other) === 'ask', tryWrite('s1', other));
+  land('s1', other);                                   // the person said yes, so the write happened
+  ok('after a yes, the rest of that session passes without asking', tryWrite('s1', other) === 'allow', tryWrite('s1', other));
+  ok('and a different file in the same pair passes too', tryWrite('s1', path.join(B, 'other.js')) === 'allow');
+  ok('a different session is asked again — a licence is one sitting, not a policy', tryWrite('s2', other) === 'ask');
+
+  // The things the CLI owns are not judgement calls and are still refused outright.
+  ok('repos.json is still refused, not put to a vote', tryWrite('s1', path.join(CO, 'repos.json')) === 'deny');
+  ok('a decision record is still refused', tryWrite('s1', path.join(CO, 'decisions', 'D-001-x.md')) === 'deny');
+
+  // A licence is about this machine and this sitting. If one ever reached the shared
+  // board, everyone else would silently inherit permission somebody gave on their own
+  // laptop — which is the opposite of what the guard is for.
+  const shared = ['state.json', 'repos.json', 'people.json', 'notify.json']
+    .map(n => L.read(path.join(CO, n))).join('');
+  ok('a licence never reaches the shared board', !/licence/i.test(shared));
+  ok('it lives in local.json, which is not tracked',
+    /licences/.test(fs.readFileSync(path.join(CO, 'local.json'), 'utf8')) &&
+    git(['ls-files', 'local.json'], CO).stdout.trim() === '');
+}
+
 function guard() {
   const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
   const ask = (cwd, tool, input) => {
@@ -337,9 +407,9 @@ function guard() {
       input: JSON.stringify({ cwd, tool_name: tool, tool_input: input }), encoding: 'utf8',
       env: { ...process.env, COORD_ROOT: CO },
     });
-    if (r.status !== 0) return { error: `exit ${r.status}` };
+    if (r.status !== 0 && r.status !== 2) return { error: `exit ${r.status}` };
     if (!r.stdout.trim()) return { decision: 'allow' };
-    try { return { decision: JSON.parse(r.stdout).hookSpecificOutput.permissionDecision, reason: JSON.parse(r.stdout).hookSpecificOutput.permissionDecisionReason }; }
+    try { const j = JSON.parse(r.stdout); return { decision: j.hookSpecificOutput.permissionDecision, reason: j.hookSpecificOutput.permissionDecisionReason }; }
     catch { return { error: `unparseable: ${r.stdout.slice(0, 80)}` }; }
   };
   const denies = (label, cwd, tool, input, want) => {
@@ -350,13 +420,23 @@ function guard() {
     const r = ask(cwd, tool, input);
     ok(label, r.decision === 'allow', JSON.stringify(r));
   };
+  // A write into another repo is a question put to the person, not a refusal: one
+  // change across both ends is the commonest shape of work here, and making someone
+  // file a request and then approve it to themselves is theatre. What the CLI owns is
+  // different — that is not a judgement call, and is still refused outright.
+  const asks = (label, cwd, tool, input, want) => {
+    const r = ask(cwd, tool, input);
+    ok(label, r.decision === 'ask' && (!want || new RegExp(want).test(r.reason || '')), JSON.stringify(r));
+  };
 
-  denies('guard blocks Edit into another repo', A, 'Edit', { file_path: path.join(B, 'src.js') }, 'do not edit each other');
+  asks('guard stops an Edit into another repo to ask', A, 'Edit', { file_path: path.join(B, 'src.js') }, 'If you asked for this');
+  ok('and the question says how to turn it into a request instead',
+    /coord new --from alpha --to beta/.test(ask(A, 'Edit', { file_path: path.join(B, 'src.js') }).reason || ''));
   allows('guard allows Edit in your own repo', A, 'Edit', { file_path: path.join(A, 'src.js') });
-  denies('guard blocks sed -i into another repo', A, 'Bash', { command: `sed -i "" s/a/b/ ${path.join(B, 'src.js')}` });
-  denies('guard blocks redirection into another repo', A, 'Bash', { command: `echo x > ${path.join(B, 'n.md')}` });
-  denies('guard blocks cp into another repo', A, 'Bash', { command: `cp a.js ${path.join(B, 'a.js')}` });
-  denies('guard blocks git -C commit in another repo', A, 'Bash', { command: `git -C ${B} commit -m x` });
+  asks('guard stops sed -i into another repo', A, 'Bash', { command: `sed -i "" s/a/b/ ${path.join(B, 'src.js')}` });
+  asks('guard stops redirection into another repo', A, 'Bash', { command: `echo x > ${path.join(B, 'n.md')}` });
+  asks('guard stops cp into another repo', A, 'Bash', { command: `cp a.js ${path.join(B, 'a.js')}` });
+  asks('guard stops git -C commit in another repo', A, 'Bash', { command: `git -C ${B} commit -m x` });
   allows('guard allows reading another repo', A, 'Bash', { command: `cat ${path.join(B, 'src.js')}` });
   allows('guard allows grep across another repo', A, 'Bash', { command: `grep -rn foo ${B}` });
   allows('guard allows writing in your own repo via shell', A, 'Bash', { command: `echo x > ${path.join(A, 'n.md')}` });
@@ -452,7 +532,11 @@ function team() {
   ok('the tracked instruction file carries no machine path',
     !cpDoc.includes(TMP) && !cpDoc.includes('/Users/') && !/\.\.\/\.coord/.test(cpDoc), cpDoc.slice(0, 120));
   ok('it names the rules a Copilot session needs',
-    /Never edit files in another repo/.test(cpDoc) && /coord new --from alpha/.test(cpDoc) && /no-ticket:/.test(cpDoc));
+    /stops and asks them/.test(cpDoc) && /coord new --from alpha/.test(cpDoc) && /no-ticket:/.test(cpDoc), cpDoc.slice(0, 200));
+  // The tracked file is what a Copilot session reads instead of CLAUDE.md, so the rule
+  // about not making a person read a workflow has to be in it too.
+  ok('and tells the agent not to narrate internal states at people',
+    /Never show them an internal state name/.test(cpDoc) && /waiting \/ go \/ done/.test(cpDoc));
 
   // commit-msg: warn by default, reject under --strict
   const msg = path.join(TMP, 'msg.txt');
@@ -620,21 +704,19 @@ function dashboardViews(me) {
     const me2 = get('/me');
     ok('/me resolves to the local git identity', /JETKREATE/.test(me2), me2.slice(0, 120));
 
-    ok('the team view renders the board as columns',
-      /class="kanban"/.test(team) && /Open<\/|>Open\s/.test(team) && /In progress/.test(team) && /Review/.test(team), team.slice(0, 200));
-    ok('closed work has its own column', /khead done">Closed/.test(team));
+    ok('the team view groups work by who it is waiting on',
+      /class="kanban"/.test(team) && /Waiting on a person/.test(team) && /Being worked on/.test(team), team.slice(0, 200));
+    ok('and shows what was closed recently', /Recently closed/.test(team));
+    // The five-column kanban with WIP limits and card aging measured a process nobody
+    // follows. If any of that language comes back, somebody has rebuilt a worse Linear.
+    ok('and invents no process of its own',
+      !/WIP/.test(team) && !/sitting too long/.test(team) && !/In progress</.test(team), team.slice(0, 200));
 
-    // aging only applies to live columns, so make a fresh ticket and backdate its thread
-    const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'Aging card for the board']);
+    const made = coord(['new', '--from', 'alpha', '--to', 'beta', '--title', 'One more for the board']);
     const newId = (made.out.match(/JET-\d+/) || [])[0];
-    const live = newId && fs.readdirSync(path.join(CO, 'tickets')).find(f => f.startsWith(newId + '-'));
-    if (live) {
-      const f = path.join(CO, 'tickets', live);
-      const old9 = new Date(Date.now() - 9 * 864e5).toISOString().replace('Z', '+00:00');
-      fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/^\S+( .*?status: \S+ -> \S+)/gm, `${old9}$1`));
-      const aged = get('/');
-      ok('a card that has sat too long is flagged', /class="card aging"/.test(aged) && /sitting too long/.test(aged), aged.slice(0, 200));
-    }
+    const withOne = get('/');
+    ok('a new request shows up as waiting on a person',
+      newId && withOne.includes(newId) && /· 1 waiting on someone|waiting on someone/.test(withOne), withOne.slice(0, 200));
   } finally { srv.kill(); }
 }
 
@@ -694,7 +776,7 @@ function noTyping() {
   ok('coord why falls back to what was open at the time',
     w.ok && /a guess from timing/.test(w.out) && /this repo asked for it|work for this repo/.test(w.out), w.out);
 
-  ok('coord on reports what the repo is tagged with', /no current ticket|is on JET-/.test(coord(['on'], { cwd: B }).out));
+  ok('coord on reports what the repo is tagged with', /is not on anything|is on JET-/.test(coord(['on'], { cwd: B }).out), coord(['on'], { cwd: B }).out);
   coord(['on', id], { cwd: B });
   ok('coord on sets it by hand when you want to', fs.existsSync(path.join(B, '.git', 'coord-ticket')));
   coord(['on', '--clear'], { cwd: B });
@@ -707,7 +789,7 @@ function noTyping() {
   ok('a new ticket never reuses an id the code already cites',
     !!afterId && Number(afterId.split('-')[1]) > 900, after.out);
   ok('coord show finds an id that only exists in code',
-    /no ticket file/.test(coord(['show', 'JET-900']).out) && /legacy\.ts/.test(coord(['show', 'JET-900']).out),
+    /no request on the board/.test(coord(['show', 'JET-900']).out) && /legacy\.ts/.test(coord(['show', 'JET-900']).out),
     coord(['show', 'JET-900']).out.slice(0, 200));
   fs.rmSync(path.join(B, 'legacy.ts'));
 
@@ -1244,33 +1326,33 @@ function scattered() {
   }).stdout;
   const betaFile = path.join(TMP, 'beta', 'jobs.js');
   ok('the guard still fires from a scattered repo into a normal one',
-    /permissionDecision":"deny/.test(guardCall(away, betaFile)), guardCall(away, betaFile));
+    /permissionDecision":"ask/.test(guardCall(away, betaFile)), guardCall(away, betaFile));
   ok('and from a normal repo into the scattered one',
-    /permissionDecision":"deny/.test(guardCall(path.join(TMP, 'beta'), path.join(away, 'index.js'))));
+    /permissionDecision":"ask/.test(guardCall(path.join(TMP, 'beta'), path.join(away, 'index.js'))));
   ok('its own files are still its own', guardCall(away, path.join(away, 'index.js')) === '');
 
   // Everyone owns every repo, so a sanctioned cross-repo change must not need a second
   // terminal — but only a ticket somebody approved counts as sanction.
   const betaDir = path.join(TMP, 'beta'), deltaFile = path.join(away, 'index.js');
-  ok('an unsanctioned cross-repo write is still refused',
-    /permissionDecision":"deny/.test(guardCall(betaDir, deltaFile)));
+  ok('an unsanctioned cross-repo write still stops to ask',
+    /permissionDecision":"ask/.test(guardCall(betaDir, deltaFile)));
   const span = coord(['new', '--from', 'beta', '--to', 'delta', '--title', 'Spanning change',
     '--request', 'r', '--reason', 'r'], { cwd: betaDir });
   const sid = (span.out.match(/JET-\d+/) || [])[0];
-  ok('an approved-but-not-started ticket is not yet a licence', (() => {
+  ok('an approved-but-not-started request is not yet a licence', (() => {
     coord(['approve', sid], { human: true });
-    return /permissionDecision":"deny/.test(guardCall(betaDir, deltaFile));
+    return /permissionDecision":"ask/.test(guardCall(betaDir, deltaFile));
   })(), sid + ' ' + span.out);
   ok('an in-progress ticket licenses the write, both ways', (() => {
     coord(['start', sid], { cwd: betaDir });
     return guardCall(betaDir, deltaFile) === '' && guardCall(away, path.join(TMP, 'beta', 'jobs.js')) === '';
   })(), guardCall(betaDir, deltaFile));
-  ok('closing the ticket closes the licence', (() => {
+  ok('closing the request closes the licence', (() => {
     coord(['reject', sid, 'done with the span'], { human: true });
-    return /permissionDecision":"deny/.test(guardCall(betaDir, deltaFile));
+    return /permissionDecision":"ask/.test(guardCall(betaDir, deltaFile));
   })(), guardCall(betaDir, deltaFile));
   ok('the licence does not open up a third repo',
-    /permissionDecision":"deny/.test(guardCall(path.join(TMP, 'alpha'), deltaFile)));
+    /permissionDecision":"ask/.test(guardCall(path.join(TMP, 'alpha'), deltaFile)));
   ok('a repo nobody registered is left alone', (() => {
     const outside = path.join(TMP, 'elsewhere', 'notours');
     fs.mkdirSync(outside, { recursive: true });

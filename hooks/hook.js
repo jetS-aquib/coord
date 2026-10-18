@@ -48,7 +48,7 @@ function main() {
     const name = !rel || rel.startsWith('..') ? path.basename(f) : rel;
     const others = repo === 'platform-root' ? [] : L.othersOn(repo, name);
     L.logActivity(repo, 'edit', name);
-    if (repo !== 'platform-root') { autoStart(L, repo); heartbeat(L); }
+    if (repo !== 'platform-root') { crossRepo(L, repo, f, data.session); autoStart(L, repo); heartbeat(L); }
     if (others.length && firstTimeToday(L, repo, name)) warnOverlap(name, others);
     return;
   }
@@ -96,7 +96,7 @@ function brief(L, repo, onboarded) {
   }
 
   const tickets = L.lsMd(L.P.tickets).map(f => L.parse(L.read(path.join(L.P.tickets, f))).fm);
-  const fmt = t => `  ${t.id} [${t.status}] ${t.from} -> ${t.to}: ${t.title}`;
+  const fmt = t => `  ${t.id} [${L.plain(t.status)}] ${t.from} -> ${t.to}: ${t.title}`;
   // Long lists cost context every session and are never read past the first few.
   const some = (ts, head) => ts.length <= 6 ? `${head}:\n${ts.map(fmt).join('\n')}`
     : `${head} (${ts.length}, newest 5 — the rest: coord list):\n${ts.slice(-5).map(fmt).join('\n')}`;
@@ -110,7 +110,7 @@ function brief(L, repo, onboarded) {
     for (const s of busy) lines.push(`  ${s.repo}: ${s.status}${s.task && s.task !== '—' ? ` — ${s.task}` : ''}`);
     if (!busy.length) lines.push(`All of them are idle.`);
     const act = tickets.filter(t => !['done', 'rejected'].includes(t.status));
-    lines.push(act.length ? some(act, 'Open tickets') : `No open tickets.`);
+    lines.push(act.length ? some(act, 'Open requests') : `No open requests.`);
   } else {
     const e = L.regGet(repo) || {};
     const s = L.readStatus(repo);
@@ -121,8 +121,8 @@ function brief(L, repo, onboarded) {
 
     const inbox = tickets.filter(t => t.to === repo && !['done', 'rejected'].includes(t.status));
     const outbox = tickets.filter(t => t.from === repo && !['done', 'rejected'].includes(t.status));
-    lines.push(inbox.length ? some(inbox, `Tickets addressed to ${repo}`) : `No open tickets are addressed to ${repo}.`);
-    if (outbox.length) lines.push(some(outbox, `Tickets ${repo} is waiting on`));
+    lines.push(inbox.length ? some(inbox, `Requests addressed to ${repo}`) : `No open requests are addressed to ${repo}.`);
+    if (outbox.length) lines.push(some(outbox, `Requests ${repo} is waiting on`));
 
     // The point of a session boundary: a new session, a /clear or a compaction should
     // not lose what the last one was in the middle of.
@@ -231,6 +231,22 @@ function lastSessionStart(L, repo) {
   let ts = '';
   for (const a of L.recentActivity(2)) if (a.repo === repo && a.event === 'session-start' && a.ts > ts) ts = a.ts;
   return ts || '';
+}
+
+// This edit landed in a different repo than the session is in, which means the guard
+// asked and the person said yes. Record it once: the rest of this session between these
+// two repos goes through without asking again, and the feed shows that they moved
+// together — which is the fact nobody ever writes down, and the one that is missing
+// months later when somebody asks why both ends changed on the same afternoon.
+function crossRepo(L, own, file, session) {
+  try {
+    const abs = L.realish(file);
+    const hit = Object.entries(L.repoDirs()).find(([, dir]) => L.within(abs, dir));
+    if (!hit || hit[0] === own) return;
+    if (L.grantLicence(session, own, hit[0])) {
+      L.logActivity(own, 'cross-repo', `${own} + ${hit[0]} — ${path.basename(file)}`);
+    }
+  } catch (e) { logError(e); }
 }
 
 // The board follows the work: if exactly one approved ticket is aimed at this repo and

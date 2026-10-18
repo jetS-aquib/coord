@@ -14,16 +14,24 @@ let IO = null;
 // a crash before that still answers in the dialect that needs no exit code.
 let DIALECT = 'claude';
 
-function deny(reason) {
-  const flat = { permissionDecision: 'deny', permissionDecisionReason: reason };
+// Two different situations, and conflating them is what made this tool feel like
+// process. A write the CLI owns is simply wrong and is refused. A write into another
+// repo might be exactly what the person asked for — one change across both ends is the
+// commonest shape of work here — so it is put to them once, rather than sent round a
+// lifecycle they would be approving to themselves.
+function answer(decision, reason) {
+  const flat = { permissionDecision: decision, permissionDecisionReason: reason };
   try { fs.writeSync(1, JSON.stringify({ ...flat, hookSpecificOutput: { hookEventName: 'PreToolUse', ...flat } })); }
   catch { /* nobody listening */ }
   // Copilot's CLI documents exit 2 as a deny regardless of what stdout said. A guard
   // that fails open enforces nothing, so where we know the harness, use its strongest
-  // signal as well as its JSON.
-  if (DIALECT === 'copilot') { try { fs.writeSync(2, reason); } catch { /* ignore */ } process.exit(2); }
+  // signal as well as its JSON — but only for a real refusal; an "ask" that exits 2
+  // would be a refusal, which is the opposite of asking.
+  if (DIALECT === 'copilot' && decision === 'deny') { try { fs.writeSync(2, reason); } catch { /* ignore */ } process.exit(2); }
   process.exit(0);
 }
+const deny = reason => answer('deny', reason);
+const ask = reason => answer('ask', reason);
 
 function main() {
   IO = require('./io.js');
@@ -42,26 +50,10 @@ function main() {
     : fileTargets(input);
 
   for (const t of targets) {
-    const abs = realish(path.resolve(cwd, t.path));
-    const verdict = judge(L, abs, own, t.why);
-    if (verdict) deny(verdict);
+    const abs = L.realish(path.resolve(cwd, t.path));
+    const v = judge(L, abs, own, t.why, data.session);
+    if (v) answer(v.ask ? 'ask' : 'deny', v.reason);
   }
-}
-
-// A target that does not exist yet (a Write) cannot be realpath'd, so resolve the
-// deepest ancestor that does and re-append the rest. Without this, /var vs /private/var
-// on macOS makes every cross-repo path look like it is outside the platform.
-function realish(p) {
-  let cur = path.resolve(p);
-  const tail = [];
-  for (let i = 0; i < 64; i++) {
-    try { return path.join(fs.realpathSync(cur), ...tail); } catch { /* keep walking up */ }
-    const parent = path.dirname(cur);
-    if (parent === cur) return path.resolve(p);
-    tail.unshift(path.basename(cur));
-    cur = parent;
-  }
-  return path.resolve(p);
 }
 
 /* ---------- what the tool is about to write ---------- */
@@ -109,9 +101,10 @@ function bashTargets(cmd) {
 }
 
 /* ---------- the rules ---------- */
-function judge(L, abs, own, why) {
+function judge(L, abs, own, why, session) {
   if (L.within(abs, L.P.coord)) {
-    return judgeCoord(L, path.relative(L.P.coord, abs).split(path.sep), own, why);
+    const r = judgeCoord(L, path.relative(L.P.coord, abs).split(path.sep), own, why);
+    return r ? { reason: r, ask: false } : null;              // the CLI owns these; no judgement call
   }
   // Which repo owns this path — by where each one actually sits on this machine, not by
   // assuming they are all folders under one root.
@@ -123,14 +116,19 @@ function judge(L, abs, own, why) {
   // normal work, not a violation. What the guard is for is the UNSANCTIONED version —
   // an agent wandering next door on its own. An in-progress ticket between these two
   // repos is a person having already said yes, in writing, with an id on it.
-  const lic = licence(L, own, seg[0]);
-  if (lic) return null;
+  if (licence(L, own, seg[0])) return null;                   // a request already covers it
+  if (own && L.hasLicence(session, own, seg[0])) return null;  // you already said yes this session
 
-  const where = own ? `You are in ${own}` : 'This session is at the platform root';
-  return `${where}, and ${why} writes into ${seg[0]}/. Repos do not edit each other unless a ticket says so. ` +
-    `Either work in ${seg[0]} from its own session, or open the change properly:  ` +
-    `.coord/bin/coord new --from ${own || '<your repo>'} --to ${seg[0]} --title "..."  ` +
-    `— once someone approves it and it is in progress, this write is allowed from here. Reading ${seg[0]}/ is always fine.`;
+  const other = seg[0], mine = own || '<your repo>';
+  return {
+    ask: true,
+    reason: `${own ? `You are in ${own}` : 'This session is at the platform root'}, and ${why} writes into ${other}/.\n\n` +
+      `If you asked for this — one change across both ends — say yes. coord records that ${mine} and ${other} ` +
+      `moved together and stays out of the way for the rest of this session.\n\n` +
+      `If this was the agent's idea and not yours, say no. Then it should be a request with an id on it:\n` +
+      `  coord new --from ${mine} --to ${other} --title "..." --understanding "..." --plan "..."\n\n` +
+      `Reading ${other}/ is always fine.`,
+  };
 }
 
 // An in_progress ticket linking the two repos, either direction. Cheap enough to run

@@ -94,7 +94,7 @@ aren't installed: `coord devsetup --hooks`.
 
 ## 5. Work
 
-That's it. Commits get tagged, tickets move themselves along, the board syncs, your
+That's it. Commits get tagged, requests move themselves along, the board syncs, your
 handoff note writes itself when the session ends.
 
 The only two commands in normal use:
@@ -104,7 +104,27 @@ coord ok              # yes — approves what's open, closes what you've checked
 coord no "<why>"      # no
 ```
 
-Neither needs a ticket ID when only one thing is waiting on you.
+Neither needs an id when only one thing is waiting on you.
+
+## Touching two repos at once
+
+The one time coord interrupts you. Your agent goes to edit a file in a different repo
+than the one you're in, and you get asked:
+
+```
+  You are in api, and this edit writes into web/.
+
+  If you asked for this — one change across both ends — say yes.
+  If this was the agent's idea and not yours, say no.
+```
+
+Say yes and it's recorded that the two repos moved together, and you're not asked again
+for that pair for the rest of the session. Say no and your agent files a request instead,
+which someone approves with `coord ok`.
+
+**Reading another repo is never interrupted.** Only writing.
+
+That's the whole of it. There's no request to file for work inside your own repo, ever.
 
 ---
 
@@ -118,7 +138,7 @@ Your agent can run shell commands, so almost everything works either way. One ru
 | **type it** | `coord ok` · `coord no "<why>"` — a decision has to come from a person, and the CLI refuses an agent that tries |
 | **say it** | everything else, in plain English. "what's JET-197 about?", "why is this line like this?", "the API needs to return job state", "leave a handoff note" |
 
-Ask your agent to approve a ticket and it will tell you to do it yourself. That refusal is
+Ask your agent to approve something and it will tell you to do it yourself. That refusal is
 the point: a gate an agent can walk through is not a gate.
 
 **Nothing runs in the background.** No server, no daemon, no account — every command

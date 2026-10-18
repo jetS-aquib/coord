@@ -7,6 +7,23 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 // path — comparing unresolved paths silently breaks repo detection and the .coord git guard.
 const real = p => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
 
+// A file that does not exist yet cannot be realpath'd, and the fallback leaves the path
+// unresolved — so on macOS a brand-new file under /var compares against a repo recorded
+// under /private/var and looks like it is somewhere else entirely. Resolve the deepest
+// ancestor that does exist and re-append the rest.
+function realish(p) {
+  let cur = path.resolve(p);
+  const tail = [];
+  for (let i = 0; i < 64; i++) {
+    try { return path.join(fs.realpathSync(cur), ...tail); } catch { /* keep walking up */ }
+    const parent = path.dirname(cur);
+    if (parent === cur) return path.resolve(p);
+    tail.unshift(path.basename(cur));
+    cur = parent;
+  }
+  return path.resolve(p);
+}
+
 const isWindows = process.platform === 'win32';
 
 const COORD = real(process.env.COORD_ROOT || path.join(__dirname, '..'));
@@ -59,6 +76,16 @@ const TICKET_PREFIX = 'JET';
 const TICKET_RE = new RegExp(`${TICKET_PREFIX}-\\d+`, 'g');
 
 const TICKET_STATUS = ['open', 'approved', 'in_progress', 'review', 'done', 'rejected'];
+
+// The lifecycle is real and the CLI still enforces every step of it. What a person reads
+// is never more than three words. Nobody should have to learn a workflow to answer a
+// question, and "in_progress" tells a dev nothing they cannot see in the diff.
+const PLAIN = {
+  open: 'waiting', review: 'waiting',              // waiting on a person
+  approved: 'go', in_progress: 'go',               // nothing is waiting; it is being done
+  done: 'done', rejected: 'dropped',
+};
+const plain = s => PLAIN[s] || s;
 const REPO_STATUS = ['working', 'blocked', 'waiting on human', 'idle'];
 // who may drive each transition; `human` is enforced by requireHuman()
 const TRANSITIONS = {
@@ -360,6 +387,28 @@ const setLocal = patch => atomicWrite(P.local, JSON.stringify({ ...localState(),
 // notify.json is SHARED and committed: "the board has already nudged about JET-003" is
 // true for everyone. It cannot live on a machine, because the thing that sends runs in
 // CI on a fresh checkout every time and would otherwise nudge daily forever.
+// Most cross-repo work here is one person changing both ends in one sitting. Making
+// them file a request and then approve their own request is theatre, so the guard asks
+// once instead, and a yes licenses that pair of repos for the rest of the session.
+// Local to this machine and short-lived on purpose: this is about one sitting, not a
+// policy, and it must never travel to anyone else's board.
+const LICENCE_HOURS = 12;
+function licences() {
+  const all = localState().licences || {};
+  const live = {}, cut = Date.now() - LICENCE_HOURS * 3600000;
+  for (const [k, v] of Object.entries(all)) if (new Date(v).getTime() > cut) live[k] = v;
+  return live;
+}
+const licenceKey = (sid, a, b) => `${sid || 'no-session'}:${[a, b].sort().join('+')}`;
+const hasLicence = (sid, a, b) => !!licences()[licenceKey(sid, a, b)];
+function grantLicence(sid, a, b) {
+  const live = licences();
+  if (live[licenceKey(sid, a, b)]) return false;              // already said yes this session
+  live[licenceKey(sid, a, b)] = nowISO();
+  setLocal({ licences: live });
+  return true;
+}
+
 const notifyState = () => { try { return JSON.parse(read(P.notify, '{}')); } catch { return {}; } };
 const setNotify = patch => atomicWrite(P.notify, JSON.stringify({ ...notifyState(), ...patch }, null, 2) + '\n');
 
@@ -577,4 +626,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, real, TOOLS, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

@@ -24,6 +24,7 @@ function input() {
     raw,
     dialect,
     cwd: pick(raw, 'cwd') || process.cwd(),
+    session: pick(raw, 'session_id', 'sessionId') || '',
     tool: pick(raw, 'tool_name', 'toolName') || '',
     input: pick(raw, 'tool_input', 'toolArgs') || {},
   };

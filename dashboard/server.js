@@ -71,8 +71,8 @@ table.feed td:nth-child(2),table.feed td:nth-child(3){white-space:nowrap;padding
 .s-working{color:var(--accent)}.s-blocked{color:var(--critical)}.s-waiting{color:var(--warning)}.s-idle{color:var(--muted)}
 .tag{font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;padding:.05rem .3rem;border-radius:3px;
   background:var(--critical);color:#fff;margin-left:.35rem}
-.kanban{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.55rem;align-items:start}
-@media (max-width:900px){.kanban{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kanban{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem;align-items:start}
+@media (max-width:900px){.kanban{grid-template-columns:1fr}}
 .kcol{min-width:0}
 .khead{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
   padding:.25rem .45rem;border-bottom:1px solid var(--line);margin-bottom:.4rem;display:flex;gap:.4rem}
@@ -80,10 +80,8 @@ table.feed td:nth-child(2),table.feed td:nth-child(3){white-space:nowrap;padding
 .khead.over{color:var(--critical);border-bottom-color:var(--critical)}
 .khead.done{color:var(--good)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:.4rem .5rem;margin-bottom:.4rem}
-.card.aging{border-left:2px solid var(--warning)}
 .card .cid{display:flex;font-size:.7rem;color:var(--muted)}
 .card .cage{margin-left:auto;font-variant-numeric:tabular-nums}
-.card.aging .cage{color:var(--warning)}
 .card .ct{font-size:.78rem;line-height:1.35;margin:.15rem 0 .2rem;word-break:break-word}
 .feed td{border:0;padding:.15rem .5rem .15rem 0;font-size:.76rem}
 .x{color:var(--muted);font-size:.7rem}
@@ -130,8 +128,8 @@ function machineBanner() {
 
 const tickets = () => ticketsFull().map(t => t.fm);
 
-// The thread records every "status: a -> b" with a timestamp, so time-in-column is exact
-// rather than guessed from `updated`. That is the whole point of card aging.
+// The thread records every "status: a -> b" with a timestamp, so "waiting since" is
+// exact rather than guessed from `updated`.
 function ticketsFull() {
   return L.lsMd(P.tickets).map(f => {
     const { fm, body } = L.parse(L.read(path.join(P.tickets, f)));
@@ -141,16 +139,6 @@ function ticketsFull() {
     return { fm, enteredAt: lastMove || fm.updated };
   });
 }
-
-// Soft WIP limit, alert not hard stop: with four people a fifth in-progress ticket means
-// someone has two. Aging thresholds differ per column because the norms differ --
-// "open" waits on a human, "in_progress" is real work.
-const COLUMNS = [
-  { key: 'open',        title: 'Open',        ageDays: 1 },
-  { key: 'approved',    title: 'Approved',    ageDays: 2 },
-  { key: 'in_progress', title: 'In progress', ageDays: 5, wip: () => Math.max(2, L.people().length) },
-  { key: 'review',      title: 'Review',      ageDays: 1 },
-];
 
 function board() {
   const beat = L.lastActivityPerRepo();
@@ -182,51 +170,37 @@ function activityFeed(limit = 14, who = null) {
   return rows;
 }
 
-// The board as a board. Columns are the lifecycle; the value over a flat list is seeing
-// where work piles up and how long each card has sat where it is.
-function kanban() {
+// Two questions, so two groups: is anything waiting on a person, and what is being
+// worked on. The five-column kanban with WIP limits and card aging that used to live
+// here measured a process nobody follows — it was a worse Linear, and the one number
+// that matters is how many things are waiting on you.
+function openWork() {
   const all = ticketsFull();
   const live = all.filter(t => !['done', 'rejected'].includes(t.fm.status));
   const closed = all.filter(t => ['done', 'rejected'].includes(t.fm.status))
-    .sort((a, b) => String(b.fm.updated).localeCompare(String(a.fm.updated))).slice(0, 4);
-  if (!all.length) return `<section><h2>Board</h2><p class="none">No tickets yet. <code>coord new --from &lt;repo&gt; --to &lt;repo&gt; --title "..."</code></p></section>`;
+    .sort((a, b) => String(b.fm.updated).localeCompare(String(a.fm.updated))).slice(0, 5);
+  if (!all.length) return `<section><h2>Requests</h2><p class="none">Nothing open. Requests get filed by your agent when a change needs another repo — there is nothing to do here until one does.</p></section>`;
 
-  const days = iso => (Date.now() - new Date(iso).getTime()) / 86400000;
-
-  const card = (t, col) => {
-    const age = days(t.enteredAt);
-    const old = col && age > col.ageDays;
-    return `<article class="card${old ? ' aging' : ''}">
+  const card = t => `<article class="card">
       <div class="cid"><b>${esc(t.fm.id)}</b><span class="cage">${esc(ago(t.enteredAt) || '')}</span></div>
       <div class="ct">${esc(t.fm.title)}</div>
       <div class="dim sm">${esc(t.fm.from)} → ${esc(t.fm.to)}${(t.fm.decisions || []).length ? ' · ' + esc(t.fm.decisions.join(' ')) : ''}</div>
     </article>`;
-  };
 
-  const cols = COLUMNS.map(col => {
-    const items = live.filter(t => t.fm.status === col.key);
-    const limit = col.wip ? col.wip() : null;
-    const over = limit && items.length > limit;
-    return `<div class="kcol">
-      <div class="khead${over ? ' over' : ''}">${esc(col.title)}
-        <span class="kn">${items.length}${limit ? `/${limit}` : ''}</span></div>
-      ${items.map(t => card(t, col)).join('') || '<p class="none sm">—</p>'}
-      ${over ? `<p class="none sm s-blocked">over the WIP limit</p>` : ''}
+  const group = (title, items, hint) => `<div class="kcol">
+      <div class="khead">${esc(title)} <span class="kn">${items.length}</span></div>
+      ${items.map(card).join('') || `<p class="none sm">${esc(hint)}</p>`}
     </div>`;
-  }).join('');
 
-  const closedCol = `<div class="kcol">
-    <div class="khead done">Closed <span class="kn">${closed.length}</span></div>
-    ${closed.map(t => card(t, null)).join('') || '<p class="none sm">—</p>'}
-  </div>`;
+  const waiting = live.filter(t => ['open', 'review'].includes(t.fm.status));
+  const going = live.filter(t => ['approved', 'in_progress'].includes(t.fm.status));
 
-  const aging = live.filter(t => {
-    const col = COLUMNS.find(c => c.key === t.fm.status);
-    return col && days(t.enteredAt) > col.ageDays;
-  });
-
-  return `<section><h2>Board${aging.length ? ` <span class="s-blocked">· ${aging.length} sitting too long</span>` : ''}</h2>
-    <div class="kanban">${cols}${closedCol}</div></section>`;
+  return `<section><h2>Requests${waiting.length ? ` <span class="s-blocked">· ${waiting.length} waiting on someone</span>` : ''}</h2>
+    <div class="kanban">
+      ${group('Waiting on a person', waiting, 'nothing needs an answer')}
+      ${group('Being worked on', going, 'nothing in flight')}
+      ${group('Recently closed', closed, '—')}
+    </div></section>`;
 }
 
 function teamView() {
@@ -282,7 +256,7 @@ function teamView() {
 
 ${errs.length ? `<section><h2>Problems</h2><table>${errs.slice(0, 6).map(p => `<tr><td class="s-blocked">${esc(p.where)}</td><td>${esc(p.msg)}</td></tr>`).join('')}</table></section>` : ''}
 
-${kanban()}
+${openWork()}
 
 <div class="cols">
 <div>

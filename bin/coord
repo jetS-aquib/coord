@@ -74,7 +74,7 @@ function freshen() {
 }
 
 /* ---------- saying yes or no without typing an id ---------- */
-// A bare number is an id. "JET-193", "jet193" and "193" are the same ticket.
+// A bare number is an id. "JET-193", "jet193" and "193" are the same request.
 function fullId(s) {
   const m = /^(?:jet-?)?(\d+)$/i.exec(String(s || '').trim());
   return m ? `${L.TICKET_PREFIX}-${L.pad3(+m[1])}` : String(s || '').toUpperCase();
@@ -110,27 +110,36 @@ function freshness() {
     : `Board is ${s.minutes < 120 ? s.minutes + 'm' : Math.round(s.minutes / 60) + 'h'} old — "coord sync" for the latest.`;
 }
 
-const USAGE = `coord — jetKreate cross-repo coordination
+// Two lists. What a person types is short enough to read; everything an agent calls on
+// their behalf is behind --all. A dev who never opens that list is not missing anything
+// they were supposed to be doing.
+const AGENT_USAGE = `
+  Your agent runs these for you. You can too, but you should not have to.
 
-  coord                          what is waiting on you, and the one word to answer it
-  ok [<id>]                      yes — approves an open ticket, closes one in review
-  no [<id>] <why>                no — rejects it, at any point
-    …both take a bare number (ok 193) and need no id at all when only one thing waits
-
-  list [--status X]              tickets, newest first
-  show <id>                      a ticket or decision in full
   new --from R --to R --title T
       [--request --understanding --plan --reason --files --acceptance --test]
-  note <id> <text>               add to the thread without moving the ticket
-  approve <id> [note]            open -> approved        (human)
-  start <id> [note]              approved -> in_progress (assignee)
-  review <id> [note]             in_progress -> review   (assignee; Test steps required)
-  done <id> [note]               review -> done          (human)
-  reject <id> <reason>           -> rejected             (human)
+  approve <id> [note]            waiting -> go           (a person's call, not an agent's)
+  start <id> [note]              go, and this repo is on it
+  review <id> [note]             hand it back            (Test steps required)
+  done <id> [note]               close it                (a person's call)
+  reject <id> <reason>           drop it                 (a person's call)
   decide --title T --repos a,b --tickets T-001 [--context --options --decision --reason --consequences]
   supersede <old-id> <new-id>
-  why <file>:<line>              which ticket and decisions explain this line
-  search <text>                  tickets, decisions, context notes, archive indexes
+  log-commit                     called by the post-commit hook
+`;
+
+const USAGE = `coord — cross-repo coordination for the jetKreate platform
+
+  coord                          what is waiting on you, and the one word to answer it
+  ok [<id>]                      yes
+  no [<id>] <why>                no, and why
+    …both take a bare number (ok 193) and need no id at all when only one thing waits
+
+  list [--status X]              what is open, and what each one is waiting on
+  show <id>                      one request or decision in full
+  note <id> <text>               ask something on one, without moving it
+  why <file>:<line>              which request and decisions explain this line
+  search <text>                  requests, decisions, context notes, archive indexes
   ctx [<text>]                   platform facts every repo's agent can read
       --add "<title>" --body T   write one down
       --rm <slug>
@@ -147,7 +156,7 @@ const USAGE = `coord — jetKreate cross-repo coordination
          [--stack S --contracts a,b --depends-on c,d]
   offboard <repo> --yes          mark offboarded, archive its status file and tickets
 
-  on [<id>|--clear]              show or set the ticket this repo's commits get tagged with
+  on [<id>|--clear]              show or set what this repo's commits get tagged with
   who [--tool T] [--name N]      the roster: who is on the team, what they use, where they were
       [--remove <name>]          drop someone who has left
   setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
@@ -162,6 +171,8 @@ const USAGE = `coord — jetKreate cross-repo coordination
                                  install this machine's git hooks + editor instructions
                                  (--merge adds our block to instructions somebody else wrote)
            [--claude]            (re)install coord's hooks in ~/.claude/settings.json
+
+  help --all                     the commands your agent uses as well
 `;
 
 const CMDS = {
@@ -170,8 +181,8 @@ const CMDS = {
     const rows = L.lsMd(P.tickets).map(f => L.parse(L.read(path.join(P.tickets, f))).fm)
       .filter(fm => !want || fm.status === want)
       .sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
-    if (!rows.length) return console.log(want ? `no tickets with status ${want}` : 'no open tickets');
-    for (const fm of rows) console.log(`${fm.id}  ${fm.status.padEnd(11)}  ${fm.from} -> ${fm.to}  ${fm.title}`);
+    if (!rows.length) return console.log(want ? `nothing is ${L.plain(want)}` : 'nothing open');
+    for (const fm of rows) console.log(`${fm.id}  ${L.plain(fm.status).padEnd(8)} ${fm.from} -> ${fm.to}  ${fm.title}`);
   },
 
   show() {
@@ -189,7 +200,7 @@ const CMDS = {
     if (new RegExp(`^${L.TICKET_PREFIX}-\\d+$`).test(id)) {
       const refs = L.codeRefs(id);
       if (refs.length) {
-        console.log(`${id}  —  no ticket file; ${refs.length} reference(s) in code\n`);
+        console.log(`${id}  —  no request on the board; ${refs.length} reference(s) in code\n`);
         let repo = null;
         for (const r of refs.slice(0, 25)) {
           if (r.repo !== repo) { console.log(`  ${r.repo}`); repo = r.repo; }
@@ -231,10 +242,10 @@ const CMDS = {
     const id = (rest[0] || '').toUpperCase();
     if (!id) {
       const cur = L.currentTicket(repo);
-      return console.log(cur ? `${repo} is on ${cur} — commits here are tagged "${cur}: ..."` : `${repo} has no current ticket; commits are left as you type them`);
+      return console.log(cur ? `${repo} is on ${cur} — commits here are tagged "${cur}: ..."` : `${repo} is not on anything; commits are left as you type them`);
     }
     const t = L.loadTicket(id);
-    if (!t) die(`no such ticket: ${id}`);
+    if (!t) die(`no such request: ${id}`);
     L.setCurrentTicket(repo, t.fm.id);
     console.log(`${repo} is on ${t.fm.id} — commits here are tagged automatically now`);
   },
@@ -305,20 +316,20 @@ const CMDS = {
 
     const ids = [...new Set([subject, ...bodyLines].join('\n').match(new RegExp(L.TICKET_RE.source, 'g')) || [])];
     if (!ids.length) {
-      if (/^no-ticket:/i.test(subject)) return console.log(`No ticket: the commit says "${subject}".`);
+      if (/^no-ticket:/i.test(subject)) return console.log(`No request behind it: the commit says "${subject}".`);
       // No ID in the message — fall back to what was live for this repo at that moment.
       const at = L.sh('git', ['log', '-1', '--format=%aI', sha], repoDir).out;
       const live = R.ticketsActiveAt(repo, at);
-      if (!live.length) return console.log('No ticket ID in that commit, and nothing was open for this repo at the time.');
-      console.log(`No ticket ID in that commit. Open around ${String(at).slice(0, 10)} — a guess from timing, not a recorded link:\n`);
+      if (!live.length) return console.log('No id in that commit, and nothing was open for this repo at the time.');
+      console.log(`No id in that commit. Open around ${String(at).slice(0, 10)} — a guess from timing, not a recorded link:\n`);
       for (const { fm, state, role } of live) console.log(`  ${fm.id} [${state}] ${fm.title}\n      ${fm.from} -> ${fm.to} · ${role}`);
       console.log(`\nRun "coord show <id>" for the full story.`);
       return;
     }
     for (const id of ids) {
       const t = L.loadTicket(id);
-      if (!t) { console.log(`${id}: referenced by the commit, but no such ticket (active or archived).`); continue; }
-      console.log(`${id} [${t.fm.status}]${t.archived ? ' (archived)' : ''}  ${t.fm.from} -> ${t.fm.to}  ${t.fm.title}`);
+      if (!t) { console.log(`${id}: referenced by the commit, but no such request (active or archived).`); continue; }
+      console.log(`${id} [${L.plain(t.fm.status)}]${t.archived ? ' (archived)' : ''}  ${t.fm.from} -> ${t.fm.to}  ${t.fm.title}`);
       console.log(`  Request: ${(t.sec.Request || '—').trim()}`);
       const thread = (t.sec.Thread || '').trim();
       if (thread) console.log(thread.split('\n').map(l => '  | ' + l).join('\n'));
@@ -362,7 +373,7 @@ const CMDS = {
     if (t.archived) die(`${id} is archived — reopen it by hand if you need to add to it`);
     R.addThread(t.file, L.actor(), text);
     L.snapshot(`coord: note on ${id}`);
-    console.log(`added to ${id}'s thread. It is still ${t.fm.status}.`);
+    console.log(`added to ${id}'s thread. Nothing moved — it is still ${L.plain(t.fm.status)}.`);
     if (t.fm.status === 'open') console.log(`Whoever is working on it will see it. To act: coord approve ${id}  /  coord reject ${id} "<why>"`);
   },
 
@@ -507,7 +518,7 @@ const CMDS = {
   offboard() {
     const name = rest[0] || die('usage: coord offboard <repo> --yes');
     if (!L.isHuman()) die(`offboarding ${name} is the human's call. Ask them to run: coord offboard ${name} --yes`);
-    if (!flags.yes) die(`this archives ${name}'s status file and tickets (decisions stay). Re-run with --yes to confirm.`);
+    if (!flags.yes) die(`this archives ${name}'s status file and requests (decisions stay). Re-run with --yes to confirm.`);
     console.log(O.offboard(name).map(d => '  ' + d).join('\n'));
   },
 
@@ -733,7 +744,7 @@ const CMDS = {
     }
     if (mine.length > 1) {
       console.log(`${mine.length} things are waiting on you:\n`);
-      for (const t of mine) console.log(`  ${t.fm.id}  ${t.fm.status.padEnd(7)}  ${t.fm.title}`);
+      for (const t of mine) console.log(`  ${t.fm.id}  ${L.plain(t.fm.status).padEnd(8)} ${t.fm.title}`);
       console.log(`\n  read one  coord show ${mine[0].fm.id}`);
       console.log(`  yes       coord ok ${mine[0].fm.id.replace(/^\D+/, '')}`);
       return;
@@ -743,7 +754,7 @@ const CMDS = {
       .filter(fm => !['done', 'rejected'].includes(fm.status));
     if (live.length) {
       console.log(`\n${live.length} in flight:`);
-      for (const fm of live.slice(0, 6)) console.log(`  ${fm.id}  ${fm.status.padEnd(11)} ${fm.from} -> ${fm.to}  ${fm.title}`);
+      for (const fm of live.slice(0, 6)) console.log(`  ${fm.id}  ${L.plain(fm.status).padEnd(8)} ${fm.from} -> ${fm.to}  ${fm.title}`);
     }
     const f = L.failures();
     if (f.length) console.log(`\n${f.length} automation(s) failed here — coord fix`);
@@ -751,7 +762,7 @@ const CMDS = {
   },
 
   drill: () => require('./drill.js').run(),
-  help: () => console.log(USAGE),
+  help: () => console.log(flags.all ? USAGE + AGENT_USAGE : USAGE),
 };
 
 /* ---------- the ticket, as a person reads it before approving ---------- */
@@ -769,7 +780,7 @@ function showTicket(file) {
     for (const line of t.split('\n')) console.log(line.trim() ? '  ' + line : '');
   };
 
-  console.log(`${fm.id}  ${String(fm.status).toUpperCase()}`);
+  console.log(`${fm.id}  ${L.plain(fm.status).toUpperCase()}`);
   console.log(`${fm.title}`);
   console.log(`${fm.from} -> ${fm.to}${fm.filed_by ? `   filed by ${fm.filed_by}` : ''}${age ? '   ' + age : ''}`);
   if ((fm.decisions || []).length) console.log(`decisions: ${fm.decisions.join(', ')}`);
@@ -781,10 +792,14 @@ function showTicket(file) {
   block('FILES IT EXPECTS TO TOUCH', sec['Related files']);
   block('DONE WHEN', sec['Acceptance criteria']);
   block('HOW TO TEST IT', sec['Test steps']);
-  block('THREAD', sec.Thread);
+  // The thread is the audit trail and keeps the state names it was written with.
+  // Only the rendering changes; the file is untouched.
+  block('THREAD', (sec.Thread || '')
+    .replace(/created ticket, status: - -> open/g, 'filed it')
+    .replace(/status: (\S+) -> (\S+)/g, (_, a, b) => `${L.plain(a)} -> ${L.plain(b)}`));
 
   if (R.EMPTY(sec.Understanding) || R.EMPTY(sec.Plan)) {
-    console.log(`\nThis ticket does not say what it understood or how it will do it.`);
+    console.log(`\nThis request does not say what it understood or how it will do it.`);
     console.log(`Before approving, ask the agent that filed it:  "fill in the Understanding and Plan on ${fm.id}"`);
   }
   nextSteps(fm);
@@ -802,7 +817,7 @@ function nextSteps(fm) {
     rows.push(['one question first', `coord note ${n} "<your question>"`]);
     rows.push(['change it before approving', `ask your agent:  "revise ${id}: <what to change>"`]);
   } else if (fm.status === 'approved') {
-    rows.push(['pick it up', `work in ${fm.to} — it moves itself to in_progress`]);
+    rows.push(['pick it up', `just work in ${fm.to} — the board follows you`]);
     rows.push(['changed your mind', `coord no ${n} "<why>"`]);
     rows.push(['add context', `coord note ${n} "<...>"`]);
   } else if (fm.status === 'in_progress') {
@@ -871,7 +886,7 @@ function move(to, forceId, forceNote) {
   const t = R.transition(id, to, forceNote !== undefined ? forceNote : rest.join(' '));
   console.log(`${id}: ${t.from} -> ${to}`);
   if (t.onBehalf) console.log(`note: filed by ${t.onBehalf} — recorded as done by ${L.me() || 'you'}`);
-  if (to === 'approved') console.log(`${id} is open to any of us now: coord start ${id}`);
+  if (to === 'approved') console.log(`${id} is open to any of us now — just start working in ${(L.loadTicket(id) || { fm: {} }).fm.to || 'that repo'}.`);
 
   // starting work points the repo at the ticket; every commit then tags itself
   const tk = L.loadTicket(id);
