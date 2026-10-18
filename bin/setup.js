@@ -139,7 +139,7 @@ function setup({ yes = false, noPath = false } = {}) {
   step(5, 'Setting up the repos on this machine');
   if (!here.size) say('  no repos here yet — re-run coord setup once you have cloned some');
   else for (const line of D.devsetup({})) say(`  ${line}`);
-  claudeHooks(say, todo);
+  agentHooks(say, todo);
 
   /* 6. verify */
   step(6, 'Checking everything lines up');
@@ -207,15 +207,29 @@ function backfillRemotes(active, here, say) {
   if (filled.length) say(`  recorded clone URLs for ${filled.join(', ')} so others can fetch them`);
 }
 
-// Git hooks cover every dev. These cover only Claude Code — and they are where the
-// guard and the session briefing actually live, so a Claude Code dev without them has
-// no enforcement at all and no way to know that.
-function claudeHooks(say, todo) {
+// Git hooks cover every dev whatever they code in. These are the agent hooks, and they
+// are where the guard, the session briefing, the overlap warning and the handoff note
+// actually live — so a dev without them has no enforcement at all and no way to know it.
+// Both tools have them now, so nobody is second-class and nobody types "coord" to start.
+function agentHooks(say, todo) {
   const mine = L.people().find(p => p.name === L.me());
-  const uses = !mine || ['claude-code', 'both'].includes(mine.tool);
-  if (!uses) return say(`  skipped Claude Code's hooks — you are set to "${mine.tool}" (change it: coord who --tool both)`);
-  if (!L.exists(path.dirname(D.claudeSettings()))) return say('  Claude Code is not installed here — skipped its hooks');
-  for (const line of D.installClaudeHooks()) say(`  ${line}`);
+  const tool = (mine && mine.tool) || 'other';
+  const wants = t => tool === t || tool === 'both' || tool === 'other';
+  let any = false;
+
+  for (const [t, label, dir, install] of [
+    ['claude-code', 'Claude Code', path.dirname(D.claudeSettings()), D.installClaudeHooks],
+    ['copilot', 'Copilot', path.dirname(path.dirname(D.copilotHooksFile())), D.installCopilotHooks],
+  ]) {
+    if (!wants(t)) continue;
+    // "other" means we are guessing, so only act where the tool has actually been run.
+    if (tool === 'other' && !L.exists(dir)) continue;
+    any = true;
+    for (const line of install()) say(`  ${line}`);
+  }
+
+  if (!any) say(`  no agent hooks installed — set which tool you use: coord who --tool claude-code|copilot|both`);
+  else if (wants('claude-code')) todo.push('restart Claude Code so it picks up the new hooks');
 }
 
 const pathLine = () => L.isWindows

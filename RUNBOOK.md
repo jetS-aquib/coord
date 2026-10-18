@@ -88,9 +88,9 @@ api
   no        coord no "<why>"
 ```
 
-On Claude Code that same briefing is injected automatically at the start of every
-session, so you only type `coord` when you want it. **On Copilot there's no hook — typing
-`coord` when you sit down is the one habit worth having.**
+Both tools inject that same briefing automatically at the start of every session, so you
+only type `coord` when you want it again mid-session. If one never appears, the hooks
+aren't installed: `coord devsetup --hooks`.
 
 ## 5. Work
 
@@ -116,7 +116,6 @@ Your agent can run shell commands, so almost everything works either way. One ru
 | | |
 | --- | --- |
 | **type it** | `coord ok` · `coord no "<why>"` — a decision has to come from a person, and the CLI refuses an agent that tries |
-| **type it** | `coord` at the start of a session — but only on Copilot; Claude Code has already injected it |
 | **say it** | everything else, in plain English. "what's JET-197 about?", "why is this line like this?", "the API needs to return job state", "leave a handoff note" |
 
 Ask your agent to approve a ticket and it will tell you to do it yourself. That refusal is
@@ -129,11 +128,18 @@ the overview, close it when you don't; nothing else depends on it.
 
 ## Windows + GitHub Copilot
 
-Claude Code has hooks, so it gets everything injected. Copilot has no hook API, so there
-is exactly one thing to do by hand.
+Both tools have a hook API, so both get the same four things without being asked: the
+briefing at session start, the guard before a write, the overlap warning, and a handoff
+note when you stop. `coord setup` writes them to `~/.copilot/hooks/coord.json`
+(`%USERPROFILE%\.copilot\hooks\` on Windows).
 
-**Once, after setup.** It prints this rather than editing a profile for you. Run it in
-PowerShell, then **open a new terminal** — `setx` only affects terminals opened after it:
+In VS Code that needs `chat.useHooks` — on by default — and a trusted workspace. Agent
+hooks there are still marked preview, so if briefings stop arriving after an update,
+`coord` by hand does the same job and `coord devsetup --hooks` puts the file back.
+
+**One thing to do by hand, once.** Setup prints this rather than editing a profile for
+you. Run it in PowerShell, then **open a new terminal** — `setx` only affects terminals
+opened after it:
 
 ```powershell
 setx PATH "$env:PATH;C:\path\to\coord\bin"
@@ -142,23 +148,11 @@ setx PATH "$env:PATH;C:\path\to\coord\bin"
 `coord help` should then print. A `coord.cmd` ships beside the CLI, so PowerShell and
 cmd find it; Git Bash finds `coord` directly.
 
-**Every time you open the repo**, in VS Code's terminal:
+**When something needs an answer:** `coord ok` or `coord no "<why>"`. That stays yours
+to type — see the rule above.
 
-```
-coord
-```
-
-It pulls the board first, so what you see is current. This matters more on Copilot than
-on Claude Code: it's your only pull between commits. Claude Code syncs in the background
-every few minutes while you edit; Copilot doesn't.
-
-**When something needs an answer:** `coord ok` or `coord no "<why>"`.
-
-**Before you stop**, ask Copilot to *"update the coord status and leave a handoff note"*.
-Its instruction file in the repo says how. Claude Code writes that note by itself.
-
-Everything else is identical. Git hooks run the same on Windows — Git for Windows runs
-them — so commits get tagged, land on the board and sync without you doing anything.
+Git hooks run the same on Windows, because Git for Windows runs them, so commits get
+tagged, land on the board and sync without you doing anything.
 
 ## Adding a repo
 

@@ -5,24 +5,41 @@
 // does not own. Reads are never blocked. Silent and allow-by-default everywhere else.
 const fs = require('fs'), path = require('path');
 
+// Loaded inside main(), never at the top: everything up here runs outside the try/catch
+// at the foot of the file, so a require that throws would exit non-zero with no verdict
+// — which the harness reads as "allow". deny() therefore depends on nothing but fs.
+let IO = null;
+
+// Which harness called us. Set the moment the payload is read; 'claude' until then, so
+// a crash before that still answers in the dialect that needs no exit code.
+let DIALECT = 'claude';
+
 function deny(reason) {
-  process.stdout.write(JSON.stringify({
-    hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason },
-  }));
+  const flat = { permissionDecision: 'deny', permissionDecisionReason: reason };
+  try { fs.writeSync(1, JSON.stringify({ ...flat, hookSpecificOutput: { hookEventName: 'PreToolUse', ...flat } })); }
+  catch { /* nobody listening */ }
+  // Copilot's CLI documents exit 2 as a deny regardless of what stdout said. A guard
+  // that fails open enforces nothing, so where we know the harness, use its strongest
+  // signal as well as its JSON.
+  if (DIALECT === 'copilot') { try { fs.writeSync(2, reason); } catch { /* ignore */ } process.exit(2); }
   process.exit(0);
 }
 
 function main() {
+  IO = require('./io.js');
   const L = require(path.join(__dirname, '..', 'bin', 'lib.js'));
-  const data = readInput();
-  const cwd = L.real(data.cwd || process.cwd());
+  const data = IO.input();
+  DIALECT = data.dialect;
+  const cwd = L.real(data.cwd);
   if (!L.onPlatform(cwd)) return;                 // another project — not ours to police
   if (L.paused()) return;                        // paused on this machine: allow everything
 
   const own = L.repoOf(cwd);                       // null => platform-root session (onboarding/admin)
-  const tool = data.tool_name || '';
-  const input = data.tool_input || {};
-  const targets = tool === 'Bash' ? bashTargets(String(input.command || '')) : fileTargets(input);
+  const tool = data.tool, input = data.input;
+  if (READ_TOOLS.test(tool)) return;               // reading another repo is always allowed
+  const targets = SHELL_TOOLS.test(tool)
+    ? bashTargets(String(input.command || input.cmd || input.script || ''))
+    : fileTargets(input);
 
   for (const t of targets) {
     const abs = realish(path.resolve(cwd, t.path));
@@ -48,9 +65,17 @@ function realish(p) {
 }
 
 /* ---------- what the tool is about to write ---------- */
+// Claude Code's config names the tools this hook sees, so a Read never reaches it. On
+// Copilot, preToolUse fires for anything that matched its config and tool names differ
+// per harness — and a Read carries a file path exactly like a Write does. So the guard
+// has to recognise a read on its own rather than trust the caller to have filtered.
+// Reads are never blocked: that promise is load-bearing, so it is checked twice.
+const READ_TOOLS = /read|view|cat|grep|search|glob|find|list|fetch|lookup|describe|diagnost/i;
+const SHELL_TOOLS = /bash|shell|terminal|command|exec|process/i;
+
 function fileTargets(input) {
   const out = [];
-  for (const k of ['file_path', 'notebook_path', 'path']) if (typeof input[k] === 'string') out.push({ path: input[k], why: 'this edit' });
+  for (const k of IO.FILE_KEYS) if (typeof input[k] === 'string') out.push({ path: input[k], why: 'this edit' });
   return out;
 }
 
@@ -152,9 +177,6 @@ function judgeCoord(L, parts, own, why) {
 }
 
 /* ---------- plumbing ---------- */
-function readInput() {
-  try { return JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return {}; }
-}
 // Fail CLOSED: if the guard cannot evaluate a call, it blocks rather than waving it
 // through — an enforcement hook that fails open enforces nothing.
 function failClosed(e) {
@@ -165,7 +187,7 @@ function failClosed(e) {
 
 function logError(e) {
   try {
-    const dir = path.join(__dirname, '..', 'activity');
+    const dir = path.join(process.env.COORD_ROOT || path.join(__dirname, '..'), 'activity');
     fs.mkdirSync(dir, { recursive: true });
     fs.appendFileSync(path.join(dir, 'hook-errors.log'), `${new Date().toISOString()}\tguard\t${(e && e.stack) || e}\n`);
     // The human-facing half: a guard that fails closed blocks real work, so this is the

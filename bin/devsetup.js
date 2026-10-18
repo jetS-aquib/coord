@@ -119,13 +119,13 @@ function copilotDoc(repo) {
     '',
     '## Start of every session',
     '',
-    'Run `coord` first, every time. Claude Code has a hook that injects this; you do not, so it is',
-    'the one thing to do by hand. It prints what this repo is on, what is waiting on a person, and',
-    'where the last session left off — which is how work survives a new chat window.',
+    'A hook injects the situation at the top of every session: what this repo is on, what is waiting',
+    'on a person, and where the last session left off — which is how work survives a new chat window.',
+    '**If you did not see one, run `coord`** — and `coord setup` installs the hook so you stop having to.',
     '',
     `Before you stop, update \`.coord/status/${repo}.md\`: Current task, Status, and a handoff note`,
-    'at the top of Handoff notes saying what you did and what is next. The next session, yours or',
-    'someone else\u2019s, starts by reading that note.',
+    'at the top of Handoff notes saying what you did and what is next. A hook writes a rough one if',
+    'nobody does, but yours will be better. The next session, yours or someone else\u2019s, reads it first.',
     '',
     '## Hard rules',
     '',
@@ -355,6 +355,64 @@ function installClaudeHooks({ file = claudeSettings() } = {}) {
   return out;
 }
 
+/* ---------- Copilot's own hooks (~/.copilot/hooks/coord.json) ---------- */
+// Copilot grew a hook API: the same four moments Claude Code gives us, and preToolUse
+// can deny. So the guard, the briefing, the overlap warning and the handoff note are no
+// longer Claude-only, and nobody has to type "coord" when they sit down any more.
+//
+// User-level, not the repo's .github/hooks/: the command needs this machine's absolute
+// path to the board, and that file is tracked. The guard no-ops outside the platform,
+// so one file per machine covers every repo including ones cloned later.
+//
+// matcher is a full-value regex on the tool name, and tool names differ per harness —
+// so these are deliberately wide. Over-matching costs one node start that returns
+// immediately; under-matching on preToolUse would silently stop guarding, which is why
+// guard.js also recognises a read on its own rather than trusting this line.
+const EDIT_TOOLS = '.*(?:[Ee]dit|[Ww]rite|[Cc]reate|[Pp]atch|[Ii]nsert|[Rr]eplace|[Aa]pply).*';
+const WRITE_TOOLS = `(?:${EDIT_TOOLS}|.*(?:[Bb]ash|[Ss]hell|[Tt]erminal|[Cc]ommand|[Ee]xec).*)`;
+const COPILOT_HOOKS = [
+  { event: 'sessionStart', script: 'hook.js', arg: 'session-start', timeoutSec: 20 },
+  { event: 'sessionEnd', script: 'hook.js', arg: 'session-stop', timeoutSec: 20 },
+  { event: 'postToolUse', script: 'hook.js', arg: 'edit', matcher: EDIT_TOOLS, timeoutSec: 15 },
+  { event: 'preToolUse', script: 'guard.js', matcher: WRITE_TOOLS, timeoutSec: 10 },
+];
+const copilotHooksFile = () => path.join(require('os').homedir(), '.copilot', 'hooks', 'coord.json');
+const ourCopilotFile = text => !text.trim() || /[\\/]hooks[\\/](hook|guard)\.js/.test(text);
+
+function copilotConfig() {
+  const node = nodeCmd(), q = s => JSON.stringify(s);
+  const cmd = h => `${q(node)} ${q(path.join(P.coord, 'hooks', h.script))}${h.arg ? ' ' + h.arg : ''}`;
+  const hooks = {};
+  for (const h of COPILOT_HOOKS) {
+    hooks[h.event] = [{
+      type: 'command',
+      ...(h.matcher ? { matcher: h.matcher } : {}),
+      // node is the same executable on both platforms, so one string serves both fields.
+      bash: cmd(h), powershell: cmd(h),
+      timeoutSec: h.timeoutSec,
+    }];
+  }
+  return JSON.stringify({ version: 1, hooks }, null, 2) + '\n';
+}
+
+function installCopilotHooks({ file = copilotHooksFile() } = {}) {
+  const out = [];
+  const before = L.read(file);
+  // coord.json is ours by name, but a file we did not write is still somebody's work.
+  if (before.trim() && !ourCopilotFile(before)) {
+    const bak = `${file}.bak.${Date.now()}`;
+    fs.writeFileSync(bak, before);
+    out.push(`backed up the coord.json that was already there to ${path.basename(bak)}`);
+  }
+  const after = copilotConfig();
+  if (after === before) return ['~/.copilot/hooks/coord.json already has the coord hooks'];
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  L.atomicWrite(file, after);
+  out.push('~/.copilot/hooks/coord.json: coord hooks installed (guard + session briefing)');
+  out.push('  in VS Code this needs "chat.useHooks" (on by default) and a trusted workspace');
+  return out;
+}
+
 /* ---------- used by the post-commit hook ---------- */
 function logCommit(cwd) {
   const repo = L.repoOf(cwd);
@@ -382,4 +440,5 @@ function autoStart(repo) {
 
 const pathHint = () => `export PATH="${path.join(P.coord, 'bin')}:$PATH"`;
 
-module.exports = { devsetup, logCommit, copilotDoc, withCoordSection, installClaudeHooks, claudeSettings, COORD_BIN, pathHint };
+module.exports = { devsetup, logCommit, copilotDoc, withCoordSection, installClaudeHooks, claudeSettings,
+  installCopilotHooks, copilotHooksFile, copilotConfig, COORD_BIN, pathHint };

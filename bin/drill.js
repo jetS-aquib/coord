@@ -37,6 +37,7 @@ function run() {
     commitAndWhy(id, did);
     hooks(id);
     guard();
+    copilot();
     team();
     onboarding();
     archiving(id);
@@ -220,8 +221,16 @@ function hooks(id) {
   ok('briefing stays small', ctx.length < 700, `${ctx.length} chars`);
 
   n = lines().length;
-  r = hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'jobs.js') } });
+  const edit = () => hook('edit', { cwd: path.join(TMP, 'beta'), tool_input: { file_path: path.join(TMP, 'beta', 'jobs.js') } });
+  r = edit();
   ok('hook logs edits with a repo-relative path', r.status === 0 && /\tbeta\tedit\t[^\t]*\tjobs\.js$/.test(lines().at(-1)), lines().at(-1));
+
+  // Twice, deliberately. The rate limits inside the edit path — the heartbeat clock and
+  // the overlap reminder — both short-circuit on a first run, so a single edit never
+  // reaches the code that reads them. That is how two constants sat in the temporal dead
+  // zone for days, throwing on every edit after the first, with a green drill.
+  r = edit();
+  ok('a second edit works too, where the rate limits actually get read', r.status === 0 && lines().length > n + 1, r.stdout + r.stderr);
 
   n = lines().length;
   const before = git(['rev-list', '--count', 'HEAD'], CO).stdout.trim() || '0';
@@ -238,6 +247,87 @@ function hooks(id) {
   ok('hook survives garbage input, exits 0, prints nothing', r.status === 0 && !r.stdout && !r.stderr);
   ok('no hook errors logged', !fs.existsSync(path.join(CO, 'activity', 'hook-errors.log')),
     fs.existsSync(path.join(CO, 'activity', 'hook-errors.log')) ? fs.readFileSync(path.join(CO, 'activity', 'hook-errors.log'), 'utf8') : '');
+}
+
+// Copilot speaks a different dialect of the same protocol: camelCase fields in, a flat
+// decision out, exit 2 as a deny. Everything the guard promises has to hold in both, or
+// three quarters of the team is running without a guard and nobody can tell.
+function copilot() {
+  const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
+  const askCp = (cwd, toolName, toolArgs) => cp.spawnSync(process.execPath, [GUARD], {
+    input: JSON.stringify({ cwd, sessionId: 's1', timestamp: Date.now(), toolName, toolArgs }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+
+  const denied = r => {
+    try { return JSON.parse(r.stdout).permissionDecision === 'deny'; } catch { return false; }
+  };
+  let r = askCp(A, 'createFile', { path: path.join(B, 'src.js') });
+  ok('copilot dialect: a cross-repo write is denied', denied(r), r.stdout.slice(0, 120) + ' exit ' + r.status);
+  ok('copilot dialect: and it exits 2, which denies even if stdout is ignored', r.status === 2, 'exit ' + r.status);
+  ok('copilot dialect: the reason reaches the agent on stderr too', /do not edit each other/.test(r.stderr), r.stderr.slice(0, 80));
+
+  // One answer, both dialects, so neither harness has to be detected correctly to be obeyed.
+  const both = JSON.parse(r.stdout);
+  ok('one deny carries both dialects at once',
+    both.permissionDecision === 'deny' && both.hookSpecificOutput.permissionDecision === 'deny'
+    && both.hookSpecificOutput.hookEventName === 'PreToolUse');
+
+  // Claude's config filters tools before the guard sees them; Copilot's matcher is a
+  // regex on names we are guessing at. So the guard has to know a read when it sees one
+  // — otherwise the day a read slips through the matcher, reading goes from "always
+  // fine" to blocked, and that is worse than not guarding at all.
+  for (const t of ['readFile', 'viewFile', 'grepSearch', 'listDirectory', 'fileSearch']) {
+    r = askCp(A, t, { path: path.join(B, 'src.js') });
+    ok(`copilot dialect: ${t} on another repo is allowed`, r.status === 0 && !r.stdout.trim(), r.stdout.slice(0, 80));
+  }
+  r = askCp(A, 'runInTerminal', { command: `cat ${path.join(B, 'src.js')}` });
+  ok('copilot dialect: a shell read of another repo is allowed', r.status === 0 && !r.stdout.trim(), r.stdout.slice(0, 80));
+  r = askCp(A, 'runInTerminal', { command: `echo x > ${path.join(B, 'n.md')}` });
+  ok('copilot dialect: a shell write into another repo is denied', denied(r), r.stdout.slice(0, 80));
+  r = askCp(A, 'editFile', { filePath: path.join(A, 'src.js') });
+  ok('copilot dialect: your own repo is yours', r.status === 0 && !r.stdout.trim(), r.stdout.slice(0, 80));
+  r = askCp(A, 'applyPatch', { targetFile: path.join(B, 'src.js') });
+  ok('copilot dialect: every spelling of the file argument is seen', denied(r), r.stdout.slice(0, 80));
+
+  // The briefing has to arrive in a Copilot session too, or a Copilot dev is back to
+  // typing "coord" by hand, which was the whole point of this.
+  const brief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
+    input: JSON.stringify({ cwd: A, sessionId: 's1', timestamp: Date.now(), source: 'startup' }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  let out = {};
+  try { out = JSON.parse(brief.stdout); } catch { /* reported by the assertion */ }
+  ok('copilot dialect: session start still briefs the session', /alpha/.test(out.additionalContext || ''), brief.stdout.slice(0, 120));
+  ok('the briefing is carried in both dialects', (out.additionalContext || '') === ((out.hookSpecificOutput || {}).additionalContext || ''));
+
+  /* --- the config we write into ~/.copilot/hooks --- */
+  const D = require('./devsetup.js');
+  const cfgFile = path.join(TMP, 'copilot-hooks', 'coord.json');
+  const lines = D.installCopilotHooks({ file: cfgFile });
+  const cfg = JSON.parse(fs.readFileSync(cfgFile, 'utf8'));
+  ok('the copilot hook file declares version 1', cfg.version === 1);
+  ok('it wires all four moments', ['sessionStart', 'sessionEnd', 'postToolUse', 'preToolUse'].every(e => (cfg.hooks[e] || []).length === 1),
+    Object.keys(cfg.hooks).join(','));
+  const cmds = Object.values(cfg.hooks).flat();
+  ok('every command is an absolute path to a hook that exists', cmds.every(h => {
+    const m = /"([^"]+)"\s+"([^"]+)"/.exec(h.bash);
+    return m && path.isAbsolute(m[2]) && fs.existsSync(m[2]);
+  }), JSON.stringify(cmds[0]));
+  ok('windows gets the same command through powershell', cmds.every(h => h.powershell === h.bash));
+  ok('every hook has a timeout, so a wedged board cannot wedge a session', cmds.every(h => h.timeoutSec > 0));
+
+  // The matchers are guesses at another vendor's tool names. They may be wrong; they
+  // must not be wrong in the direction that silently stops guarding.
+  const pre = cfg.hooks.preToolUse[0].matcher;
+  for (const name of ['createFile', 'editFile', 'applyPatch', 'runInTerminal', 'insertEdit', 'str_replace_editor', 'bash'])
+    ok(`preToolUse matcher catches ${name}`, new RegExp(`^(?:${pre})$`).test(name), pre);
+
+  ok('re-running changes nothing', D.installCopilotHooks({ file: cfgFile }).join(' ').includes('already'), lines.join(' '));
+  fs.writeFileSync(cfgFile, '{"version":1,"hooks":{"preToolUse":[{"type":"command","bash":"mine"}]}}');
+  D.installCopilotHooks({ file: cfgFile });
+  ok('a coord.json that was not ours is backed up, never just overwritten',
+    fs.readdirSync(path.dirname(cfgFile)).some(n => n.includes('.bak.')), fs.readdirSync(path.dirname(cfgFile)).join(','));
 }
 
 function guard() {
@@ -292,9 +382,11 @@ function guard() {
   const orphanDir = path.join(TMP, 'orphan-hooks');
   fs.mkdirSync(orphanDir, { recursive: true });
   fs.copyFileSync(GUARD, path.join(orphanDir, 'guard.js'));
+  // Its own COORD_ROOT: this deliberately broken guard records a real failure, and the
+  // fixture's failure log is something other assertions read.
   const broken = cp.spawnSync(process.execPath, [path.join(orphanDir, 'guard.js')], {
     input: JSON.stringify({ cwd: A, tool_name: 'Edit', tool_input: { file_path: path.join(B, 'x.js') } }),
-    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: orphanDir },
   });
   ok('guard fails closed when it cannot evaluate', broken.status === 0 && /"permissionDecision":"deny"/.test(broken.stdout),
     `exit ${broken.status} out=${broken.stdout.slice(0, 100)}`);
@@ -930,9 +1022,9 @@ function resilience() {
     const o = coord([], { cwd: sess, human: true }).out;
     return /beta/.test(o) && /last session here/.test(o);
   })(), coord([], { cwd: sess, human: true }).out);
-  ok('Copilot is told to run it, since it gets no hook', (() => {
+  ok('the tracked file still says what to do if no briefing arrived', (() => {
     const d = require('./devsetup.js').copilotDoc('beta');
-    return /Start of every session/.test(d) && /Run .?coord.? first/.test(d) && /handoff note/.test(d);
+    return /Start of every session/.test(d) && /run .?coord.?/.test(d) && /handoff note/.test(d);
   })());
 
   /* --- somebody else's instructions --- */

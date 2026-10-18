@@ -158,7 +158,7 @@ const USAGE = `coord — jetKreate cross-repo coordination
                                  writes the HTML with --html, only sends with --send
   fix [--yes] [--clear]          anything automatic that failed, and how to do it by hand
   pause [reason] / resume        turn everything coord does off / on, on this machine only
-  devsetup [--repo R] [--strict] [--no-copilot] [--merge]
+  devsetup [--repo R] [--strict] [--no-copilot] [--merge] [--hooks]
                                  install this machine's git hooks + editor instructions
                                  (--merge adds our block to instructions somebody else wrote)
            [--claude]            (re)install coord's hooks in ~/.claude/settings.json
@@ -569,7 +569,15 @@ const CMDS = {
   },
 
   devsetup() {
-    if (flags.claude) return console.log(D.installClaudeHooks().map(l => '  ' + l).join('\n'));
+    // --hooks: just the agent hooks, both tools, nothing per-repo. --claude is the old
+    // name for the Claude Code half and still works.
+    if (flags.hooks || flags.claude || flags.copilot) {
+      const lines = [
+        ...(flags.copilot ? [] : D.installClaudeHooks()),
+        ...(flags.claude ? [] : D.installCopilotHooks()),
+      ];
+      return console.log(lines.map(l => '  ' + l).join('\n'));
+    }
     const out = D.devsetup({
       repo: typeof flags.repo === 'string' ? flags.repo : undefined,
       strict: !!flags.strict,

@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 'use strict';
-// Claude Code hook: session-start | session-stop | edit
+// Agent hook: session-start | session-stop | edit. Claude Code and Copilot both call
+// this; hooks/io.js hides the difference between their payloads.
 // Rules: do nothing unless the session cwd is inside jetKreate; never print to the
 // session; always exit 0; errors go to activity/hook-errors.log.
 const fs = require('fs'), path = require('path');
+let IO = null;                                        // loaded in main(), inside the try
 const EVENT = process.argv[2] || '?';
 const ARCHIVE_EVERY_DAYS = 7;
 
-try { main(); } catch (e) { logError(e); }
-process.exit(0);
-
 function main() {
+  IO = require('./io.js');
   const L = require(path.join(__dirname, '..', 'bin', 'lib.js'));
-  const data = readInput();
-  const cwd = L.real(data.cwd || process.cwd());
+  const data = IO.input();
+  const cwd = L.real(data.cwd);
   if (!L.onPlatform(cwd)) return;                                         // another project — do nothing
 
   // Paused on this machine: nothing automatic runs. Say so once at session start —
@@ -36,7 +36,10 @@ function main() {
   }
 
   if (EVENT === 'edit') {
-    const f = data.tool_input && data.tool_input.file_path;
+    // Claude Code's config only sends us edit tools. Copilot's postToolUse is matched by
+    // a regex on a tool name we are guessing at, so anything without a file path is
+    // simply not an edit and costs us nothing.
+    const f = IO.fileOf(data.input);
     if (!f) return;
     const base = repo === 'platform-root' ? L.P.root : L.repoDir(repo);
     // An edit outside the repo (a scratchpad, /tmp) relativises to ../../../.. and fills
@@ -143,12 +146,9 @@ function brief(L, repo, onboarded) {
   emit(lines.join('\n'));
 }
 
-// fs.writeSync, not process.stdout.write: stdout to a pipe is asynchronous, and this
-// process calls process.exit() the moment main() returns. An async write can be dropped.
 // Declarations, not consts: main() is called at the top of this file, so anything it
 // reaches has to be hoisted. A const here is in the temporal dead zone and throws.
-function say(obj) { try { fs.writeSync(1, JSON.stringify(obj)); } catch { /* nobody listening */ } }
-function emit(text) { say({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text } }); }
+function emit(text) { IO.say('SessionStart', { additionalContext: text }); }
 
 // Somebody else has this file open. Not a lock — a sentence, once, at the moment it is
 // still cheap to go and ask them.
@@ -166,12 +166,9 @@ function firstTimeToday(L, repo, file) {
 
 function warnOverlap(file, others) {
   const who = others.map(o => `${o.who} (${o.event === 'commit' ? 'committed' : 'edited'} it ${ago(o.ts)})`).join(', ');
-  say({
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: `coord: ${who} — same file, ${file}. Worth a word before this turns into a merge conflict. ` +
-        `"coord who" shows where everyone is. This comes off the board, so it is as fresh as the last sync.`,
-    },
+  IO.say('PostToolUse', {
+    additionalContext: `coord: ${who} — same file, ${file}. Worth a word before this turns into a merge conflict. ` +
+      `"coord who" shows where everyone is. This comes off the board, so it is as fresh as the last sync.`,
   });
 }
 function ago(ts) {
@@ -253,13 +250,19 @@ function autoStart(L, repo) {
   } catch (e) { logError(e); }
 }
 
-function readInput() {
-  try { return JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return {}; }
-}
 function logError(e) {
   try {
-    const f = path.join(__dirname, '..', 'activity', 'hook-errors.log');
+    const f = path.join(process.env.COORD_ROOT || path.join(__dirname, '..'), 'activity', 'hook-errors.log');
     fs.mkdirSync(path.dirname(f), { recursive: true });
     fs.appendFileSync(f, `${new Date().toISOString()}\t${EVENT}\t${(e && e.stack) || e}\n`);
   } catch { /* a hook that cannot log must still not break the session */ }
 }
+
+// Last line, deliberately. Function declarations hoist but `const` does not, so calling
+// main() from the top of the file put every module-scope constant below it in the
+// temporal dead zone — reading one threw, and this hook swallows its own errors, so the
+// overlap warning and the heartbeat sync sat dead for days with nothing to show for it.
+// Running main() after the whole file has been evaluated is the fix that stays fixed the
+// next time somebody adds a constant.
+try { main(); } catch (e) { logError(e); }
+process.exit(0);
