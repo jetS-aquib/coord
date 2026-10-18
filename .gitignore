@@ -12,4 +12,3 @@ paths.json
 local.json
 
 # the mail API key lives here on a machine that sends, and in CI secrets otherwise
-mail.json
