@@ -686,10 +686,6 @@ const CMDS = {
       }
     } else say(`origin/${branch} does not exist yet — publishing the board for the first time`);
 
-    // The rebase can bring the pre-migration status files back from a commit it replays.
-    // Migration is idempotent, so running it on the far side of the rebase retires them
-    // again instead of leaving a stray file that reappears on every sync.
-    L.ensureStatusFiles();
     heal();                                        // the other machine's requests are here now
 
     let push = L.coordGit(['push', '-u', 'origin', branch]);
@@ -703,6 +699,12 @@ const CMDS = {
     }
     if (!push.ok) return stop(`push failed: ${push.err.split('\n')[0]}`, `cd ${L.P.coord} && git push`);
     L.clearFailures('sync');                       // a good sync clears the backlog of bad ones
+
+    // After every rebase, including the one the push-race retry does — which was the
+    // one putting the pre-migration status files back on disk with nothing left to run
+    // afterwards, so they reappeared on each sync and the next snapshot committed them.
+    // Migration is idempotent, so the last word belongs here.
+    L.ensureStatusFiles();
 
     L.setLocal({ lastSync: L.nowISO() });           // this machine's clock, never the board's
     const n = L.coordGit(['rev-list', '--count', `origin/${branch}..${branch}`]).out;
