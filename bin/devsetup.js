@@ -312,7 +312,10 @@ function devsetup({ repo, strict = false, copilot = true, merge = false, ask = n
     // Build output that indexing tools leave in the repo. Local to this clone, so the
     // repo’s own .gitignore — somebody else’s tracked file — is never touched.
     const added = require('./onboard.js').addExcludes(dir);
-    if (added.length) out.push(`${r}: .git/info/exclude += ${added.join(', ')}  (local, never committed)`);
+    if (added.length) {
+      out.push(`${r}: .git/info/exclude += ${added.join(', ')}  (local to this clone, never committed)`);
+      out.push(`${r}:   your .gitignore is the shared alternative — put them there and this stops adding them`);
+    }
 
     const strictFlag = path.join(dir, '.git', 'coord-strict');
     if (strict && !L.exists(strictFlag)) { fs.writeFileSync(strictFlag, 'commit-msg rejects messages with no ticket ID\n'); out.push(`${r}: strict mode ON`); }

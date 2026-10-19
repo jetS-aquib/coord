@@ -197,10 +197,18 @@ function detectDeps(self, abs, pkg, files) {
   return [...found.values()];
 }
 
+// Only what nothing already covers. A repo whose own .gitignore names these is the
+// better arrangement — the rule is visible to everyone and survives a fresh clone —
+// and writing it a second time into .git/info/exclude just means two places to look
+// when somebody asks why a folder is ignored.
 function missingExcludes(abs) {
   const f = path.join(abs, '.git', 'info', 'exclude');
-  const cur = L.read(f);
-  return EXCLUDES.filter(e => !cur.split('\n').some(l => l.trim() === e));
+  const cur = L.read(f).split('\n').map(l => l.trim());
+  return EXCLUDES.filter(e => {
+    if (cur.includes(e)) return false;
+    const probe = e.replace(/\*$/, 'x');                 // a pattern needs a path to test
+    return !L.sh('git', ['check-ignore', '-q', probe], abs).ok;
+  });
 }
 
 /* ---------- validation ---------- */
