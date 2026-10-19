@@ -112,6 +112,79 @@ function hasNestedTsconfig(abs, depth = 0) {      // monorepo: tsconfig lives in
   return ents.some(e => e.isDirectory() && !SKIP.has(e.name) && !e.name.startsWith('.') && hasNestedTsconfig(path.join(abs, e.name), depth + 1));
 }
 
+// Commented-out code is not a served route. Four of twelve candidates on one repo were
+// routers somebody had switched off, reported with the same confidence as live ones.
+// Strings are kept whole: a // inside a URL is not a comment.
+function decomment(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .map(l => l.replace(/(^|[^:'"`\\])\/\/.*$/, '$1'))
+    .join('\n');
+}
+
+// Express serves a router at wherever it is mounted, not at the path written inside it.
+// `app.use('/api', registerRoutes())` means every router.get('/video') in that tree is
+// really /api/video — so a scan that reads the file alone names every contract wrongly,
+// and those names then collide with a different repo that happens to use the same word.
+function mountPrefixes(abs, files) {
+  const srcOf = new Map(), byRel = new Map();
+  for (const f of files) {
+    const rel = path.relative(abs, f);
+    if (!/\.(ts|js|tsx|jsx|mjs)$/.test(rel)) continue;
+    srcOf.set(rel, decomment(slurp(f)));
+    byRel.set(rel.replace(/\.(ts|js|tsx|jsx|mjs)$/, ''), rel);
+  }
+  // identifier -> the file it was imported from, per file
+  const importsIn = src => {
+    const m = new Map();
+    for (const r of src.matchAll(/import\s+(\w+)\s*(?:,|from)[^'"]*from?\s*['"]([^'"]+)['"]/g)) m.set(r[1], r[2]);
+    for (const r of src.matchAll(/import\s*\{([^}]*)\}\s*from\s*['"]([^'"]+)['"]/g)) {
+      for (const n of r[1].split(',')) {
+        const name = n.trim().split(/\s+as\s+/).pop().trim();
+        if (name) m.set(name, r[2]);
+      }
+    }
+    for (const r of src.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*require\(\s*['"]([^'"]+)['"]/g)) m.set(r[1], r[2]);
+    return m;
+  };
+  const resolve = (fromRel, spec) => {
+    if (!spec.startsWith('.')) return null;
+    const joined = path.posix.normalize(path.posix.join(path.posix.dirname(fromRel.split(path.sep).join('/')), spec));
+    return byRel.get(joined) || byRel.get(joined + '/index') || null;
+  };
+
+  // direct mounts first, then walk the chain up to the entry so nested routers inherit
+  const direct = new Map();                 // target file -> [{ host, prefix }]
+  for (const [rel, src] of srcOf) {
+    const imp = importsIn(src);
+    for (const r of src.matchAll(/\b(?:app|router|server)\s*\.\s*use\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(\w+)/g)) {
+      const target = resolve(rel, imp.get(r[2]) || '');
+      if (target) (direct.get(target) || direct.set(target, []).get(target)).push({ host: rel, prefix: r[1] });
+    }
+    // `app.use('/api', registerRoutes())` — the router comes back from a call, so the
+    // prefix belongs to whatever that function's own file mounts.
+    for (const r of src.matchAll(/\b(?:app|server)\s*\.\s*use\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(\w+)\s*\(/g)) {
+      const target = resolve(rel, imp.get(r[2]) || '');
+      if (target) (direct.get(target) || direct.set(target, []).get(target)).push({ host: rel, prefix: r[1] });
+    }
+  }
+  const prefixOf = new Map();
+  const chain = (rel, seen = new Set()) => {
+    if (prefixOf.has(rel)) return prefixOf.get(rel);
+    if (seen.has(rel) || seen.size > 8) return '';
+    seen.add(rel);
+    const ups = direct.get(rel) || [];
+    if (!ups.length) return '';
+    const u = ups[0];
+    const p = (chain(u.host, seen) + u.prefix).replace(/\/+/g, '/').replace(/\/$/, '');
+    prefixOf.set(rel, p);
+    return p;
+  };
+  for (const rel of srcOf.keys()) chain(rel);
+  return { prefixOf, srcOf };
+}
+
 function detectContracts(abs, files) {
   const hits = new Map();                    // group -> {paths:Set, evidence:Set}
   const add = (p, ev) => {
@@ -122,6 +195,7 @@ function detectContracts(abs, files) {
     if (!hits.has(g)) hits.set(g, { paths: new Set(), evidence: new Set() });
     hits.get(g).paths.add(p); hits.get(g).evidence.add(ev);
   };
+  const { prefixOf } = mountPrefixes(abs, files);
   for (const f of files) {
     const rel = path.relative(abs, f);
     // Next.js / app-router style: app/api/foo/route.ts
@@ -129,9 +203,11 @@ function detectContracts(abs, files) {
     if (m) { add('/' + m[1], rel); continue; }
     if (!/\.(ts|js|tsx|jsx|mjs|py)$/.test(rel)) continue;
     if (/(^|\/)(test|tests|__tests__|e2e)(\/|$)|\.(test|spec)\./.test(rel)) continue;   // tests describe routes, they don't serve them
-    const src = slurp(f);
-    for (const r of src.matchAll(/\b(?:app|router|api|server)\s*\.\s*(?:get|post|put|patch|delete|use|all)\s*\(\s*['"`]([^'"`]+)['"`]/g)) add(r[1], rel);
-    for (const r of src.matchAll(/@(?:app|router)\.(?:get|post|put|patch|delete)\(\s*['"]([^'"]+)['"]/g)) add(r[1], rel);
+    const mount = prefixOf.get(rel) || '';
+    const src = decomment(slurp(f));
+    const at = p => (mount + (p.startsWith('/') ? p : '/' + p)).replace(/\/+/g, '/').replace(/(.)\/$/, '$1') || '/';
+    for (const r of src.matchAll(/\b(?:app|router|api|server)\s*\.\s*(?:get|post|put|patch|delete|use|all)\s*\(\s*['"`]([^'"`]+)['"`]/g)) add(at(r[1]), rel);
+    for (const r of src.matchAll(/@(?:app|router)\.(?:get|post|put|patch|delete)\(\s*['"]([^'"]+)['"]/g)) add(at(r[1]), rel);
   }
   return [...hits.entries()]
     .filter(([g]) => !/^(static|assets|public|health|favicon)/.test(g))
@@ -185,7 +261,20 @@ function detectDeps(self, abs, pkg, files) {
         note(o, `${rel} mentions "${o}"`, 'guessed');
       }
     }
-    for (const [cpath, owner] of ownedPaths) if (src.includes(cpath)) note(owner, `${rel} calls ${cpath}`, 'confirmed');
+    // A path only counts where a path can start: just after a quote, or just after a
+    // template hole holding a base URL. src.includes('/user') was true of the Firebase
+    // error string 'auth/user-not-found', and src.includes('/models') of the import
+    // '../models/GenerationLog' — both were then reported as confirmed dependencies.
+    for (const [cpath, owner] of ownedPaths) {
+      const esc = cpath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp('(?:[\'"\`]|\\}|\\\\\$\\{)\\s*' + esc + '(?=[/?\'"\`\\\\]|$)', 'm');
+      if (!re.test(src)) continue;
+      // ...unless every place it appears is one of this repo's own route definitions.
+      // '/user/:userId' served here matched the other backend's /user contract and was
+      // reported as a dependency on it. A route you serve is not a repo you call.
+      const serves = new RegExp('\\b(?:app|router|api|server)\\s*\\.\\s*(?:get|post|put|patch|delete|use|all)\\s*\\(\\s*[\'"`]' + esc);
+      if (src.split('\n').some(l => re.test(l) && !serves.test(l))) note(owner, `${rel} calls ${cpath}`, 'confirmed');
+    }
   }
 
   const urlEnv = [...envNames].filter(n => /(API|BACKEND|SERVICE|GATEWAY)(_|$)|BASE_URL|_URL$/.test(n));
@@ -250,6 +339,11 @@ function apply(name, { stack, contracts = [], depends_on = [], at } = {}) {
 
   const ex = addExcludes(rep.abs);
   done.push(ex.length ? `.git/info/exclude += ${ex.join(', ')}` : '.git/info/exclude already covers .serena/ and CLAUDE.local.md');
+
+  // The newcomer may be the missing half of somebody else's dependency.
+  try {
+    for (const line of refreshDeps(name)) done.push(line);
+  } catch (e) { done.push(`could not re-read the other repos' dependencies: ${e.message}`); }
 
   L.logActivity(name, 'onboarded');
   L.snapshot(`coord: onboarded ${name}`);
@@ -318,4 +412,31 @@ function sizeOf(abs) {
   return { files: files.length, bytes, tokens: Math.round(bytes / 9), floor: truncated };
 }
 
-module.exports = { sizeOf, detect, apply, offboard, failures, addExcludes, missingExcludes, EXCLUDES };
+// Onboarding repo B teaches coord things about repo A: A may already call B's routes,
+// and until B was in the registry there was nothing for that call to point at. So every
+// onboarding re-reads the repos already on the board rather than leaving their
+// depends_on frozen at whatever was true the day they joined.
+function refreshDeps(newcomer) {
+  const changed = [];
+  for (const r of L.onboarded()) {
+    const dir = L.repoDir(r);
+    if (!L.isRepoAt(dir)) continue;
+    const e = L.regGet(r);
+    if (!e) continue;
+    const pkg = json(path.join(dir, 'package.json'));
+    truncated = false;
+    const found = detectDeps(r, dir, pkg, walk(dir))
+      .filter(d => d.confidence === 'confirmed')
+      .map(d => d.repo);
+    const want = [...new Set([...(e.depends_on || []), ...found])]
+      .filter(d => d !== r && L.isOnboarded(d)).sort();
+    if (want.join(',') !== (e.depends_on || []).slice().sort().join(',')) {
+      const added = want.filter(d => !(e.depends_on || []).includes(d));
+      L.regPut({ ...e, depends_on: want });
+      if (added.length) changed.push(`${r} now depends on ${added.join(', ')}`);
+    }
+  }
+  return changed;
+}
+
+module.exports = { sizeOf, refreshDeps, detect, apply, offboard, failures, addExcludes, missingExcludes, EXCLUDES };

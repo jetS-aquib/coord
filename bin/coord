@@ -209,8 +209,9 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
   note <id> <text>               ask something on one, without moving it
   why <file>:<line>              which request and decisions explain this line
   search <text>                  requests, decisions, context notes, archive indexes
-  graph [<repo>]                 shared maps of a repo: what exists, how old
-                                 with a repo, puts the one you built on the board
+  graph [<repo>] [--all]         shared maps of a repo: what exists, how old
+                                 with a repo, puts the one you built on the board;
+                                 --all shares every one built on this machine
   ctx [<text>]                   platform facts every repo's agent can read
       --add "<title>" --body T   write one down
       --rm <slug>
@@ -497,6 +498,21 @@ const CMDS = {
       L.snapshot(`coord: graph for ${repo}`);
       console.log(`${repo}: ${r.kb} KB on the board${r.pages ? `, ${r.pages} pages` : ''}, built at ${r.commit}`);
       return console.log(`everyone gets it on their next sync. The heavy files stay in ${repo}/graphify-out/.`);
+    }
+
+    // --all: every repo whose local build is newer than what the board carries. Run it
+    // after a graphing session and nothing is left behind on one machine.
+    if (flags.all) {
+      const done = [], skipped = [];
+      for (const r of G.status()) {
+        if (!r.local) { skipped.push(`${r.repo}: nothing built here`); continue; }
+        try { const x = G.importGraph(r.repo); done.push(`${r.repo}: ${x.kb} KB, built at ${x.commit}`); }
+        catch (e) { skipped.push(`${r.repo}: ${e.message}`); }
+      }
+      if (done.length) L.snapshot(`coord: graphs for ${done.length} repo(s)`);
+      for (const d of done) console.log(`  ${d}`);
+      for (const s2 of skipped) console.log(`  ${s2}`);
+      return console.log(done.length ? `\neveryone gets them on their next sync.` : `\nnothing to share.`);
     }
 
     const rows = G.status();

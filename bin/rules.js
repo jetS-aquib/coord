@@ -269,7 +269,18 @@ function check() {
   for (const d of decisionIds) if (!idx.includes(d)) err('decisions/index.md', `${d} is missing from the index — run any coord decide/supersede to rebuild`);
 
   // contracts
-  for (const f of L.lsMd(P.contracts).filter(f => f !== 'README.md')) {
+  // contracts/<repo>/<name>.md: the folder says who owns it, so a name used by two
+  // repos is two files and not a dispute.
+  const contractFiles = [];
+  for (const e of L.ls(P.contracts)) {
+    const full = path.join(P.contracts, e);
+    try {
+      if (require('fs').statSync(full).isDirectory()) {
+        for (const g of L.lsMd(full)) contractFiles.push(path.join(e, g));
+      } else if (e.endsWith('.md') && e !== 'README.md') contractFiles.push(e);
+    } catch { /* vanished mid-check */ }
+  }
+  for (const f of contractFiles) {
     const { fm } = L.parse(L.read(path.join(P.contracts, f)));
     if (!fm.owner) err(`contracts/${f}`, 'missing frontmatter `owner: <repo>`');
     else if (!repoSet.has(fm.owner)) err(`contracts/${f}`, `owner "${fm.owner}" is not an onboarded repo`);

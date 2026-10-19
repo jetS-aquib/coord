@@ -187,6 +187,18 @@ function judgeCoord(L, parts, own, why) {
     return null;
   }
 
+  // contracts/<repo>/<name>.md — the folder is the owner. Two repos can both serve a
+  // /video and both own a contract called video, because they are two files. Before
+  // this, one global name meant onboarding a second repo that happened to use the same
+  // word either stole the contract or had to be argued about by hand.
+  if (dir === 'contracts' && parts.length > 2 && own) {
+    const repo = parts[1];
+    if (repo !== own) {
+      return `contracts/${repo}/ belongs to ${repo}; you are ${own}. Only the owner edits a contract, ` +
+        `and only under an approved request. Reading it is always fine.`;
+    }
+    return null;
+  }
   if (dir === 'contracts' && file.endsWith('.md') && own) {
     const f = path.join(L.P.contracts, file);
     if (!L.exists(f)) return null;                                      // a new stub is fine
