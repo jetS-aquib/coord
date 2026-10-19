@@ -91,7 +91,9 @@
         "/api/user-settings",
         "/api/health"
       ],
-      "depends_on": [],
+      "depends_on": [
+        "video-processing-backend"
+      ],
       "onboarded": "2026-10-19",
       "status": "active"
     },
