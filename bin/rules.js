@@ -130,7 +130,11 @@ function transition(id, to, note = '') {
     const verb = to === 'approved' ? 'approve' : to;
     const filer = t.fm.filed_by || '';
     if (!L.isHuman()) {
-      throw new Error(`${from} -> ${to} is a person's call, not an agent's. ` +
+      // Not a rule about typing: an agent approving a ticket its own session filed is
+      // certifying its own homework. Say where it has to be run, or the next agent
+      // suggests a prefix that is still not a terminal.
+      throw new Error(`${from} -> ${to} is a person's call, not an agent's — it confirms the agent understood.\n` +
+        `It has to be run in a terminal; coord reads a tty, so an agent's shell does not count.\n` +
         (filer ? `Ask ${filer} to run: coord ${verb} ${id}` : `Ask whoever asked for this to run: coord ${verb} ${id}`));
     }
     const who = L.me();

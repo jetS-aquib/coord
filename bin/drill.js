@@ -1331,10 +1331,12 @@ function onboarding() {
     && /gamma owns: \/api\/gamma/.test(cshow.out) && /in the code, not on the board/.test(cshow.out), cshow.out);
   ok('and the re-scan writes nothing', JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8'))
     .repos.find(r => r.name === 'gamma').contracts.length === 1);
-  const cagent = coord(['contracts', 'gamma', '--add', '/internal/legacy']);
-  ok('an agent cannot change what a repo owns', !cagent.ok && /person's call/.test(cagent.out + cagent.err), cagent.out + cagent.err);
-  const cadd = coord(['contracts', 'gamma', '--add', '/internal/legacy'], { human: true });
-  ok('a person can', cadd.ok && /OK  gamma owns/.test(cadd.out) && /added:\s+\/internal\/legacy/.test(cadd.out), cadd.out);
+  // A registry row is a data correction, not an approval, so an agent may make one --
+  // and the row records that it did. The guards that matter are on the content.
+  const cadd = coord(['contracts', 'gamma', '--add', '/internal/legacy']);
+  ok('an agent can correct a registry row', cadd.ok && /OK  gamma owns/.test(cadd.out) && /added:\s+\/internal\/legacy/.test(cadd.out), cadd.out + cadd.err);
+  ok('and the change says it was an agent', /recorded as an agent change/.test(cadd.out), cadd.out);
+  ok('the activity log keeps it', /\tgamma\tregistry\t/.test(fs.readFileSync(path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`), 'utf8')), '');
   ok('and it lands in the registry', JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8'))
     .repos.find(r => r.name === 'gamma').contracts.join(',') === '/api/gamma,/internal/legacy');
   // One contract, one owner. Two of the real repos are forks that both serve /api/auth,
@@ -1350,9 +1352,21 @@ function onboarding() {
     .repos.find(r => r.name === 'alpha').contracts.includes('/api/alpha'));
   coord(['contracts', 'alpha', '--rm', '/api/alpha'], { human: true });   // leave the fixture as found
 
+  // --own replaces the set. That is the move that silently dropped twelve real
+  // contracts off creater-ai-backend, so dropping anything needs saying so -- and it
+  // needs saying by a person or an agent alike, because typing was never the risk.
+  const wipe = coord(['contracts', 'gamma', '--own', '/api/gamma'], { human: true });
+  ok('replacing the set refuses to drop silently', !wipe.ok
+    && /drops 1/.test(wipe.out + wipe.err) && /\/internal\/legacy/.test(wipe.out + wipe.err), wipe.out + wipe.err);
+  ok('nothing dropped', JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8'))
+    .repos.find(r => r.name === 'gamma').contracts.includes('/internal/legacy'));
+  const wipeYes = coord(['contracts', 'gamma', '--own', '/api/gamma', '--yes']);
+  ok('and does it when told to, agent or not', wipeYes.ok && /removed:\s+\/internal\/legacy/.test(wipeYes.out), wipeYes.out + wipeYes.err);
+  coord(['contracts', 'gamma', '--add', '/internal/legacy']);
+
   const cbad = coord(['contracts', 'gamma', '--own', 'notapath'], { human: true });
   ok('a contract has to be a path', !cbad.ok && /starts with/.test(cbad.out + cbad.err), cbad.out + cbad.err);
-  const crm = coord(['contracts', 'gamma', '--rm', '/internal/legacy'], { human: true });
+  const crm = coord(['contracts', 'gamma', '--rm', '/internal/legacy']);
   ok('and can be taken off again', crm.ok && /removed:\s+\/internal\/legacy/.test(crm.out), crm.out);
   const cre = coord(['onboard', 'gamma', '--apply'], { human: true });
   ok('onboarding an onboarded repo says so in words, and writes nothing',

@@ -222,9 +222,11 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
 
   repos                          onboarded / discovered / offboarded
   depends <repo>                 what it depends on
-      [--on a,b|--add X|--rm X]  set, add or remove one (a person's call)
+      [--on a,b|--add X|--rm X]  set, add or remove one. --on replaces the set:
+      [--yes]                    dropping anything needs --yes
   contracts <repo>               what it owns; with no flags, re-scans and shows the
-      [--own a,b|--add X|--rm X] difference (a person's call to change it)
+      [--own a,b|--add X|--rm X] difference. --own replaces the set: dropping
+      [--yes]                    anything needs --yes
   where [<repo> [<path>]]        where each repo is on THIS machine (--forget <repo>)
   onboard <repo> [--at <path>] --preflight
                                  read-only report: validation, stack, setup, candidates
@@ -252,6 +254,39 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
 
   help --all                     the commands your agent uses as well
 `;
+
+// Who may change a registry row.
+//
+// Approving a ticket is self-certification: the point is that a person confirmed the
+// agent understood, so an agent doing it certifies its own homework. A registry row is
+// not that. Nobody is blessing their own work, --rm undoes --add, and the human has
+// already said to make the change -- only the typing was delegated. Refusing that
+// prevented no bad write; it made people retype a command they had approved, and the
+// first thing it taught two different agents was to set COORD_ACTOR=human, which is
+// one word away at all times. A gate whose lesson is how to defeat it is worse than
+// no gate: it costs the honest path and not the dishonest one.
+//
+// So the check moved to where the damage is. Taking a contract another repo owns is
+// refused outright (contractClashes). Replacing a whole set is the move that silently
+// dropped twelve real contracts, so it needs --yes from anyone, person or agent. What
+// is left of "a person's call" here is the record: the row says who changed it.
+const rowChange = (repo, what, cur, next, replacing) => {
+  const gone = cur.filter(c => !next.includes(c));
+  if (replacing && gone.length && !flags.yes) {
+    die([`this replaces the whole set and drops ${gone.length}:`, ...gone.map(g => `  ${g}`),
+      `Re-run with --yes if that is what you mean, or use --rm/--add to change part of it.`].join('\n'));
+  }
+  return gone;
+};
+const rowDone = (repo, noun, cur, next, gone) => {
+  const added = next.filter(c => !cur.includes(c));
+  L.logActivity(repo, 'registry', `${noun}: ${next.join(' ') || 'nothing'}`);
+  L.snapshot(`coord: ${repo} ${noun} ${next.join(', ') || 'nothing'}${L.isHuman() ? '' : ' (by agent)'}`);
+  console.log(`OK  ${repo} ${noun}: ${next.join(', ') || 'nothing'}`);
+  if (added.length) console.log(`    added:   ${added.join(', ')}`);
+  if (gone.length) console.log(`    removed: ${gone.join(', ')}`);
+  if (!L.isHuman()) console.log(`    recorded as an agent change on ${L.me() || 'this machine'}`);
+};
 
 const CMDS = {
   list() {
@@ -592,17 +627,13 @@ const CMDS = {
     else if (typeof flags.rm === 'string') next = cur.filter(d => !list(flags.rm).includes(d));
     else return console.log(`${repo} depends on: ${cur.join(', ') || 'nothing'}`);
 
-    if (!L.isHuman()) die(`changing what a repo depends on is a person's call, not an agent's. Ask them to run: coord depends ${repo} --${flags.on !== undefined ? 'on' : flags.add !== undefined ? 'add' : 'rm'} ...`);
     const unknown = next.filter(d => !L.isOnboarded(d));
     if (unknown.length) die(`not onboarded: ${unknown.join(', ')} — coord repos`);
     if (next.includes(repo)) die(`${repo} cannot depend on itself`);
     next = [...new Set(next)].sort();
+    const gone = rowChange(repo, 'depends on', cur, next, 'on' in flags);
     L.regPut({ ...e, depends_on: next });
-    L.snapshot(`coord: ${repo} depends on ${next.join(', ') || 'nothing'}`);
-    console.log(`OK  ${repo} depends on: ${next.join(', ') || 'nothing'}`);
-    const gone = cur.filter(d => !next.includes(d)), add = next.filter(d => !cur.includes(d));
-    if (add.length) console.log(`    added:   ${add.join(', ')}`);
-    if (gone.length) console.log(`    removed: ${gone.join(', ')}`);
+    rowDone(repo, 'depends on', cur, next, gone);
   },
 
   // The mirror of `depends`. A registry row is written once at onboarding and then
@@ -630,18 +661,14 @@ const CMDS = {
       return console.log(`\n  nothing written. To take the scan as it stands:\n  coord contracts ${repo} --own ${found.map(f => f.group).join(',')}`);
     }
 
-    if (!L.isHuman()) die(`changing what a repo owns is a person's call, not an agent's. Ask them to run: coord contracts ${repo} --${'own' in flags ? 'own' : typeof flags.add === 'string' ? 'add' : 'rm'} ...`);
     const bad = next.filter(c => !c.startsWith('/'));
     if (bad.length) die(`a contract is a path and starts with "/": ${bad.join(', ')}`);
     const clashes = L.contractClashes(next.filter(c => !cur.includes(c)), repo);
     if (clashes.length) die(L.clashMsg(clashes, repo));
     next = [...new Set(next)].sort();
+    const gone = rowChange(repo, 'owns', cur, next, 'own' in flags);
     L.regPut({ ...e, contracts: next });
-    L.snapshot(`coord: ${repo} owns ${next.join(', ') || 'nothing'}`);
-    console.log(`OK  ${repo} owns: ${next.join(', ') || 'nothing'}`);
-    const gone = cur.filter(c => !next.includes(c)), add = next.filter(c => !cur.includes(c));
-    if (add.length) console.log(`    added:   ${add.join(', ')}`);
-    if (gone.length) console.log(`    removed: ${gone.join(', ')}`);
+    rowDone(repo, 'owns', cur, next, gone);
   },
 
   archive() {
@@ -748,7 +775,7 @@ const CMDS = {
 
   offboard() {
     const name = rest[0] || die('usage: coord offboard <repo> --yes');
-    if (!L.isHuman()) die(`offboarding ${name} is the human's call. Ask them to run: coord offboard ${name} --yes`);
+    if (!L.isHuman()) die(`offboarding ${name} is a person's call: it archives the status file and the open requests.\nRun it yourself in a terminal (coord reads a tty, so an agent's shell does not count):\n  coord offboard ${name} --yes`);
     if (!flags.yes) die(`this archives ${name}'s status file and requests (decisions stay). Re-run with --yes to confirm.`);
     console.log(O.offboard(name).map(d => '  ' + d).join('\n'));
   },
