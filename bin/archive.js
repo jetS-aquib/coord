@@ -79,9 +79,21 @@ function archiveTickets(acts, dryRun) {
   }
 }
 
-/* keep the latest 5 handoff notes per status file; older ones -> archive/handoffs/<repo>.md */
+// status/<repo>/<person>.md — one writer per file, so every one of them is trimmed
+// separately and the archive keeps the same shape underneath.
+function statusFiles() {
+  const out = [];
+  for (const d of L.ls(P.status)) {
+    const full = path.join(P.status, d);
+    try { if (!require('fs').statSync(full).isDirectory()) continue; } catch { continue; }
+    for (const f of L.lsMd(full)) out.push(path.join(d, f));
+  }
+  return out;
+}
+
+/* keep the latest 5 handoff notes per status file; older ones -> archive/handoffs/<repo>/<person>.md */
 function trimHandoffs(acts, dryRun) {
-  for (const f of L.lsMd(P.status)) {
+  for (const f of statusFiles()) {
     const file = path.join(P.status, f), text = L.read(file);
     const h = splitHandoffs(text);
     if (!h || h.notes.length <= KEEP_HANDOFFS) continue;
@@ -90,6 +102,7 @@ function trimHandoffs(acts, dryRun) {
     if (dryRun) continue;
     L.atomicWrite(file, h.head + h.hdr + h.pre + h.notes.slice(0, KEEP_HANDOFFS).join(''));
     const dest = path.join(P.archive, 'handoffs', f);
+    require('fs').mkdirSync(path.dirname(dest), { recursive: true });
     const prev = L.read(dest, `# Archived handoff notes — ${f.replace(/\.md$/, '')}\n\n`);
     const [hdr, ...rest] = [prev.slice(0, prev.indexOf('\n\n') + 2), prev.slice(prev.indexOf('\n\n') + 2)];
     L.atomicWrite(dest, hdr + move.join('') + rest.join(''));       // newest first

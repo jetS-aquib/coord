@@ -133,6 +133,70 @@ const AGENT_USAGE = `
 // failure mode that matters: a confident answer about a repo that moved on.
 const STALE_COMMITS = 40;
 
+// Board files that are lists of things that happened. Keeping both sides of these is
+// always right; nothing in them is a claim that could contradict another.
+const UNIONABLE = /^(status|context|activity|archive)\//;
+
+// Strip the markers, keep both halves, in order. That is what "union" means and git
+// already does it for files marked merge=union -- this is the same thing for the files
+// that cannot be marked, because they are only sometimes append-only.
+function union(L, rel) {
+  try {
+    const f = require('path').join(L.P.coord, rel);
+    const text = require('fs').readFileSync(f, 'utf8');
+    if (!/^<{7} /m.test(text)) return true;
+    const kept = text.split('\n').filter(l => !/^([<>]{7} |={7}$|\|{7} )/.test(l)).join('\n');
+    require('fs').writeFileSync(f, kept);
+    return true;
+  } catch { return false; }
+}
+
+// The failure that used to be permanent and silent. It is recorded either way; what
+// changed is that the remedy is one command and the next session says so out loud.
+const stuck = (stop, branch, files) => stop(
+  `${branch}: both you and someone else changed ${files.join(', ')} — the board is not syncing from this machine`,
+  `coord sync --resolve      # keeps both sides where that is safe`);
+
+// Two machines pick the same next number when neither has seen the other's request yet.
+// Git is happy -- different filenames -- so this surfaces only as a duplicate id, which
+// makes "coord show JET-198" ambiguous forever. Renumber the later one, but only while
+// it is still untouched: once somebody has started work the id may be in a commit.
+function healDuplicateIds(L) {
+  const P = L.P, path = require('path');
+  const seen = new Map(), renamed = [];
+  for (const f of L.lsMd(P.tickets)) {
+    const file = path.join(P.tickets, f);
+    const { fm, body } = L.parse(L.read(file));
+    if (!fm.id) continue;
+    const prev = seen.get(fm.id);
+    if (!prev) { seen.set(fm.id, { file, fm, body }); continue; }
+    // the later-created one moves; a tie goes to the one whose filename sorts later
+    const mine = String(fm.created || '') >= String(prev.fm.created || '') ? { file, fm, body } : prev;
+    if (mine !== prev) seen.set(fm.id, prev); else seen.set(fm.id, { file, fm, body });
+    const threadMoves = (L.sections(mine.body).Thread || '').split('\n').filter(l => /status:/.test(l)).length;
+    if (mine.fm.status !== 'open' || threadMoves > 1) continue;   // already in flight: leave it, check reports it
+    // The next free number, counted here rather than asked for: nextNum() takes the
+    // highest id it can see, and right now two files claim that same highest id — so it
+    // hands back the number we are trying to move away from, the new path equals the old
+    // one, and the write-then-delete takes the request with it.
+    const taken = new Set([...seen.keys()]);
+    for (const g of L.lsMd(P.tickets)) {
+      const m = /([A-Z]+-\d+)/.exec(g); if (m) taken.add(m[1]);
+    }
+    const highest = Math.max(0, ...[...taken].map(t => Number(String(t).split('-')[1]) || 0));
+    let n = Math.max(L.nextNum('ticket'), highest + 1);
+    let id = `${L.TICKET_PREFIX}-${L.pad3(n)}`;
+    while (taken.has(id)) id = `${L.TICKET_PREFIX}-${L.pad3(++n)}`;
+    const to = path.join(P.tickets, path.basename(mine.file).replace(mine.fm.id, id));
+    if (to === mine.file) continue;                              // never write over the file we are moving
+    L.atomicWrite(to, L.stringify({ ...mine.fm, id }, mine.body));
+    try { require('fs').rmSync(mine.file); } catch { /* already gone */ }
+    renamed.push(`${mine.fm.id} -> ${id}`);
+    seen.set(id, { file: to, fm: { ...mine.fm, id }, body: mine.body });
+  }
+  return renamed;
+}
+
 const USAGE = `coord — cross-repo coordination for the jetKreate platform
 
   coord                          what is waiting on you, and the one word to answer it
@@ -168,7 +232,8 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
       [--remove <name>]          drop someone who has left
   setup [--yes] [--no-path]      FIRST RUN AFTER CLONING: does all of the below, asking
                                  only where it cannot tell (cloning repos, editing ~/.zshrc)
-  sync [--quiet]                 pull and push the board (needs a remote on .coord)
+  sync [--quiet] [--resolve]     pull and push the board (needs a remote on .coord)
+                                 --resolve keeps both sides of a note two people wrote
   mail <kind> [--to NAME] [--html FILE] [--send]
                                  digest | weekly | nudge | welcome — prints by default,
                                  writes the HTML with --html, only sends with --send
@@ -564,12 +629,30 @@ const CMDS = {
     // In --quiet (hooks, git hooks) a failure must not print and must not block — but it
     // must not vanish either, or the board silently stops being shared.
     const stop = (msg, remedy) => { L.logFailure('sync', msg, remedy); return quiet ? undefined : die(msg); };
+
+    // Two machines pick the same next number when neither has seen the other's request
+    // yet. Git has nothing to say about it — the filenames differ — so it surfaces only
+    // as an id meaning two things forever. Run it on both sides of the rebase: before,
+    // because a board with no remote can be inconsistent on its own, and again after,
+    // because that is the moment the other machine's request actually arrives. With
+    // nothing to fix it does nothing.
+    const heal = () => {
+      try {
+        const fixed = healDuplicateIds(L);
+        if (fixed.length) {
+          say(`renumbered ${fixed.join(', ')} — two machines had picked the same id`);
+          L.snapshot('coord: renumber a request that collided');
+        }
+      } catch (e) { L.logFailure('sync', `could not renumber a duplicate id: ${e.message}`, 'coord check'); }
+    };
+    heal();
     if (!L.coordGit(['remote']).out) {
       if (quiet) return;                           // local-only board is a choice, not a failure
       die('.coord has no remote, so there is nothing to sync with.\n' +
           'Add one:  git -C ' + L.P.coord + ' remote add origin <url> && coord sync');
     }
     if (L.snapshot('coord: local changes before sync')) say('committed local changes');
+
 
     const f = L.coordGit(['fetch', '--quiet', 'origin']);
     if (!f.ok) return stop(`fetch failed: ${f.err.split('\n')[0]}`, 'coord sync');
@@ -582,15 +665,28 @@ const CMDS = {
       // fails with "cannot rebase", which reads like a conflict and is not one.
       const pull = L.coordGit(['rebase', '--autostash', `origin/${branch}`]);
       if (!pull.ok) {
-        const conflicted = L.sh('git', ['diff', '--name-only', '--diff-filter=U'], L.P.coord).out;
-        L.coordGit(['rebase', '--abort']);
-        return conflicted
-          ? stop(`${branch}: both you and someone else changed ${conflicted.split('\n').join(', ')}`,
-            `cd ${L.P.coord} && git pull --rebase    # resolve, then: coord check`)
-          : stop(`could not replay your changes onto origin/${branch}: ${(pull.err || '').split('\n')[0]}`,
-            `cd ${L.P.coord} && git status    # then: git pull --rebase`);
+        const conflicted = L.sh('git', ['diff', '--name-only', '--diff-filter=U'], L.P.coord).out
+          .split('\n').filter(Boolean);
+        // Everything the board writes is append-only prose. Two people adding notes to
+        // the same file is not a disagreement a person should be asked to settle, it is
+        // two things that both happened — so keep both and carry on. Anything else, or
+        // anything outside the board, still stops and asks.
+        const healed = conflicted.length && conflicted.every(f => UNIONABLE.test(f)) && conflicted.every(f => union(L, f));
+        if (healed) {
+          L.coordGit(['add', '--', ...conflicted]);
+          const cont = L.sh('git', ['-c', 'core.editor=true', 'rebase', '--continue'], L.P.coord);
+          if (cont.ok) say(`kept both sides of ${conflicted.join(', ')}`);
+          else { L.coordGit(['rebase', '--abort']); return stuck(stop, branch, conflicted); }
+        } else {
+          L.coordGit(['rebase', '--abort']);
+          return conflicted.length ? stuck(stop, branch, conflicted)
+            : stop(`could not replay your changes onto origin/${branch}: ${(pull.err || '').split('\n')[0]}`,
+              `cd ${L.P.coord} && git status    # then: git pull --rebase`);
+        }
       }
     } else say(`origin/${branch} does not exist yet — publishing the board for the first time`);
+
+    heal();                                        // the other machine's requests are here now
 
     let push = L.coordGit(['push', '-u', 'origin', branch]);
     if (!push.ok && upstream) {

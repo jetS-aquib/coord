@@ -198,14 +198,17 @@ function check() {
   if (notCloned.length) info('this machine', `${notCloned.length} active repo(s) not cloned here: ${notCloned.join(', ')} — clone them beside the board if you need them`);
 
   // status files
-  for (const r of repos) if (!L.exists(path.join(P.status, `${r}.md`))) err(`status/${r}.md`, 'missing status file for an active repo');
-  for (const f of L.lsMd(P.status)) {
-    const repo = f.replace(/\.md$/, '');
-    if (!repoSet.has(repo)) { warn(`status/${f}`, L.regGet(repo) ? 'repo is offboarded — run coord archive' : 'not an onboarded repo'); continue; }
-    const s = L.readStatus(repo);
-    if (!L.REPO_STATUS.includes(s.status)) err(`status/${f}`, `Status "${s.status}" not one of: ${L.REPO_STATUS.join(' / ')}`);
-    if (!s.updated) err(`status/${f}`, 'missing Last updated');
-    if (s.notes > 5) warn(`status/${f}`, `${s.notes} handoff notes — run "coord archive" to trim to 5`);
+  for (const r of repos) if (!L.lsMd(L.statusDir(r)).length) err(`status/${r}/`, 'no status file for an active repo');
+  for (const d of L.ls(P.status)) {
+    const full = path.join(P.status, d);
+    try { if (!require('fs').statSync(full).isDirectory()) continue; } catch { continue; }
+    if (!repoSet.has(d)) { warn(`status/${d}/`, L.regGet(d) ? 'repo is offboarded — run coord archive' : 'not an onboarded repo'); continue; }
+    for (const s of L.statusPeople(d)) {
+      const where = `status/${d}/${s.file}`;
+      if (!L.REPO_STATUS.includes(s.status)) err(where, `Status "${s.status}" not one of: ${L.REPO_STATUS.join(' / ')}`);
+      if (!s.updated) err(where, 'missing Last updated');
+      if (s.notes > 5) warn(where, `${s.notes} handoff notes — run "coord archive" to trim to 5`);
+    }
   }
 
   // decisions

@@ -13,6 +13,12 @@ const ok = (name, cond, detail = '') => {
   console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${cond || !detail ? '' : '\n        ' + String(detail).trim().split('\n').join('\n        ')}`);
 };
 const git = (args, cwd) => cp.spawnSync('git', args, { cwd, encoding: 'utf8' });
+const statusPath = (CO, repo) => {
+  const d = path.join(CO, 'status', repo);
+  const f = (fs.existsSync(d) ? fs.readdirSync(d) : []).find(n => n.endsWith('.md'));
+  return path.join(d, f || 'drill.md');
+};
+
 function coord(args, { cwd = TMP, human = false } = {}) {
   const r = cp.spawnSync(process.execPath, [COORD_BIN, ...args], {
     cwd, encoding: 'utf8',
@@ -50,6 +56,7 @@ function run() {
     umbrella();
     navigating();
     graphs();
+    colliding();
     captured();
     team();
     onboarding();
@@ -93,7 +100,9 @@ function setup() {
 
   for (const r of ['alpha', 'beta']) coord(['onboard', r, '--apply', '--stack', 'fixture'], { human: true });
   const st = fs.readdirSync(path.join(CO, 'status'));
-  ok('onboarding creates status files', st.length === 2 && st.includes('alpha.md') && st.includes('beta.md'), st.join(' '));
+  ok('onboarding creates a status folder per repo, one file per person',
+    st.length === 2 && st.includes('alpha') && st.includes('beta') &&
+    fs.readdirSync(path.join(CO, 'status', 'alpha')).some(f => f.endsWith('.md')), st.join(' '));
   ok('non-repo folder never appears', !st.includes('not-a-repo.md'));
   ok('tickets refused for an unregistered repo', !coord(['new', '--from', 'alpha', '--to', 'ghost', '--title', 'x']).ok);
 }
@@ -696,6 +705,62 @@ function graphs() {
   })(), git(['status', '--porcelain'], CO).stdout.slice(0, 200));
 }
 
+// Four machines pushing to one board on a four-minute timer. Every one of these was a
+// real failure before it was a test: measured with two clones and a bare remote, where
+// the second machine's sync stopped dead and then stayed stopped, silently, because
+// hooks sync with --quiet. A board that quietly stops being shared is worse than none.
+function colliding() {
+  const J = path.join(__dirname, 'jsonmerge.js');
+
+  // people.json and repos.json are sets. Two people running setup the same morning used
+  // to collide on a line of JSON; merged by key there is nothing to collide over.
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'coord-merge-'));
+  const w = (n, o) => { const f = path.join(d, n); fs.writeFileSync(f, JSON.stringify(o, null, 2)); return f; };
+  const base = w('base.json', { version: 1, people: [] });
+  const ours = w('ours.json', { version: 1, people: [{ name: 'Dev One', email: 'one@x', since: '2026-10-19' }] });
+  const theirs = w('theirs.json', { version: 1, people: [{ name: 'Dev Two', email: 'two@x', since: '2026-10-19' }] });
+  const r = cp.spawnSync(process.execPath, [J, base, ours, theirs], { encoding: 'utf8' });
+  const merged = JSON.parse(fs.readFileSync(ours, 'utf8')).people.map(p => p.name);
+  ok('two people added on two machines both survive the merge',
+    r.status === 0 && merged.includes('Dev One') && merged.includes('Dev Two'), merged.join(' + '));
+
+  // Same row on both sides: later wins, rather than a conflict nobody can answer.
+  const b2 = w('b2.json', { version: 1, repos: [{ name: 'api', stack: 'old', updated: '2026-01-01' }] });
+  const o2 = w('o2.json', { version: 1, repos: [{ name: 'api', stack: 'mine', updated: '2026-02-01' }] });
+  const t2 = w('t2.json', { version: 1, repos: [{ name: 'api', stack: 'theirs', updated: '2026-03-01' }] });
+  cp.spawnSync(process.execPath, [J, b2, o2, t2], { encoding: 'utf8' });
+  ok('when both changed one row, the later write wins and nothing conflicts',
+    JSON.parse(fs.readFileSync(o2, 'utf8')).repos[0].stack === 'theirs');
+
+  // A row one side deleted stays deleted; a union that resurrects it would undo an
+  // offboarding every time somebody else synced.
+  const b3 = w('b3.json', { version: 1, repos: [{ name: 'gone' }, { name: 'api' }] });
+  const o3 = w('o3.json', { version: 1, repos: [{ name: 'api' }] });
+  const t3 = w('t3.json', { version: 1, repos: [{ name: 'gone' }, { name: 'api' }] });
+  cp.spawnSync(process.execPath, [J, b3, o3, t3], { encoding: 'utf8' });
+  ok('a row one side deleted is not resurrected by the merge',
+    !JSON.parse(fs.readFileSync(o3, 'utf8')).repos.some(x => x.name === 'gone'));
+
+  // Two machines pick the same next number when neither has seen the other's request.
+  // Git is happy -- different filenames -- so it shows up only as an id that means two
+  // things forever. The first version of this fix renumbered JET-001 to JET-001 and
+  // deleted the file on the way past; losing somebody's request is far worse than a
+  // duplicate id, so both halves are asserted.
+  const t = path.join(CO, 'tickets');
+  const mk = (id, slug, created) => fs.writeFileSync(path.join(t, `${id}-${slug}.md`),
+    `---\nid: ${id}\ntitle: ${slug}\nfrom: alpha\nto: beta\nstatus: open\ncreated: ${created}\nupdated: ${created}\ndecisions: []\n---\n\n## Request\n\nr\n\n## Thread\n\n${created} drill: created ticket, status: - -> open\n`);
+  mk('JET-700', 'machine-one', '2026-10-19T10:00:00+05:30');
+  mk('JET-700', 'machine-two', '2026-10-19T10:00:05+05:30');
+  const before = fs.readdirSync(t).length;
+  coord(['sync', '--quiet'], { human: true });
+  const after = fs.readdirSync(t);
+  ok('a duplicate id is renumbered rather than left ambiguous',
+    !after.includes('JET-700-machine-two.md') && after.some(f => /machine-two/.test(f)), after.filter(f=>/machine/.test(f)).join(' '));
+  ok('and nothing is lost on the way', after.length === before, `${before} -> ${after.length}`);
+  ok('the board is consistent afterwards', !coord(['check']).out.includes('duplicate'), coord(['check']).out.slice(0, 200));
+  for (const f of after.filter(x => /machine-(one|two)/.test(x))) fs.rmSync(path.join(t, f));
+}
+
 function guard() {
   const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
   const ask = (cwd, tool, input) => {
@@ -737,8 +802,13 @@ function guard() {
   allows('guard allows grep across another repo', A, 'Bash', { command: `grep -rn foo ${B}` });
   allows('guard allows writing in your own repo via shell', A, 'Bash', { command: `echo x > ${path.join(A, 'n.md')}` });
 
-  allows('guard allows your own status file', A, 'Edit', { file_path: path.join(CO, 'status', 'alpha.md') });
-  denies("guard blocks another repo's status file", A, 'Edit', { file_path: path.join(CO, 'status', 'beta.md') }, 'belongs to beta');
+  allows('guard allows your own status file', A, 'Edit', { file_path: statusPath(CO, 'alpha') });
+  denies("guard blocks another repo's status folder", A, 'Edit', { file_path: statusPath(CO, 'beta') }, 'belongs to beta');
+  // With nobody on the roster yet coord cannot tell whose file is whose, and a guard
+  // that guesses would block real work. It allows, and the block is asserted below,
+  // where an identity exists.
+  allows('with no identity known, it does not guess whose note is whose', A, 'Edit',
+    { file_path: path.join(CO, 'status', 'alpha', 'someone-else.md') });
   denies('guard blocks hand-editing repos.json', A, 'Write', { file_path: path.join(CO, 'repos.json') }, 'written only by the CLI');
   denies('guard blocks hand-editing people.json', A, 'Write', { file_path: path.join(CO, 'people.json') }, 'written only by the CLI');
   denies('guard blocks editing a decision record', A, 'Edit', { file_path: path.join(CO, 'decisions', 'D-001-x.md') }, 'immutable');
@@ -934,8 +1004,18 @@ function roster() {
   ok('coord who marks which one is you', /\(you\)/.test(w.out), w.out);
 
   // the board stays one row per repo — people live in their own panel
-  const board = fs.readFileSync(path.join(CO, 'status', 'alpha.md'), 'utf8');
+  const board = fs.readFileSync(statusPath(CO, 'alpha'), 'utf8');
   ok('status files gained no owner field', !/\*\*(Who|Owner|Dev)/i.test(board));
+  // One writer per file is what removes the collision. Now that coord knows who this
+  // machine is, writing somebody else's note has to be refused or the guarantee is void.
+  ok("another person's note is refused once coord knows who you are", (() => {
+    const r = cp.spawnSync(process.execPath, [GUARD], {
+      input: JSON.stringify({ cwd: A, session_id: 'own', tool_name: 'Edit',
+        tool_input: { file_path: path.join(CO, 'status', 'alpha', 'somebody-else.md') } }),
+      encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+    });
+    return /somebody else's handoff note/.test(r.stdout);
+  })());
 
   onBehalf();
   ok('removing someone is human-only', !coord(['who', '--remove', me]).ok);
@@ -1173,17 +1253,17 @@ function onboarding() {
     input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
   });
   ok('a discovered repo is briefed that it is not onboarded', /is not onboarded/.test(dbrief.stdout) && /ONBOARDING\.md/.test(dbrief.stdout), dbrief.stdout.slice(0, 140));
-  ok('no status file for the discovered repo', !fs.existsSync(path.join(CO, 'status', 'gamma.md')));
+  ok('no status file for the discovered repo', !fs.existsSync(path.join(CO, 'status', 'gamma')));
 
   const before = fs.readdirSync(path.join(CO, 'status')).length;
   const pre = coord(['onboard', name, '--preflight'], { cwd: dir });
   ok('preflight passes validation', pre.ok && /validation: passed/.test(pre.out), pre.out);
   ok('preflight detects the stack', /Express/.test(pre.out) && /package manager: npm|package manager: unknown/.test(pre.out), pre.out);
   ok('preflight finds the candidate contract', /\/api\/gamma/.test(pre.out), pre.out);
-  ok('preflight changes nothing', fs.readdirSync(path.join(CO, 'status')).length === before && !fs.existsSync(path.join(CO, 'status', 'gamma.md')));
+  ok('preflight changes nothing', fs.readdirSync(path.join(CO, 'status')).length === before && !fs.existsSync(path.join(CO, 'status', 'gamma')));
 
   const ap = coord(['onboard', name, '--apply', '--stack', 'npm + Express', '--contracts', '/api/gamma', '--depends-on', 'alpha'], { human: true });
-  ok('apply onboards the repo', ap.ok && fs.existsSync(path.join(CO, 'status', 'gamma.md')), ap.out);
+  ok('apply onboards the repo', ap.ok && fs.existsSync(path.join(CO, 'status', 'gamma')), ap.out);
   const entry = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === name);
   ok('registry entry is complete', !!entry && entry.status === 'active' && entry.contracts[0] === '/api/gamma' && entry.depends_on[0] === 'alpha' && !!entry.onboarded, JSON.stringify(entry));
   ok('.git/info/exclude got the local-only entries',
@@ -1210,8 +1290,9 @@ function onboarding() {
   const off = coord(['offboard', name, '--yes'], { human: true });
   const e2 = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === name);
   ok('offboard marks the registry entry', off.ok && e2.status === 'offboarded' && !!e2.offboarded, off.out);
-  ok('status file archived, not deleted',
-    !fs.existsSync(path.join(CO, 'status', 'gamma.md')) && fs.existsSync(path.join(CO, 'archive', 'status', 'gamma.md')));
+  ok('status folder archived, not deleted',
+    !fs.existsSync(path.join(CO, 'status', 'gamma')) &&
+    fs.readdirSync(path.join(CO, 'archive', 'status', 'gamma')).some(f => f.endsWith('.md')));
   ok('its open ticket archived with a flag',
     /gamma please.*was open at offboarding/.test(fs.readFileSync(path.join(CO, 'archive', 'tickets-index.md'), 'utf8')));
   ok('decisions untouched by offboarding', fs.readdirSync(path.join(CO, 'decisions')).length >= 2);
@@ -1232,7 +1313,7 @@ function archiving(id) {
   fs.writeFileSync(path.join(CO, 'activity', `${oldDay}.log`), `${oldDay}T09:00:00+00:00\tbeta\tedit\tjobs.js ${id}\n`);
 
   // six handoff notes -> one should move out
-  const sp = path.join(CO, 'status', 'beta.md');
+  const sp = statusPath(CO, 'beta');
   fs.writeFileSync(sp, fs.readFileSync(sp, 'utf8') + Array.from({ length: 6 }, (_, i) => `### note ${i + 1}\n\ndid thing ${i + 1}\n\n`).join(''));
 
   const dry = coord(['archive', '--dry-run']);
@@ -1249,7 +1330,7 @@ function archiving(id) {
     !fs.existsSync(path.join(CO, 'activity', `${oldDay}.log`)));
   ok('handoff notes trimmed to 5, older one archived',
     (fs.readFileSync(sp, 'utf8').match(/^### /gm) || []).length === 5 &&
-    fs.readFileSync(path.join(CO, 'archive', 'handoffs', 'beta.md'), 'utf8').includes('note 6'));
+    fs.readFileSync(path.join(CO, 'archive', 'handoffs', 'beta', path.basename(statusPath(CO, 'beta'))), 'utf8').includes('note 6'));
   ok('archive snapshotted .coord', git(['log', '--oneline'], CO).stdout.includes('archive'));
 
   const w = coord(['why', `${path.join(TMP, 'beta', 'jobs.js')}:2`], { cwd: path.join(TMP, 'beta') });
@@ -1270,7 +1351,7 @@ function resilience() {
   }).stdout;
   // Another repo's status file is refused on ownership, never on a ticket — so this
   // probe measures the guard being on or off, and nothing else.
-  const beta = path.join(TMP, 'beta'), alphaFile = path.join(CO, 'status', 'alpha.md');
+  const beta = path.join(TMP, 'beta'), alphaFile = statusPath(CO, 'alpha');
   const today = path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`);
   const failLog = path.join(CO, 'activity', 'failures.log');
 
@@ -1361,7 +1442,7 @@ function resilience() {
   // A new window, a /clear, a compaction, a crash. Everything the next session needs has
   // to be on disk, because the conversation that knew it is gone.
   const sess = path.join(TMP, 'beta');
-  const statusOf = () => fs.readFileSync(path.join(CO, 'status', 'beta.md'), 'utf8');
+  const statusOf = () => fs.readFileSync(statusPath(CO, 'beta'), 'utf8');
   const brief = cwd => {
     const r = hook('session-start', { cwd });
     try { return JSON.parse(r.stdout || '{}').hookSpecificOutput.additionalContext || ''; } catch { return ''; }

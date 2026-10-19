@@ -153,6 +153,12 @@ function licence(L, own, other) {
   return null;
 }
 
+// "" when we cannot tell who this machine is, which must not block anything.
+function mineOnly(L, file) {
+  const mine = L.whoSlugPublic();
+  return !!mine && file !== mine + '.md';
+}
+
 function judgeCoord(L, parts, own, why) {
   const [dir, file = ''] = parts;
 
@@ -165,9 +171,19 @@ function judgeCoord(L, parts, own, why) {
     return `Decision records are immutable and CLI-written (${why} targets ${file}). Use: coord decide ... , or coord supersede <old> <new> to retire one.`;
   }
 
-  if (dir === 'status' && file.endsWith('.md')) {
-    const repo = file.replace(/\.md$/, '');
-    if (own && repo !== own) return `status/${file} belongs to ${repo}; you are ${own}. Each repo writes only its own status file.`;
+  // status/<repo>/<person>.md — one writer per file. Two rules, not one: not another
+  // repo's folder, and not another person's file inside your own repo. The second is new
+  // with the layout, and it is the one that keeps the no-collision guarantee true: the
+  // moment one session writes somebody else's file, two machines are back on one path.
+  if (dir === 'status') {
+    const [repo, who] = [parts[1], parts[2] || ''];
+    if (own && repo && repo !== own) {
+      return `status/${repo}/ belongs to ${repo}; you are ${own}. Each repo writes only its own status.`;
+    }
+    if (who.endsWith('.md') && mineOnly(L, who)) {
+      return `status/${repo}/${who} is somebody else's handoff note. Yours is status/${repo}/${L.whoSlugPublic()}.md — ` +
+        `one file per person is what stops two machines colliding on the board.`;
+    }
     return null;
   }
 

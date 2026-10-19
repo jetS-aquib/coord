@@ -442,7 +442,22 @@ const isHuman = () => process.env.COORD_ACTOR === 'human' || (!!process.stdout.i
 const actor = () => me() || (isHuman() ? 'human' : (repoOf(process.cwd()) || 'platform-root'));
 
 /* ---------- templates ---------- */
-const statusTemplate = repo => `# ${repo}
+// One file per person per repo, not one file per repo. Two people working in the same
+// repo both end their session by writing a handoff note, both land on the same line of
+// the same file, and git stops the second one dead. Worse, it stays stopped: every sync
+// after that fails the same way, quietly, because hooks sync with --quiet. The machine
+// goes on looking fine while nothing it does reaches anybody.
+//
+// Giving each writer their own path removes the collision rather than resolving it,
+// which is the same move that makes the activity logs safe. It is also more honest:
+// a repo two people are in does not have one "Current task", and pretending otherwise
+// is what made them fight over the field.
+const statusDir = repo => path.join(P.status, repo);
+const whoSlug = who => slug(who || me() || 'unknown');
+const statusFile = (repo, who) => path.join(statusDir(repo), whoSlug(who) + '.md');
+const whoSlugPublic = () => (me() ? whoSlug(me()) : '');
+
+const statusTemplate = (repo, who) => `# ${repo} — ${who || 'unknown'}
 
 - **Current task:** —
 - **Status:** idle
@@ -454,22 +469,59 @@ const statusTemplate = repo => `# ${repo}
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
 `;
 
+// The board predates this layout. Move the shared file into whoever is here, once.
+function migrateStatus(repo) {
+  const old = path.join(P.status, `${repo}.md`);
+  if (!exists(old)) return false;
+  const mine = statusFile(repo, me());
+  fs.mkdirSync(statusDir(repo), { recursive: true });
+  if (!exists(mine)) {
+    atomicWrite(mine, read(old).replace(/^# .*$/m, `# ${repo} — ${me() || 'unknown'}`));
+  }
+  try { fs.rmSync(old); } catch { /* someone else's sync got there first */ }
+  return true;
+}
+
 function ensureStatusFiles() {
   for (const d of [P.status, P.tickets, P.decisions, P.contracts, P.context, P.activity, P.archive]) fs.mkdirSync(d, { recursive: true });
-  // a fresh clone gets the merge strategy too: daily logs are append-only from several machines
   const ga = path.join(P.coord, '.gitattributes');
-  if (!exists(ga)) atomicWrite(ga, 'activity/*.log           merge=union\nactivity/hook-errors.log merge=union\narchive/tickets-index.md merge=union\n');
+  if (!exists(ga)) atomicWrite(ga, 'activity/*.log           merge=union\nactivity/hook-errors.log merge=union\narchive/tickets-index.md merge=union\npeople.json              merge=coord-json\nrepos.json               merge=coord-json\n');
   const made = [];
   for (const r of onboarded()) {              // discovered-but-not-onboarded repos get nothing
-    const f = path.join(P.status, `${r}.md`);
-    if (!exists(f)) { atomicWrite(f, statusTemplate(r)); made.push(r); }
+    migrateStatus(r);
+    const f = statusFile(r);
+    if (!exists(f)) { fs.mkdirSync(statusDir(r), { recursive: true }); atomicWrite(f, statusTemplate(r, me())); made.push(r); }
   }
   return made;
 }
+
+const fieldOf = (t, k) => (t.match(new RegExp(`^-\\s*\\*\\*${k}:\\*\\*\\s*(.*)$`, 'mi')) || [, ''])[1].trim();
+
+// Everyone's view of one repo, newest first.
+function statusPeople(repo) {
+  return lsMd(statusDir(repo)).map(f => {
+    const t = read(path.join(statusDir(repo), f));
+    return {
+      who: (t.match(/^# .*? — (.+)$/m) || [, f.replace(/\.md$/, '')])[1].trim(),
+      file: f,
+      task: fieldOf(t, 'Current task'), status: fieldOf(t, 'Status'),
+      blockers: fieldOf(t, 'Blockers'), updated: fieldOf(t, 'Last updated'),
+      notes: (t.match(/^### .*/gm) || []).length, text: t,
+    };
+  }).sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
+}
+
+// The repo's situation, in the shape every caller already expects. Whoever is actually
+// doing something speaks for the repo; failing that, whoever wrote last.
 function readStatus(repo) {
-  const t = read(path.join(P.status, `${repo}.md`));
-  const field = k => (t.match(new RegExp(`^-\\s*\\*\\*${k}:\\*\\*\\s*(.*)$`, 'mi')) || [, ''])[1].trim();
-  return { repo, task: field('Current task'), status: field('Status'), blockers: field('Blockers'), updated: field('Last updated'), notes: (t.match(/^### .*/gm) || []).length, text: t };
+  const all = statusPeople(repo);
+  const top = all.find(s => s.status && s.status !== 'idle') || all[0] || {};
+  return {
+    repo, who: top.who || '', task: top.task || '', status: top.status || 'idle',
+    blockers: top.blockers || '—', updated: top.updated || '',
+    notes: all.reduce((n, s) => n + s.notes, 0),
+    people: all, text: top.text || '',
+  };
 }
 
 /* ---------- the ticket you are currently on ---------- */
@@ -559,8 +611,11 @@ function reposFor(name, days = 7) {
 
 // Add a "### <timestamp>" block at the top of Handoff notes. Newest first, so a new
 // session reads the latest one without scrolling — and so does the next person.
-function addHandoff(repo, text) {
-  const f = path.join(P.status, `${repo}.md`);
+function addHandoff(repo, text, who) {
+  // Your file, never anyone else's: that is the whole point of the layout.
+  migrateStatus(repo);
+  const f = statusFile(repo, who);
+  if (!exists(f)) { fs.mkdirSync(statusDir(repo), { recursive: true }); atomicWrite(f, statusTemplate(repo, who || me())); }
   const t = read(f);
   const head = '## Handoff notes';
   const i = t.indexOf(head);
@@ -575,18 +630,29 @@ function addHandoff(repo, text) {
   return true;
 }
 
-// The newest handoff note in a repo's status file — "what was I doing?"
-function latestHandoff(repo) {
-  const t = read(path.join(P.status, `${repo}.md`));
-  const i = t.indexOf('## Handoff notes');
+// The newest handoff note in a repo — "what was I doing?" — across everyone who has
+// been in it, because the answer is as likely to be somebody else's note as your own.
+function noteIn(text) {
+  const i = text.indexOf('## Handoff notes');
   if (i < 0) return null;
-  const after = t.slice(i);
+  const after = text.slice(i);
   const m = /^### (.+)$/m.exec(after);
   if (!m) return null;
-  const start = after.indexOf(m[0]);
-  const rest = after.slice(start + m[0].length);
+  const rest = after.slice(after.indexOf(m[0]) + m[0].length);
   const next = rest.search(/^### /m);
   return { when: m[1].trim(), text: (next < 0 ? rest : rest.slice(0, next)).trim() };
+}
+function latestHandoff(repo) {
+  let best = null;
+  for (const s of statusPeople(repo)) {
+    const n = noteIn(s.text);
+    if (!n) continue;
+    // Dates compare as dates. A hand-written heading is not one, and string-comparing
+    // it against an ISO stamp once made "### note 5" look newer than anything.
+    const a = Date.parse(n.when), b = best && Date.parse(best.when);
+    if (!best || (isFinite(a) && (!isFinite(b) || a > b))) best = { ...n, who: s.who };
+  }
+  return best;
 }
 
 /* ---------- failures: anything automatic that did not work ---------- */
@@ -648,4 +714,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, repoAt, sessionRepo, setSessionRepo, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, repoAt, sessionRepo, setSessionRepo, statusDir, statusFile, statusPeople, migrateStatus, whoSlugPublic, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

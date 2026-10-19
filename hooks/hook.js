@@ -146,6 +146,15 @@ function brief(L, repo, onboarded) {
   // Anything automatic that broke on this machine. Nobody opens a log file; this is
   // the one moment a person is guaranteed to be looking.
   const f = L.failures();
+  // A board that stopped syncing is not one failure among several. Everything this
+  // session does is invisible to everyone else until it is fixed, and the session would
+  // otherwise look completely normal — so it goes first, in as many words.
+  const sync = f.find(x => x.scope === 'sync');
+  if (sync) {
+    lines.unshift(`THE BOARD IS NOT SYNCING FROM THIS MACHINE. ${sync.msg} Nothing done here reaches anyone ` +
+      `until it is fixed: run "coord sync --resolve", or "coord fix" for the manual command. ` +
+      `Tell the human before doing anything else.`);
+  }
   if (f.length) lines.push(`${f.length} coord automation(s) failed on this machine since ${f[f.length - 1].first.slice(0, 10)} (${f.map(x => x.scope).join(', ')}). "coord fix" lists each one with the command that does it by hand.`);
 
   // The rules themselves are in jetKreate/CLAUDE.md, which loads in every session under

@@ -140,6 +140,7 @@ function setup({ yes = false, noPath = false } = {}) {
   if (!here.size) say('  no repos here yet — re-run coord setup once you have cloned some');
   else for (const line of D.devsetup({})) say(`  ${line}`);
   agentHooks(say, todo);
+  for (const line of D.installMergeDriver()) say(`  ${line}`);
   heavyRepos(say);
 
   /* 6. verify */

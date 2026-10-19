@@ -407,6 +407,22 @@ function installClaudeHooks({ file = claudeSettings() } = {}) {
   return out;
 }
 
+/* ---------- the board's own git config ---------- */
+// .gitattributes says people.json and repos.json use merge=coord-json; this is what
+// makes that name mean something in this clone. Without it git prints "Driver not
+// found" and falls back to a text merge, which is the conflict we are removing.
+function installMergeDriver() {
+  const out = [];
+  const cmd = `${JSON.stringify(nodeCmd())} ${JSON.stringify(path.join(P.coord, 'bin', 'jsonmerge.js'))} %O %A %B`;
+  const cur = L.coordGit(['config', '--get', 'merge.coord-json.driver']).out;
+  if (cur === cmd) return ['the board already merges its registries by key'];
+  L.coordGit(['config', 'merge.coord-json.name', 'union coord registries by key']);
+  const r = L.coordGit(['config', 'merge.coord-json.driver', cmd]);
+  out.push(r.ok ? 'the board now merges people.json and repos.json by key, never by text'
+    : `could not set the merge driver: ${(r.err || '').split('\n')[0]}`);
+  return out;
+}
+
 /* ---------- Copilot's own hooks (~/.copilot/hooks/coord.json) ---------- */
 // Copilot grew a hook API: the same four moments Claude Code gives us, and preToolUse
 // can deny. So the guard, the briefing, the overlap warning and the handoff note are no
@@ -492,5 +508,5 @@ function autoStart(repo) {
 
 const pathHint = () => `export PATH="${path.join(P.coord, 'bin')}:$PATH"`;
 
-module.exports = { devsetup, logCommit, copilotDoc, withCoordSection, installClaudeHooks, claudeSettings,
+module.exports = { devsetup, logCommit, copilotDoc, withCoordSection, installClaudeHooks, claudeSettings, installMergeDriver,
   installCopilotHooks, copilotHooksFile, copilotConfig, COORD_BIN, pathHint };

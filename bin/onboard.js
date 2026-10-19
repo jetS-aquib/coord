@@ -232,8 +232,12 @@ function apply(name, { stack, contracts = [], depends_on = [], at } = {}) {
   });
   done.push(`repos.json: ${name} added (active)`);
 
-  const sf = path.join(P.status, `${name}.md`);
-  if (!L.exists(sf)) { L.atomicWrite(sf, L.statusTemplate(name)); done.push(`status/${name}.md created (idle)`); }
+  const sf = L.statusFile(name);
+  if (!L.exists(sf)) {
+    fs.mkdirSync(L.statusDir(name), { recursive: true });
+    L.atomicWrite(sf, L.statusTemplate(name, L.me()));
+    done.push(`status/${name}/${path.basename(sf)} created (idle)`);
+  }
   else done.push(`status/${name}.md already existed — left alone`);
 
   const ex = addExcludes(rep.abs);
@@ -266,12 +270,13 @@ function offboard(name) {
   L.regPut({ ...e, status: 'offboarded', offboarded: L.day() });
   done.push(`repos.json: ${name} -> offboarded`);
 
-  const sf = path.join(P.status, `${name}.md`);
+  const sf = L.statusDir(name);
   if (L.exists(sf)) {
-    const dest = path.join(P.archive, 'status', `${name}.md`);
+    const dest = path.join(P.archive, 'status', name);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.rmSync(dest, { recursive: true, force: true });
     fs.renameSync(sf, dest);
-    done.push(`status/${name}.md -> archive/status/${name}.md`);
+    done.push(`status/${name}/ -> archive/status/${name}/`);
   }
 
   const rows = [];
