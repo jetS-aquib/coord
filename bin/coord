@@ -217,9 +217,12 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
       --rm <slug>
   archive [--dry-run]
   check                          validate formats, ownership, transitions, links, registry
+  doctor                         one block to paste when something is wrong
   drill                          end-to-end self-test in a temp folder
 
   repos                          onboarded / discovered / offboarded
+  depends <repo>                 what it depends on
+      [--on a,b|--add X|--rm X]  set, add or remove one (a person's call)
   where [<repo> [<path>]]        where each repo is on THIS machine (--forget <repo>)
   onboard <repo> [--at <path>] --preflight
                                  read-only report: validation, stack, setup, candidates
@@ -528,6 +531,76 @@ const CMDS = {
     const stale = rows.filter(r => r.onBoard && r.behind > STALE_COMMITS);
     for (const r of share) console.log(`\n${r.repo} has one nobody else can see:  coord graph ${r.repo}`);
     for (const r of stale) console.log(`\n${r.repo}\u2019s graph is ${r.behind} commits behind. Treat it as history, or rebuild it.`);
+  },
+
+  // repos.json is CLI-only, so without this there is no way to take a wrong dependency
+  // back out -- which is exactly the hole the scanner fell through.
+  // A report to paste at somebody who can fix it. Self-healing comes later; knowing
+  // exactly what is wrong, in one block, is what makes a fix possible at all.
+  doctor() {
+    const out = [], add = (...l) => out.push(...l);
+    const G = require('./graphs.js');
+    add(`# coord doctor — ${L.nowISO()}`, '');
+    add(`version      ${L.coordGit(['rev-parse', '--short', 'HEAD']).out || '?'} on ${L.coordGit(['rev-parse', '--abbrev-ref', 'HEAD']).out || '?'}`);
+    add(`node         ${process.version}    platform ${process.platform}`);
+    add(`me           ${L.me() || '(git user.name not set)'}`);
+    add(`paused       ${L.paused() || 'no'}`);
+    const sy = L.lastSync();
+    add(`last sync    ${sy ? Math.round(sy.minutes) + ' min ago' : 'never'}`);
+
+    add('', '## repos');
+    for (const r of L.registry()) {
+      const here = L.isRepoAt(L.repoDir(r.name));
+      add(`  ${r.name.padEnd(26)} ${String(r.status).padEnd(11)} ${here ? 'cloned here' : 'NOT on this machine'}`);
+      add(`    depends_on  ${(r.depends_on || []).join(', ') || '—'}`);
+      add(`    contracts   ${(r.contracts || []).length}`);
+    }
+    const disc = L.discovered();
+    if (disc.length) add(`  discovered, not onboarded: ${disc.join(', ')}`);
+
+    add('', '## graphs');
+    for (const g of G.status()) {
+      add(`  ${g.repo.padEnd(26)} ${g.onBoard ? `on board, ${g.behind == null ? '?' : g.behind} commits behind` : g.local ? 'built here, not shared' : 'none'}`);
+    }
+
+    add('', '## what failed on this machine');
+    const f = L.failures();
+    if (!f.length) add('  nothing');
+    for (const x of f) add(`  ${x.scope} (${x.n}x since ${x.first.slice(0, 16)})`, `    ${x.msg}`, `    fix: ${x.remedy || '—'}`);
+
+    add('', '## check');
+    for (const p of R.check()) add(`  ${p.level.toUpperCase().padEnd(5)} ${p.where}: ${p.msg}`);
+
+    add('', '## board');
+    add(`  tracked files ${(L.coordGit(['ls-files']).out || '').split('\n').filter(Boolean).length}`);
+    const dirty = (L.coordGit(['status', '--porcelain']).out || '').split('\n').filter(Boolean);
+    add(`  uncommitted   ${dirty.length}${dirty.length ? ': ' + dirty.slice(0, 5).join(' | ') : ''}`);
+    add('', '(paste this whole block when reporting a problem)');
+    console.log(out.join('\n'));
+  },
+
+  depends() {
+    const repo = rest[0] && L.isOnboarded(rest[0]) ? rest[0] : die('usage: coord depends <repo> [--on a,b | --add X | --rm X]');
+    const e = L.regGet(repo);
+    const list = s => String(s).split(',').map(x => x.trim()).filter(Boolean);
+    const cur = e.depends_on || [];
+    let next = cur;
+    if ('on' in flags) next = typeof flags.on === 'string' ? list(flags.on) : [];   // --on with nothing after it clears
+    else if (typeof flags.add === 'string') next = [...new Set([...cur, ...list(flags.add)])];
+    else if (typeof flags.rm === 'string') next = cur.filter(d => !list(flags.rm).includes(d));
+    else return console.log(`${repo} depends on: ${cur.join(', ') || 'nothing'}`);
+
+    if (!L.isHuman()) die(`changing what a repo depends on is a person's call, not an agent's. Ask them to run: coord depends ${repo} --${flags.on !== undefined ? 'on' : flags.add !== undefined ? 'add' : 'rm'} ...`);
+    const unknown = next.filter(d => !L.isOnboarded(d));
+    if (unknown.length) die(`not onboarded: ${unknown.join(', ')} — coord repos`);
+    if (next.includes(repo)) die(`${repo} cannot depend on itself`);
+    next = [...new Set(next)].sort();
+    L.regPut({ ...e, depends_on: next });
+    L.snapshot(`coord: ${repo} depends on ${next.join(', ') || 'nothing'}`);
+    console.log(`OK  ${repo} depends on: ${next.join(', ') || 'nothing'}`);
+    const gone = cur.filter(d => !next.includes(d)), add = next.filter(d => !cur.includes(d));
+    if (add.length) console.log(`    added:   ${add.join(', ')}`);
+    if (gone.length) console.log(`    removed: ${gone.join(', ')}`);
   },
 
   archive() {

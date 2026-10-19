@@ -304,6 +304,8 @@ function missingExcludes(abs) {
 const failures = rep => Object.entries(rep.valid).filter(([, ok]) => !ok).map(([k]) => k);
 
 /* ---------- apply (mechanical steps only) ---------- */
+// depends_on passed here is a person's answer and is used exactly as given -- never
+// merged with, or widened by, anything the scanner thinks.
 function apply(name, { stack, contracts = [], depends_on = [], at } = {}) {
   const rep = detect(name, at);
   const bad = failures(rep);
@@ -340,9 +342,11 @@ function apply(name, { stack, contracts = [], depends_on = [], at } = {}) {
   const ex = addExcludes(rep.abs);
   done.push(ex.length ? `.git/info/exclude += ${ex.join(', ')}` : '.git/info/exclude already covers .serena/ and CLAUDE.local.md');
 
-  // The newcomer may be the missing half of somebody else's dependency.
+  // The newcomer may be the missing half of somebody else's dependency. Say so; do not
+  // decide it. Nothing below writes to another repo's row.
   try {
-    for (const line of refreshDeps(name)) done.push(line);
+    const asks = refreshDeps(name);
+    if (asks.length) { done.push('--- suggestions, nothing written ---'); for (const a of asks) done.push(a); }
   } catch (e) { done.push(`could not re-read the other repos' dependencies: ${e.message}`); }
 
   L.logActivity(name, 'onboarded');
@@ -416,27 +420,29 @@ function sizeOf(abs) {
 // and until B was in the registry there was nothing for that call to point at. So every
 // onboarding re-reads the repos already on the board rather than leaving their
 // depends_on frozen at whatever was true the day they joined.
+// Suggestions, not writes. The first version of this wrote what the scanner found into
+// every repo's row, including other people's rows, and union-merged so nothing could
+// ever be taken back out -- so onboarding one repo silently asserted four dependencies
+// that two rounds of preflight had already disproved. A guess written into shared state
+// as fact is worse than no guess: it reaches every session's briefing and nobody knows
+// it was a guess. The scanner may only ever ask.
 function refreshDeps(newcomer) {
-  const changed = [];
+  const asks = [];
   for (const r of L.onboarded()) {
+    if (r === newcomer) continue;
     const dir = L.repoDir(r);
     if (!L.isRepoAt(dir)) continue;
     const e = L.regGet(r);
-    if (!e) continue;
+    if (!e || (e.depends_on || []).includes(newcomer)) continue;
     const pkg = json(path.join(dir, 'package.json'));
     truncated = false;
-    const found = detectDeps(r, dir, pkg, walk(dir))
-      .filter(d => d.confidence === 'confirmed')
-      .map(d => d.repo);
-    const want = [...new Set([...(e.depends_on || []), ...found])]
-      .filter(d => d !== r && L.isOnboarded(d)).sort();
-    if (want.join(',') !== (e.depends_on || []).slice().sort().join(',')) {
-      const added = want.filter(d => !(e.depends_on || []).includes(d));
-      L.regPut({ ...e, depends_on: want });
-      if (added.length) changed.push(`${r} now depends on ${added.join(', ')}`);
+    const hit = detectDeps(r, dir, pkg, walk(dir)).find(d => d.repo === newcomer && d.confidence === 'confirmed');
+    if (hit) {
+      asks.push(`${r} may now depend on ${newcomer} — ${(hit.evidence || []).slice(0, 2).join('; ')}`);
+      asks.push(`  if that is right:  coord depends ${r} --add ${newcomer}`);
     }
   }
-  return changed;
+  return asks;
 }
 
 module.exports = { sizeOf, refreshDeps, detect, apply, offboard, failures, addExcludes, missingExcludes, EXCLUDES };

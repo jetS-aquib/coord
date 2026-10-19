@@ -157,6 +157,11 @@ function brief(L, repo, onboarded) {
   }
   if (f.length) lines.push(`${f.length} coord automation(s) failed on this machine since ${f[f.length - 1].first.slice(0, 10)} (${f.map(x => x.scope).join(', ')}). "coord fix" lists each one with the command that does it by hand.`);
 
+  // An agent that does not know a command exists invents a workaround for it. One line
+  // naming where the list is costs less than the detours it prevents.
+  lines.push(`Every coord command: "coord help" for what a person types, "coord help --all" for the rest. ` +
+    `"coord doctor" prints one block to paste when something is wrong.`);
+
   // The rules themselves are in jetKreate/CLAUDE.md, which loads in every session under
   // this folder. Restating them here would cost ~100 tokens a session to say it twice.
   emit(lines.join('\n'));
