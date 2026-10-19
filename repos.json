@@ -21,7 +21,8 @@
       ],
       "depends_on": [
         "creater-ai-frontend",
-        "iris"
+        "iris",
+        "video-processing-backend"
       ],
       "onboarded": "2026-10-14",
       "status": "active",
