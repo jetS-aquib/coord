@@ -32,9 +32,7 @@
       "stack": "npm + TypeScript + React + Vite + Redux Toolkit",
       "contracts": [],
       "depends_on": [
-        "creater-ai-backend",
-        "iris",
-        "music-jetkreate-backend"
+        "creater-ai-backend"
       ],
       "onboarded": "2026-10-14",
       "status": "active",
