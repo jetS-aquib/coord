@@ -108,21 +108,29 @@ function judge(L, abs, own, why, session) {
   }
   // Which repo owns this path — by where each one actually sits on this machine, not by
   // assuming they are all folders under one root.
-  const seg = Object.entries(L.repoDirs()).find(([, dir]) => L.within(abs, dir));
-  if (!seg) return null;                                                // not a repo of ours
-  if (seg[0] === own) return null;                                      // your own repo — go ahead
+  const to = L.repoAt(abs);
+  if (!to) return null;                                                 // not a repo of ours
+  const seg = [to];
+
+  // A session opened on the folder above every repo has no repo of its own, so take the
+  // one it has been writing in. Nothing recorded yet means this is the first repo it has
+  // touched, which makes it this session's own — the same deal as opening that repo
+  // directly, and the next repo after it is the one worth asking about.
+  const mine = own || L.sessionRepo(session);
+  if (!mine) return null;
+  if (seg[0] === mine) return null;                                     // your own repo — go ahead
 
   // Everyone here owns every repo, so a change that genuinely spans two of them is
   // normal work, not a violation. What the guard is for is the UNSANCTIONED version —
   // an agent wandering next door on its own. An in-progress ticket between these two
   // repos is a person having already said yes, in writing, with an id on it.
-  if (licence(L, own, seg[0])) return null;                   // a request already covers it
-  if (own && L.hasLicence(session, own, seg[0])) return null;  // you already said yes this session
+  if (licence(L, mine, seg[0])) return null;                  // a request already covers it
+  if (L.hasLicence(session, mine, seg[0])) return null;        // you already said yes this session
 
-  const other = seg[0], mine = own || '<your repo>';
+  const other = seg[0];
   return {
     ask: true,
-    reason: `${own ? `You are in ${own}` : 'This session is at the platform root'}, and ${why} writes into ${other}/.\n\n` +
+    reason: `${own ? `You are in ${own}` : `This session has been working in ${mine}`}, and ${why} writes into ${other}/.\n\n` +
       `If you asked for this — one change across both ends — say yes. coord records that ${mine} and ${other} ` +
       `moved together and stays out of the way for the rest of this session.\n\n` +
       `If this was the agent's idea and not yours, say no. Then it should be a request with an id on it:\n` +

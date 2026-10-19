@@ -9,12 +9,13 @@ const { P } = L;
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', '.next', '.turbo', '.vercel', 'coverage', '.cache', 'out', 'vendor', '__pycache__', '.venv', 'tmp', 'temp']);
 const CODE = /\.(ts|tsx|js|jsx|mjs|cjs|py|go)$/;
 const MAX_FILES = 4000, MAX_BYTES = 200_000;
-const EXCLUDES = ['.serena/', 'CLAUDE.local.md'];
+const EXCLUDES = ['.serena/', 'CLAUDE.local.md', 'graphify-out/', 'repomix-output.*', '.repomix/'];
 
 /* ---------- small helpers ---------- */
 const json = f => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return null; } };
+let truncated = false;
 function walk(dir, out = [], depth = 0) {
-  if (depth > 8 || out.length > MAX_FILES) return out;
+  if (depth > 8 || out.length > MAX_FILES) { truncated = true; return out; }
   let ents = [];
   try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return out; }
   for (const e of ents) {
@@ -52,18 +53,30 @@ function detect(name, at) {
     dirtyFiles: dirty.ok && dirty.out ? dirty.out.split('\n').slice(0, 10) : [],
   };
 
+  truncated = false;
   const files = walk(abs);
+  const bytes = files.reduce((n, f) => { try { return n + fs.statSync(f).size; } catch { return n; } }, 0);
+  // bytes/9, not the usual bytes/4: that rule is for prose, and code is a third
+  // indentation. Calibrated against a repo graphify had already counted for us.
+  const size = { files: files.length, bytes, tokens: Math.round(bytes / 9), floor: truncated };
   const stack = detectStack(abs, pkg, files);
   const claude = {
     'CLAUDE.md': fs.existsSync(path.join(abs, 'CLAUDE.md')),
     'CLAUDE.local.md': fs.existsSync(path.join(abs, 'CLAUDE.local.md')),
     '.claude/': fs.existsSync(path.join(abs, '.claude')),
-    '.serena/': fs.existsSync(path.join(abs, '.serena')),
+    '.github/copilot-instructions.md': fs.existsSync(path.join(abs, '.github', 'copilot-instructions.md')),
   };
+  // What is already indexing this repo, and whether its output is about to be committed.
+  const indexes = ['.serena', 'graphify-out', '.repomix'].map(d => ({
+    name: d,
+    present: fs.existsSync(path.join(abs, d)),
+    ignored: L.sh('git', ['check-ignore', '-q', d], abs).ok ||
+      L.read(path.join(abs, '.git', 'info', 'exclude')).split('\n').some(l => l.trim() === d + '/'),
+  })).filter(i => i.present);
   const contracts = detectContracts(abs, files);
   const depends_on = detectDeps(name, abs, pkg, files);
 
-  return { name, abs, relPath: name, valid, git, stack, claude, contracts, depends_on, files: files.length, excludes: missingExcludes(abs) };
+  return { name, abs, relPath: name, valid, git, stack, claude, contracts, depends_on, files: files.length, size, indexes, excludes: missingExcludes(abs) };
 }
 
 function detectStack(abs, pkg, files) {
@@ -285,4 +298,11 @@ function offboard(name) {
   return done;
 }
 
-module.exports = { detect, apply, offboard, failures, addExcludes, missingExcludes, EXCLUDES };
+function sizeOf(abs) {
+  truncated = false;
+  const files = walk(abs);
+  const bytes = files.reduce((n, f) => { try { return n + fs.statSync(f).size; } catch { return n; } }, 0);
+  return { files: files.length, bytes, tokens: Math.round(bytes / 9), floor: truncated };
+}
+
+module.exports = { sizeOf, detect, apply, offboard, failures, addExcludes, missingExcludes, EXCLUDES };

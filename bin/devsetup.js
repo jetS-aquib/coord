@@ -157,6 +157,10 @@ function copilotDoc(repo) {
     'The `JET-nnn` tags already scattered through this codebase mark why code exists.',
     '`coord show <id>` finds every place one is cited. New requests continue that series.',
     '',
+    '## Finding things in this repo',
+    '',
+    ...navPolicy(repo),
+    '',
     '## Shared facts',
     '',
     '`coord ctx` holds things that are true across the platform and belong to no one repo.',
@@ -206,6 +210,36 @@ function copilotDoc(repo) {
     'Full rules: `CLAUDE.md` and `ONBOARDING.md` in the ' + boardName() + ' repo.',
     '',
   ].join('\n');
+}
+
+// Written into a tracked file that a Copilot session reads instead of CLAUDE.md, so it
+// has to work on a machine with nothing installed. No tool is named as required: some of
+// the people this is for may not be allowed to install anything, and a rule you cannot
+// follow is a rule you learn to ignore. The repo’s own size is in it because "this is
+// too big to read" is an argument, and "443k tokens" is a fact.
+function navPolicy(repo) {
+  let size;
+  try { size = require('./onboard.js').sizeOf(L.repoDir(repo)); } catch { return []; }
+  const k = Math.round(size.tokens / 1000);
+  const big = size.tokens > 150000;
+  const board = boardName();
+  return [
+    `This repo is ${size.files} source files, ${size.floor ? 'at least ' : 'about '}${k}k tokens of code.`,
+    big
+      ? '**You cannot read it.** Opening files until you find the right one fills the context with'
+      : 'Small enough that reading a whole file is affordable, though the habits below still cost less.',
+    ...(big ? ['code nobody asked about, and pushes out the thing you were actually asked to do.'] : []),
+    '',
+    '- **Search first.** Your editor\u2019s search, or `grep -rn "<symbol>" src/`, finds a definition',
+    '  faster than opening files does and costs almost nothing. Then read the lines around the hit.',
+    '- **Read the part, not the file.** Opening a 3000-line service to change one function is the',
+    '  most expensive thing you can do in here.',
+    '- **Never guess at another repo.** `coord ctx` holds the facts that span repos, and',
+    `  \`${board}/contracts/\` describes the APIs each one owns. Reading another repo is always`,
+    '  allowed; guessing at its response shape is what breaks somebody else\u2019s build.',
+    '- If a symbol index or a repo packer is set up on your machine, prefer it over reading files.',
+    '  coord neither installs nor requires one, and everything above works without one.',
+  ];
 }
 
 const agentsSection = () => [
@@ -274,6 +308,11 @@ function devsetup({ repo, strict = false, copilot = true, merge = false, ask = n
       fs.writeFileSync(f, body, { mode: 0o755 });
       if (changed) out.push(`${r}: .git/hooks/${name} installed (local, not committed)`);
     }
+
+    // Build output that indexing tools leave in the repo. Local to this clone, so the
+    // repo’s own .gitignore — somebody else’s tracked file — is never touched.
+    const added = require('./onboard.js').addExcludes(dir);
+    if (added.length) out.push(`${r}: .git/info/exclude += ${added.join(', ')}  (local, never committed)`);
 
     const strictFlag = path.join(dir, '.git', 'coord-strict');
     if (strict && !L.exists(strictFlag)) { fs.writeFileSync(strictFlag, 'commit-msg rejects messages with no ticket ID\n'); out.push(`${r}: strict mode ON`); }

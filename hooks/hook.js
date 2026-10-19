@@ -41,15 +41,21 @@ function main() {
     // simply not an edit and costs us nothing.
     const f = IO.fileOf(data.input);
     if (!f) return;
-    const base = repo === 'platform-root' ? L.P.root : L.repoDir(repo);
-    // An edit outside the repo (a scratchpad, /tmp) relativises to ../../../.. and fills
-    // the feed with noise. Those are not this repo's work; name the file and move on.
-    const rel = path.relative(base, L.real(path.resolve(f)));
+    const abs = L.realish(f);
+    // The repo that owns the FILE, not the folder the editor happened to be opened on.
+    // Someone with every repo in one window edits two of them from one session; filing
+    // both under "platform-root" throws away the repo, the overlap warning and the sync,
+    // and leaves their work attributed to nothing on a board everyone else reads.
+    const owner = (L.repoAt(abs) && L.isOnboarded(L.repoAt(abs))) ? L.repoAt(abs) : repo;
+    const base = owner === 'platform-root' ? L.P.root : L.repoDir(owner);
+    // An edit outside any repo (a scratchpad, /tmp) relativises to ../../../.. and fills
+    // the feed with noise. Those are nobody's work; name the file and move on.
+    const rel = path.relative(base, abs);
     const name = !rel || rel.startsWith('..') ? path.basename(f) : rel;
-    const others = repo === 'platform-root' ? [] : L.othersOn(repo, name);
-    L.logActivity(repo, 'edit', name);
-    if (repo !== 'platform-root') { crossRepo(L, repo, f, data.session); autoStart(L, repo); heartbeat(L); }
-    if (others.length && firstTimeToday(L, repo, name)) warnOverlap(name, others);
+    const others = owner === 'platform-root' ? [] : L.othersOn(owner, name);
+    L.logActivity(owner, 'edit', name);
+    if (owner !== 'platform-root') { crossRepo(L, repo, owner, name, data.session); autoStart(L, owner); heartbeat(L); }
+    if (others.length && firstTimeToday(L, owner, name)) warnOverlap(name, others);
     return;
   }
 
@@ -251,13 +257,16 @@ function captureWork(L, repo) {
 // two repos goes through without asking again, and the feed shows that they moved
 // together — which is the fact nobody ever writes down, and the one that is missing
 // months later when somebody asks why both ends changed on the same afternoon.
-function crossRepo(L, own, file, session) {
+function crossRepo(L, sessionRepo, owner, name, session) {
   try {
-    const abs = L.realish(file);
-    const hit = Object.entries(L.repoDirs()).find(([, dir]) => L.within(abs, dir));
-    if (!hit || hit[0] === own) return;
-    if (L.grantLicence(session, own, hit[0])) {
-      L.logActivity(own, 'cross-repo', `${own} + ${hit[0]} — ${path.basename(file)}`);
+    // A session opened on one repo speaks for that repo. A session opened on the folder
+    // above them all speaks for whichever repo it first wrote in, which is recorded the
+    // first time through here.
+    const mine = sessionRepo !== 'platform-root' ? sessionRepo : L.sessionRepo(session);
+    if (!mine) return L.setSessionRepo(session, owner);
+    if (mine === owner) return;
+    if (L.grantLicence(session, mine, owner)) {
+      L.logActivity(mine, 'cross-repo', `${mine} + ${owner} — ${path.basename(name)}`);
     }
   } catch (e) { logError(e); }
 }

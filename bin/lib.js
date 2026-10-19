@@ -35,6 +35,7 @@ const P = {
   decisions: path.join(COORD, 'decisions'),
   contracts: path.join(COORD, 'contracts'),
   context: path.join(COORD, 'context'),
+  graphs: path.join(COORD, 'graphs'),
   activity: path.join(COORD, 'activity'),
   archive: path.join(COORD, 'archive'),
   state: path.join(COORD, 'state.json'),
@@ -147,6 +148,11 @@ function repoDirs() {                         // { name: absolute dir } for what
   return (_dirs = out);
 }
 const repos = () => Object.keys(repoDirs()).sort();
+
+// Which repo owns this absolute path, or null. Discovered repos count here as well as
+// onboarded ones, because the guard has to know about a repo before anyone onboards it.
+// Three callers were each doing this by hand, and the umbrella-folder case needs a fourth.
+const repoAt = abs => (Object.entries(repoDirs()).find(([, dir]) => within(abs, dir)) || [null])[0];
 
 function repoOf(dir) {                        // repo owning a directory, or null
   const r = sh('git', ['rev-parse', '--show-toplevel'], dir);
@@ -364,7 +370,7 @@ function coordGit(args) {
 }
 // The board, not the toolchain. `add -A` would sweep half-finished edits to bin/ or
 // hooks/ into a commit labelled "session end" — true of anyone working on coord itself.
-const BOARD_PATHS = ['status', 'tickets', 'decisions', 'contracts', 'context', 'activity',
+const BOARD_PATHS = ['status', 'tickets', 'decisions', 'contracts', 'context', 'graphs', 'activity',
   'archive', 'repos.json', 'people.json', 'state.json', 'notify.json', '.gitattributes', '.gitignore'];
 function snapshot(msg) {
   const here = BOARD_PATHS.filter(p => exists(path.join(P.coord, p)));
@@ -400,6 +406,22 @@ function licences() {
   return live;
 }
 const licenceKey = (sid, a, b) => `${sid || 'no-session'}:${[a, b].sort().join('+')}`;
+
+// Plenty of people open the folder that holds every repo in one editor window rather
+// than one window per repo. Such a session has no repo of its own — the working
+// directory is the folder above all of them — so "am I writing into someone else's
+// repo" has nothing to compare against, and every single edit looks like a crossing.
+// The first repo a session writes to is the one it is working in. A write into a second
+// one is the crossing, which is exactly what it means for the one-window-per-repo
+// person too. Same rule, same number of questions, whichever way you lay your editor out.
+const sessionRepo = sid => ((sid && (localState().anchors || {})[sid]) || {}).repo || '';
+function setSessionRepo(sid, repo) {
+  if (!sid || !repo) return;
+  const all = localState().anchors || {}, live = {}, cut = Date.now() - LICENCE_HOURS * 3600000;
+  for (const [k, v] of Object.entries(all)) if (new Date(v.at).getTime() > cut) live[k] = v;
+  live[sid] = { repo, at: nowISO() };
+  setLocal({ anchors: live });
+}
 const hasLicence = (sid, a, b) => !!licences()[licenceKey(sid, a, b)];
 function grantLicence(sid, a, b) {
   const live = licences();
@@ -626,4 +648,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, repoAt, sessionRepo, setSessionRepo, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

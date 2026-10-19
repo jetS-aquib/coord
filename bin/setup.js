@@ -140,6 +140,7 @@ function setup({ yes = false, noPath = false } = {}) {
   if (!here.size) say('  no repos here yet — re-run coord setup once you have cloned some');
   else for (const line of D.devsetup({})) say(`  ${line}`);
   agentHooks(say, todo);
+  heavyRepos(say);
 
   /* 6. verify */
   step(6, 'Checking everything lines up');
@@ -230,6 +231,27 @@ function agentHooks(say, todo) {
 
   if (!any) say(`  no agent hooks installed — set which tool you use: coord who --tool claude-code|copilot|both`);
   else if (wants('claude-code')) todo.push('restart Claude Code so it picks up the new hooks');
+}
+
+// The one thing worth saying out loud on a new machine: which of these repos is too
+// big to read. It goes in each repo’s instruction file as well, but a person setting
+// up for the first time should hear it from the setup they just ran. Not a task: there
+// is nothing to install and nothing to fix, it is just true about the code.
+function heavyRepos(say) {
+  const O = require('./onboard.js');
+  const rows = [];
+  for (const r of L.onboarded()) {
+    const dir = L.repoDir(r);
+    if (!L.isRepoAt(dir)) continue;
+    try {
+      const s = O.sizeOf(dir);
+      if (s.tokens > 150000) rows.push([r, Math.round(s.tokens / 1000)]);
+    } catch { /* a repo we cannot scan is not worth failing setup over */ }
+  }
+  if (!rows.length) return;
+  say(`  these are too big for an agent to read whole — search, do not browse:`);
+  for (const [r, k] of rows) say(`    ${r.padEnd(24)} ~${k}k tokens`);
+  say(`  each repo’s .github/copilot-instructions.md now says so, with its own numbers.`);
 }
 
 const pathLine = () => L.isWindows

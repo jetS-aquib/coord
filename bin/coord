@@ -128,6 +128,11 @@ const AGENT_USAGE = `
   log-commit                     called by the post-commit hook
 `;
 
+// A graph a few commits behind is fine and saying so every time would be noise. This far
+// behind, it is describing code most people in it have not seen, and silence is the
+// failure mode that matters: a confident answer about a repo that moved on.
+const STALE_COMMITS = 40;
+
 const USAGE = `coord — cross-repo coordination for the jetKreate platform
 
   coord                          what is waiting on you, and the one word to answer it
@@ -140,6 +145,8 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
   note <id> <text>               ask something on one, without moving it
   why <file>:<line>              which request and decisions explain this line
   search <text>                  requests, decisions, context notes, archive indexes
+  graph [<repo>]                 shared maps of a repo: what exists, how old
+                                 with a repo, puts the one you built on the board
   ctx [<text>]                   platform facts every repo's agent can read
       --add "<title>" --body T   write one down
       --rm <slug>
@@ -411,6 +418,35 @@ const CMDS = {
     const hits = notes.filter(n => (n.fm.title + ' ' + n.body).toLowerCase().includes(q));
     if (!hits.length) return console.log(`no context note mentions "${rest.join(' ')}"`);
     for (const n of hits) console.log(`## ${n.fm.title}   (${n.fm.by}, updated ${n.fm.updated})\n\n${n.body.trim()}\n`);
+  },
+
+  // A graph is expensive to build and cheap to read, and only the machine that built it
+  // can rebuild it. So coord carries the readable half and says how old it is.
+  graph() {
+    const G = require('./graphs.js');
+    const name = rest[0];
+
+    if (name) {
+      const repo = L.isOnboarded(name) ? name : die(`no onboarded repo called "${name}" — coord repos`);
+      const r = G.importGraph(repo);
+      L.snapshot(`coord: graph for ${repo}`);
+      console.log(`${repo}: ${r.kb} KB on the board${r.pages ? `, ${r.pages} pages` : ''}, built at ${r.commit}`);
+      return console.log(`everyone gets it on their next sync. The heavy files stay in ${repo}/graphify-out/.`);
+    }
+
+    const rows = G.status();
+    const any = rows.some(r => r.onBoard || r.local);
+    for (const r of rows) {
+      const where = r.onBoard
+        ? `on the board, built ${String(r.builtAt).slice(0, 10)}` + (r.behind == null ? '' : r.behind === 0 ? ', current' : `, ${r.behind} commits behind`)
+        : r.local ? 'built here but not shared yet' : 'none';
+      console.log(`  ${r.repo.padEnd(24)} ${where}`);
+    }
+    if (!any) return console.log(`\nNo graphs yet. They are optional: ${G.buildHint('<repo>')}`);
+    const share = rows.filter(r => r.local && !r.onBoard);
+    const stale = rows.filter(r => r.onBoard && r.behind > STALE_COMMITS);
+    for (const r of share) console.log(`\n${r.repo} has one nobody else can see:  coord graph ${r.repo}`);
+    for (const r of stale) console.log(`\n${r.repo}\u2019s graph is ${r.behind} commits behind. Treat it as history, or rebuild it.`);
   },
 
   archive() {
@@ -861,6 +897,22 @@ function printPreflight(r) {
   console.log(`  typescript: ${yn(s.typescript)}   package name: ${s.pkgName || '—'}`);
   console.log(`  frameworks: ${s.frameworks.join(', ') || 'none detected'}`);
   for (const [k, v] of Object.entries(s.scripts)) console.log(`  ${k} scripts: ${v.join(', ') || '—'}`);
+  const k = n => `${Math.round(n / 1000)}k`;
+  console.log(`\n## Size`);
+  console.log(`  ${r.size.files} source files, ${(r.size.bytes / 1048576).toFixed(1)} MB`);
+  console.log(`  ${r.size.floor ? 'at least ' : 'about '}${k(r.size.tokens)} tokens to read in full${
+    r.size.floor ? '  (the scan stopped at 4000 files / 8 levels — the real figure is higher)' : ''}`);
+  console.log(`  ${r.size.tokens > 150000
+    ? 'Too big to read. An agent here has to search for what it needs and read around it.'
+    : 'Small enough that reading whole files is affordable.'}`);
+
+  if (r.indexes.length) {
+    console.log(`\n## Already indexing this repo`);
+    for (const i of r.indexes) {
+      console.log(`  ${i.name.padEnd(14)} ${i.ignored ? 'ignored by git' : 'NOT IGNORED — one "git add -A" from being committed'}`);
+    }
+  }
+
   console.log(`\n## Existing Claude setup`);
   for (const [k, v] of Object.entries(r.claude)) console.log(`  ${k}: ${yn(v)}`);
   console.log(`\n## Candidate contracts (${r.contracts.length}) — scanned ${r.files} files`);

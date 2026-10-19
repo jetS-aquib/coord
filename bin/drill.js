@@ -7,7 +7,7 @@ const HOOK = path.join(__dirname, '..', 'hooks', 'hook.js');
 const GUARD = path.join(__dirname, '..', 'hooks', 'guard.js');
 const COORD_DIRNAME = path.basename(path.join(__dirname, '..'));
 
-let pass = 0, fail = 0, TMP, CO;
+let pass = 0, fail = 0, TMP, CO, HOME;
 const ok = (name, cond, detail = '') => {
   (cond ? pass++ : fail++);
   console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${cond || !detail ? '' : '\n        ' + String(detail).trim().split('\n').join('\n        ')}`);
@@ -16,7 +16,13 @@ const git = (args, cwd) => cp.spawnSync('git', args, { cwd, encoding: 'utf8' });
 function coord(args, { cwd = TMP, human = false } = {}) {
   const r = cp.spawnSync(process.execPath, [COORD_BIN, ...args], {
     cwd, encoding: 'utf8',
-    env: { ...process.env, COORD_ROOT: CO, COORD_ACTOR: human ? 'human' : 'repo' },
+    // COORD_ROOT alone does not sandbox this: the agent-hook installers are rooted at
+    // os.homedir(), not the board, so a plain `coord setup` here rewrites the real
+    // ~/.claude/settings.json and ~/.copilot/hooks/coord.json to point into TMP — which
+    // the drill then deletes, leaving every session on the machine failing its hooks.
+    // USERPROFILE too: that is what os.homedir() reads on Windows.
+    env: { ...process.env, COORD_ROOT: CO, COORD_ACTOR: human ? 'human' : 'repo',
+           HOME, USERPROFILE: HOME },
   });
   return { ok: r.status === 0, out: (r.stdout || '') + (r.stderr || '') };
 }
@@ -29,6 +35,8 @@ const readT = id => {
 function run() {
   TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'coord-drill-'));
   CO = path.join(TMP, '.coord');
+  HOME = path.join(TMP, 'home');
+  fs.mkdirSync(HOME, { recursive: true });
   console.log(`drill: ${TMP}\n`);
   try {
     setup();
@@ -39,6 +47,9 @@ function run() {
     guard();
     copilot();
     quiet();
+    umbrella();
+    navigating();
+    graphs();
     captured();
     team();
     onboarding();
@@ -504,6 +515,185 @@ function captured() {
 
   // Leave the fixture as this section found it: the context store is asserted on later.
   for (const n of noteFile()) fs.rmSync(path.join(CO, 'context', n));
+}
+
+// Not everyone opens one editor window per repo. Plenty of people open the folder that
+// holds all of them, and some use one window per repo — the tool has to be identical
+// either way, or it is only built for whoever wrote it. Before this existed, the
+// umbrella session was asked on every single edit, the yes never stuck, and every edit
+// was filed on the board under "platform-root" instead of the repo it belonged to.
+function umbrella() {
+  const A = path.join(TMP, 'alpha'), B = path.join(TMP, 'beta');
+  const log = path.join(CO, 'activity', `${new Date().toISOString().slice(0, 10)}.log`);
+  const sid = 'umbrella-1';
+  const ask = file => {
+    const r = cp.spawnSync(process.execPath, [GUARD], {
+      input: JSON.stringify({ cwd: TMP, session_id: sid, tool_name: 'Write', tool_input: { file_path: file } }),
+      encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+    });
+    if (!r.stdout.trim()) return 'allow';
+    try { return JSON.parse(r.stdout).permissionDecision; } catch { return 'unparseable'; }
+  };
+  const edit = file => cp.spawnSync(process.execPath, [HOOK, 'edit'], {
+    input: JSON.stringify({ cwd: TMP, session_id: sid, tool_input: { file_path: file } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  const tail = () => fs.readFileSync(log, 'utf8').trim().split('\n').slice(-1)[0];
+
+  ok('from the folder above every repo, the first repo you write in is just yours',
+    ask(path.join(A, 'one.js')) === 'allow', ask(path.join(A, 'one.js')));
+  edit(path.join(A, 'one.js'));
+  ok('and that edit is filed under the repo, not under the folder you opened',
+    /\talpha\tedit\t[^\t]*\tone\.js$/.test(tail()), tail());
+
+  ok('a second file in the same repo is still free', ask(path.join(A, 'two.js')) === 'allow');
+  edit(path.join(A, 'two.js'));
+
+  ok('the second repo is the crossing, and it asks once', ask(path.join(B, 'three.js')) === 'ask');
+  edit(path.join(B, 'three.js'));
+  ok('saying yes sticks, exactly as it does with one window per repo',
+    ask(path.join(B, 'four.js')) === 'allow', ask(path.join(B, 'four.js')));
+  ok('and the crossing is recorded against the repo you were working in',
+    fs.readFileSync(log, 'utf8').includes('alpha\tcross-repo\t') , tail());
+
+  // The anchor is this machine's business and this sitting's. On the shared board it
+  // would be one more thing to conflict over, and it would reach people it is not about.
+  ok('which repo a session settled into never reaches the board',
+    !/anchors/.test(fs.readFileSync(path.join(CO, 'state.json'), 'utf8')) &&
+    /anchors/.test(fs.readFileSync(path.join(CO, 'local.json'), 'utf8')));
+
+  // A different window is a different sitting, even on the same machine.
+  const other = cp.spawnSync(process.execPath, [GUARD], {
+    input: JSON.stringify({ cwd: TMP, session_id: 'umbrella-2', tool_name: 'Write', tool_input: { file_path: path.join(B, 'five.js') } }),
+    encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('a second window starts its own anchor rather than inheriting one', !other.stdout.trim(), other.stdout.slice(0, 80));
+}
+
+// Nobody can read a 2M-token repo, and nobody tells you which ones those are. coord
+// measures it at onboarding and puts the number where both agents will see it. The
+// policy has to hold on a machine with nothing installed, because some of the people
+// this is written for cannot install anything.
+function navigating() {
+  const O = require('./onboard.js'), D = require('./devsetup.js');
+  const B = path.join(TMP, 'beta');
+
+  const small = O.sizeOf(B);
+  ok('a repo is measured in tokens, not files', small.tokens >= 0 && small.files > 0, JSON.stringify(small));
+
+  // Push it over the line a real repo crosses, and the advice has to change with it.
+  const filler = path.join(B, 'src', 'generated.ts');
+  fs.mkdirSync(path.dirname(filler), { recursive: true });
+  fs.writeFileSync(filler, '// generated\n' + 'export const row = { a: 1, b: 2, c: 3 };\n'.repeat(40000));
+  const big = O.sizeOf(B);
+  ok('a big repo reads as big', big.tokens > 150000, big.tokens + ' tokens');
+
+  // Through the CLI, not D.copilotDoc() in this process: lib resolves its paths once at
+  // load, against the real board rather than this fixture.
+  const instr = path.join(B, '.github', 'copilot-instructions.md');
+  const writeDoc = () => { coord(['devsetup', '--repo', 'beta']); return L0read(instr); };
+  let doc = writeDoc();
+  ok('the instruction file carries this repo\u2019s own size',
+    new RegExp(String(Math.round(big.tokens / 1000)) + 'k tokens').test(doc), doc.slice(0, 500));
+  ok('and tells the agent to search rather than browse', /Search first/.test(doc) && /grep -rn/.test(doc));
+  // The whole point of the wording: followable on a machine with nothing installed.
+  ok('it requires no tool to be installed',
+    /neither installs nor requires one/.test(doc) && !/you must install/i.test(doc), doc.slice(-600));
+  ok('and it points at the board for anything outside this repo', /coord ctx/.test(doc) && /contracts/.test(doc));
+
+  fs.rmSync(filler);
+  doc = writeDoc();
+  ok('a small repo gets different advice', /affordable/.test(doc), doc.slice(0, 600));
+
+  /* --- what an indexing tool leaves behind --- */
+  // graphify-out is megabytes of build output. It is not in anyone’s .gitignore, and a
+  // repo’s .gitignore is not coord’s file to edit — .git/info/exclude is local and is.
+  fs.mkdirSync(path.join(B, 'graphify-out'), { recursive: true });
+  fs.writeFileSync(path.join(B, 'graphify-out', 'graph.json'), '{}');
+  const exFile = path.join(B, '.git', 'info', 'exclude');
+  fs.writeFileSync(exFile, L0read(exFile).split('\n').filter(l => l.trim() !== 'graphify-out/').join('\n'));
+  const rep = O.detect('beta', B);
+  const gi = rep.indexes.find(i => i.name === 'graphify-out');
+  ok('the preflight spots an index that is about to be committed', !!gi && gi.ignored === false, JSON.stringify(rep.indexes));
+  ok('and the preflight prints the warning', /NOT IGNORED/.test(coord(['onboard', 'beta', '--preflight']).out),
+    coord(['onboard', 'beta', '--preflight']).out.slice(0, 400));
+
+  coord(['devsetup', '--repo', 'beta']);
+  const ex = L0read(path.join(B, '.git', 'info', 'exclude'));
+  ok('applying puts it in .git/info/exclude, which is never committed',
+    ex.split('\n').some(l => l.trim() === 'graphify-out/'), ex);
+  ok('and the repo\u2019s own .gitignore is left alone', !fs.existsSync(path.join(B, '.gitignore')) ||
+    !/graphify/.test(fs.readFileSync(path.join(B, '.gitignore'), 'utf8')));
+  fs.rmSync(path.join(B, 'graphify-out'), { recursive: true, force: true });
+}
+const L0read = f => { try { return fs.readFileSync(f, 'utf8'); } catch { return ''; } };
+
+// A graph of a repo costs real money to build and only the machine that built it can
+// rebuild it — the tool is an agent-driven pipeline with model calls in it. So coord
+// carries the readable half and the commit it was built from, and nothing else. The
+// half it refuses to carry is the point: graph.json is twice the size of the source,
+// is rewritten whole every rebuild, and git keeps every version of it forever.
+function graphs() {
+  const B = path.join(TMP, 'beta');
+  const out = path.join(B, 'graphify-out');
+  const board = path.join(CO, 'graphs', 'beta');
+
+  ok('with no graph anywhere, it says so and says they are optional', (() => {
+    const o = coord(['graph']).out;
+    return /beta\s+none/.test(o) && /optional/.test(o);
+  })(), coord(['graph']).out);
+
+  ok('importing nothing is refused, with how to make one', (() => {
+    const r = coord(['graph', 'beta']);
+    return !r.ok && /no graph in beta/.test(r.out) && /graphify beta/.test(r.out);
+  })(), coord(['graph', 'beta']).out);
+
+  // What the tool actually leaves behind: a small report, an optional wiki, and two
+  // very large files that must never reach a board which syncs every few minutes.
+  fs.mkdirSync(path.join(out, 'wiki'), { recursive: true });
+  fs.writeFileSync(path.join(out, 'GRAPH_REPORT.md'), '# Graph Report - beta\n\n- 711 nodes\n');
+  fs.writeFileSync(path.join(out, 'wiki', 'index.md'), '# beta\n');
+  fs.writeFileSync(path.join(out, 'wiki', 'auth.md'), '# Auth\n');
+  fs.writeFileSync(path.join(out, 'cost.json'), JSON.stringify({ total_input_tokens: 32000 }));
+  fs.writeFileSync(path.join(out, 'graph.json'), 'x'.repeat(700000));
+  fs.writeFileSync(path.join(out, 'graph.html'), 'x'.repeat(724000));
+
+  const r = coord(['graph', 'beta'], { human: true });
+  ok('importing puts the report on the board', r.ok && fs.existsSync(path.join(board, 'REPORT.md')), r.out);
+  ok('and the wiki pages with it', fs.existsSync(path.join(board, 'wiki', 'auth.md')));
+  ok('the heavy files are left where they were built', 
+    !fs.existsSync(path.join(board, 'graph.json')) && !fs.existsSync(path.join(board, 'graph.html')) &&
+    fs.existsSync(path.join(out, 'graph.json')), fs.readdirSync(board).join(','));
+
+  const built = JSON.parse(fs.readFileSync(path.join(board, 'built.json'), 'utf8'));
+  // Without the commit it was built from, a graph is a confident answer about code that
+  // may have changed three weeks ago — the exact failure this tool exists to reduce.
+  ok('it records the commit it was built from', /^[0-9a-f]{7,40}$/.test(built.commit), JSON.stringify(built));
+  ok('and who built it, when, and what it cost', !!built.built && !!built.by && built.tokens === 32000, JSON.stringify(built));
+
+  ok('a fresh graph reads as current', /beta\s+on the board.*current/.test(coord(['graph']).out), coord(['graph']).out);
+
+  // Move the repo on and the board has to admit the graph describes something older.
+  for (let i = 0; i < 45; i++) {
+    fs.writeFileSync(path.join(B, 'churn.js'), 'export const n = ' + i + ';\n');
+    git(['add', 'churn.js'], B); git(['commit', '-q', '-m', 'no-ticket: churn ' + i], B);
+  }
+  const aged = coord(['graph']).out;
+  ok('once the repo moves on, the board says how far behind the graph is', /45 commits behind/.test(aged), aged);
+  ok('and says to treat it as history rather than leaving it to rot quietly', /history, or rebuild/.test(aged), aged);
+
+  // The guard that keeps this feature from ruining the board later.
+  fs.writeFileSync(path.join(out, 'wiki', 'huge.md'), 'x'.repeat(3 * 1024 * 1024));
+  const big = coord(['graph', 'beta'], { human: true });
+  ok('markdown too big for a board that syncs every few minutes is refused',
+    !big.ok && /too much for a board/.test(big.out), big.out);
+  ok('and refusing it leaves what was already shared alone', fs.existsSync(path.join(board, 'REPORT.md')));
+  fs.rmSync(path.join(out, 'wiki', 'huge.md'));
+
+  ok('the board actually commits graphs, or nobody else ever sees one', (() => {
+    coord(['graph', 'beta'], { human: true });
+    return git(['ls-files', 'graphs/beta/REPORT.md'], CO).stdout.trim() !== '';
+  })(), git(['status', '--porcelain'], CO).stdout.slice(0, 200));
 }
 
 function guard() {
