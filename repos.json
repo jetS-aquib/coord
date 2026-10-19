@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-16T15:52:32+05:30",
+  "updated": "2026-10-19T17:01:31+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -20,7 +20,9 @@
         "/user"
       ],
       "depends_on": [
-        "creater-ai-frontend"
+        "creater-ai-frontend",
+        "iris",
+        "music-jetkreate-backend"
       ],
       "onboarded": "2026-10-14",
       "status": "active",
@@ -31,7 +33,9 @@
       "stack": "npm + TypeScript + React + Vite + Redux Toolkit",
       "contracts": [],
       "depends_on": [
-        "creater-ai-backend"
+        "creater-ai-backend",
+        "iris",
+        "music-jetkreate-backend"
       ],
       "onboarded": "2026-10-14",
       "status": "active",
@@ -71,6 +75,31 @@
       "onboarded": "2026-10-14",
       "status": "active",
       "remote": "git@github.com:jet-ai-task-force/iris.git"
+    },
+    {
+      "name": "music-jetkreate-backend",
+      "remote": "git@codebasehq.com:js/mcn/music-jetkreate-backend.git",
+      "stack": "npm + TypeScript + Express + Mongoose + Firebase Admin + Google GenAI + GCS + ffmpeg",
+      "contracts": [
+        "/api/auth",
+        "/api/users",
+        "/api/video",
+        "/api/image",
+        "/api/ai",
+        "/api/jobs",
+        "/api/podcasts",
+        "/api/music-videos",
+        "/api/assets",
+        "/api/elements",
+        "/api/user-settings",
+        "/api/health"
+      ],
+      "depends_on": [
+        "creater-ai-backend",
+        "iris"
+      ],
+      "onboarded": "2026-10-19",
+      "status": "active"
     }
   ]
 }
