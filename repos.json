@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-19T17:01:31+05:30",
+  "updated": "2026-10-19T17:09:37+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -21,8 +21,7 @@
       ],
       "depends_on": [
         "creater-ai-frontend",
-        "iris",
-        "music-jetkreate-backend"
+        "iris"
       ],
       "onboarded": "2026-10-14",
       "status": "active",
