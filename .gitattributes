@@ -3,3 +3,8 @@ activity/*.log           merge=union
 activity/hook-errors.log merge=union
 # Archive indexes only ever gain rows.
 archive/tickets-index.md merge=union
+# The registries are sets, not prose. bin/jsonmerge.js unions them by key, so two people
+# running setup the same morning cannot collide. The driver is installed per clone by
+# "coord devsetup"; without it git falls back to a normal merge and may conflict.
+people.json              merge=coord-json
+repos.json               merge=coord-json
