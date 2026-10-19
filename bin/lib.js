@@ -404,6 +404,12 @@ function coordGit(args) {
 const BOARD_PATHS = ['status', 'tickets', 'decisions', 'contracts', 'context', 'graphs', 'activity',
   'archive', 'repos.json', 'people.json', 'state.json', 'notify.json', '.gitattributes', '.gitignore'];
 function snapshot(msg) {
+  // The pre-migration `status/<repo>.md` files keep reappearing from something this has
+  // not been pinned down to yet, and `add -A` committed every one -- the board carries 33
+  // rounds of adding them and 33 of taking them away, 66 commits saying nothing. Migrating
+  // first means they never reach the board, whatever is putting them on disk. It does not
+  // fix the writer; it stops the writer costing everyone a commit.
+  try { for (const r of onboarded()) migrateStatus(r); } catch { /* never block a snapshot */ }
   const here = BOARD_PATHS.filter(p => exists(path.join(P.coord, p)));
   if (!here.length || !coordGit(['add', '-A', '--', ...here]).ok) return false;
   if (sh('git', ['diff', '--cached', '--quiet'], P.coord).ok) return false;   // nothing changed

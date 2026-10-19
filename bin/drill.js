@@ -1341,6 +1341,23 @@ function onboarding() {
     .repos.find(r => r.name === 'gamma').contracts.join(',') === '/api/gamma,/internal/legacy');
   // One contract, one owner. Two of the real repos are forks that both serve /api/auth,
   // so a --own pasted from the wrong repo silently moved rows out from under their owner.
+  // A pre-migration status file must never reach the board: `add -A` was committing it,
+  // a later command migrated it away, and the next snapshot committed the removal -- 33
+  // of each on the real board. The CLI migrates at startup, so only a caller that is not
+  // the CLI reaches snapshot() with one on disk: a hook, or the dashboard server.
+  const snapProbe = cp.spawnSync(process.execPath, ['-e', `
+    const L = require(${JSON.stringify(path.join(__dirname, 'lib.js'))});
+    const fs = require('fs'), path = require('path');
+    fs.writeFileSync(path.join(L.P.status, 'alpha.md'), '# alpha\\n\\n- **Status:** idle\\n\\n## Handoff notes\\n');
+    L.snapshot('drill: snapshot with a pre-migration status file on disk');
+    console.log(JSON.stringify({ left: fs.existsSync(path.join(L.P.status, 'alpha.md')) }));
+  `], { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } });
+  const sp = (() => { try { return JSON.parse(snapProbe.stdout.trim().split('\n').pop()); } catch { return {}; } })();
+  ok('a snapshot migrates the old status file instead of committing it', sp.left === false,
+    snapProbe.stdout + snapProbe.stderr);
+  ok('and it never entered git', !git(['log', '--oneline', '--', 'status/alpha.md'], CO).stdout.trim(),
+    git(['log', '--oneline', '--', 'status/alpha.md'], CO).stdout);
+
   const giveAlpha = coord(['contracts', 'alpha', '--add', '/api/alpha'], { human: true });
   ok('a contract nobody owns can be claimed', giveAlpha.ok, giveAlpha.out + giveAlpha.err);
   const steal = coord(['contracts', 'gamma', '--add', '/api/alpha'], { human: true });
