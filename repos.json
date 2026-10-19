@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-19T17:09:53+05:30",
+  "updated": "2026-10-19T18:03:14+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -92,6 +92,17 @@
         "/api/health"
       ],
       "depends_on": [],
+      "onboarded": "2026-10-19",
+      "status": "active"
+    },
+    {
+      "name": "music-jetkreate-frontend",
+      "remote": "git@codebasehq.com:js/mcn/music-jetkreate-frontend.git",
+      "stack": "npm + TypeScript + React + Vite + Redux Toolkit + React Query + Tailwind + Firebase",
+      "contracts": [],
+      "depends_on": [
+        "music-jetkreate-backend"
+      ],
       "onboarded": "2026-10-19",
       "status": "active"
     }
