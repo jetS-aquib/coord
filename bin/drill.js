@@ -1248,6 +1248,33 @@ function onboarding() {
     "router.get('/api/gamma/items', h);\nrouter.post('/api/gamma/items', h);\nconst base = process.env.ALPHA_URL;\n");
   fs.writeFileSync(path.join(dir, 'src', 'client.js'), "fetch(process.env.ALPHA_URL + '/api/jobs');\n// talks to alpha\n");
 
+  // Mount chains. Every one of these shapes once reported its routes at the path written
+  // inside the file instead of the path it is served at, which named contracts after
+  // words another repo also uses.
+  fs.mkdirSync(path.join(dir, 'src', 'routes'));
+  fs.writeFileSync(path.join(dir, "src", "app.js"), "import registerRoutes from './routes/index';\nconst app = express();\napp.use('/internal', registerRoutes());\n");
+  fs.writeFileSync(path.join(dir, "src", "routes", "index.js"), "import deep from '../deep.routes';\nimport { attach } from '../attach';\nconst router = Router();\nconst v1 = Router();\nrouter.use('/v1', v1);\nv1.use('/deep', requireAuth, requireSignature, deep);\nrouter.use('/legacy', deep);\nattach(router);\nexport default router;\n");
+  fs.writeFileSync(path.join(dir, "src", "deep.routes.js"), "const router = Router();\nrouter.get('/items', h);\nexport default router;\n");
+  fs.writeFileSync(path.join(dir, "src", "attach.js"), "export function attach(router) { router.get('/attached', h); }\n");
+  fs.writeFileSync(path.join(dir, "src", "jobs.py"), "router = APIRouter(prefix=\"/api/v1\", tags=[\"jobs\"])\n@router.get(\"/jobs/{job_id}\")\ndef get_job(job_id): pass\n");
+
+  // A long-lived process -- the dashboard is one -- used to memoise the repo map for its
+  // whole life, so a repo cloned afterwards stayed invisible and `check` called it "exists
+  // but is not a git repo". Spawned, never in-process: lib resolves its paths once at load.
+  const cacheProbe = cp.spawnSync(process.execPath, ['-e', `
+    const L = require(${JSON.stringify(path.join(__dirname, 'lib.js'))});
+    const fs = require('fs'), path = require('path'), cp = require('child_process');
+    const before = L.repos().length;
+    const d = path.join(${JSON.stringify(TMP)}, 'latecomer');
+    fs.mkdirSync(d, { recursive: true });
+    cp.spawnSync('git', ['init', '-q'], { cwd: d });
+    console.log(JSON.stringify({ before, after: L.repos().length, sees: L.repos().includes('latecomer') }));
+  `], { encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO } });
+  const probe = (() => { try { return JSON.parse(cacheProbe.stdout.trim().split('\n').pop()); } catch { return {}; } })();
+  ok('a repo cloned while a process is running becomes visible to it',
+    probe.sees === true && probe.after === probe.before + 1, cacheProbe.stdout + cacheProbe.stderr);
+  fs.rmSync(path.join(TMP, 'latecomer'), { recursive: true, force: true });
+
   ok('new repo shows up as discovered', /discovered, not onboarded \(1\)[\s\S]*gamma/.test(coord(['repos']).out), coord(['repos']).out);
   const dbrief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
     input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
@@ -1260,12 +1287,76 @@ function onboarding() {
   ok('preflight passes validation', pre.ok && /validation: passed/.test(pre.out), pre.out);
   ok('preflight detects the stack', /Express/.test(pre.out) && /package manager: npm|package manager: unknown/.test(pre.out), pre.out);
   ok('preflight finds the candidate contract', /\/api\/gamma/.test(pre.out), pre.out);
+  ok('a default-imported router inherits its mount', /\/internal\/v1\b/.test(pre.out), pre.out);
+  ok('middleware between the path and the router does not break the chain', /\/internal\/v1\/deep\/items/.test(pre.out), pre.out);
+  ok('a router handed to a function serves where that router serves', /\/internal\/attached/.test(pre.out), pre.out);
+  ok('a file\'s own `const router` is its root, not a level of its own', !/\s\/deep\b/.test(pre.out) && !/\s\/items\b/.test(pre.out), pre.out);
+  ok('a version is not a contract of its own — /internal/v1 groups by what is under it',
+    /^\s+\/internal\/v1\/deep\s+\[/m.test(pre.out) && !/^\s+\/internal\/v1\s+\[/m.test(pre.out), pre.out);
+  ok('a mount line is not a route', !/^\s+\/internal\s+\[/m.test(pre.out), pre.out);
+  ok('a router mounted twice is reported at both paths',
+    /\/internal\/v1\/deep\/items/.test(pre.out) && /\/internal\/legacy\/items/.test(pre.out), pre.out);
+  ok('the preflight no longer claims --apply writes contract stubs',
+    !/create\s+\.coord\/contracts/.test(pre.out) && /by hand/.test(pre.out), pre.out);
+  ok('FastAPI routes carry the APIRouter prefix', /\/api\/v1\/jobs\/\{job_id\}/.test(pre.out), pre.out);
+  ok('and a python route is not also counted unprefixed', !/\s\/jobs\/\{job_id\}/.test(pre.out), pre.out);
+  // The display caps the list; the LIST must not cap itself. `coord contracts` diffs the
+  // board against it, so a truncated tail once reported real registered contracts as
+  // missing from the code -- creater-ai-backend's /api/models was the 31st of 33.
+  const wide = path.join(TMP, 'elsewhere', 'wide');
+  fs.mkdirSync(wide, { recursive: true });
+  git(['init', '-q'], wide);
+  fs.writeFileSync(path.join(wide, 'routes.js'),
+    Array.from({ length: 35 }, (_, i) => `router.get('/thing${i}/one', h);`).join('\n') + '\n');
+  const wpre = coord(['onboard', 'wide', '--at', wide, '--preflight']);
+  const wcount = Number((/## Candidate contracts \((\d+)\)/.exec(wpre.out) || [, 0])[1]);
+  ok('every contract is counted, not just the ones that fit on screen', wcount >= 35, wpre.out.slice(0, 300));
+  ok('and the display says what it left out', /and \d+ more/.test(wpre.out), wpre.out.slice(-600));
+  fs.rmSync(wide, { recursive: true, force: true });
+
   ok('preflight changes nothing', fs.readdirSync(path.join(CO, 'status')).length === before && !fs.existsSync(path.join(CO, 'status', 'gamma')));
 
   const ap = coord(['onboard', name, '--apply', '--stack', 'npm + Express', '--contracts', '/api/gamma', '--depends-on', 'alpha'], { human: true });
   ok('apply onboards the repo', ap.ok && fs.existsSync(path.join(CO, 'status', 'gamma')), ap.out);
   const entry = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === name);
   ok('registry entry is complete', !!entry && entry.status === 'active' && entry.contracts[0] === '/api/gamma' && entry.depends_on[0] === 'alpha' && !!entry.onboarded, JSON.stringify(entry));
+  ok('only the contract I named is registered, not everything the scanner found',
+    entry.contracts.length === 1, JSON.stringify(entry.contracts));
+  ok('the rest are printed as suggestions and written nowhere',
+    /suggestions, nothing written/.test(ap.out) && /coord contracts gamma --add \/internal/.test(ap.out), ap.out);
+
+  // coord contracts -- a row is written once at onboarding and nothing else re-reads it
+  const cshow = coord(['contracts', 'gamma']);
+  ok('coord contracts shows the row and re-scans the code', cshow.ok
+    && /gamma owns: \/api\/gamma/.test(cshow.out) && /in the code, not on the board/.test(cshow.out), cshow.out);
+  ok('and the re-scan writes nothing', JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8'))
+    .repos.find(r => r.name === 'gamma').contracts.length === 1);
+  const cagent = coord(['contracts', 'gamma', '--add', '/internal/legacy']);
+  ok('an agent cannot change what a repo owns', !cagent.ok && /person's call/.test(cagent.out + cagent.err), cagent.out + cagent.err);
+  const cadd = coord(['contracts', 'gamma', '--add', '/internal/legacy'], { human: true });
+  ok('a person can', cadd.ok && /OK  gamma owns/.test(cadd.out) && /added:\s+\/internal\/legacy/.test(cadd.out), cadd.out);
+  ok('and it lands in the registry', JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8'))
+    .repos.find(r => r.name === 'gamma').contracts.join(',') === '/api/gamma,/internal/legacy');
+  // One contract, one owner. Two of the real repos are forks that both serve /api/auth,
+  // so a --own pasted from the wrong repo silently moved rows out from under their owner.
+  const giveAlpha = coord(['contracts', 'alpha', '--add', '/api/alpha'], { human: true });
+  ok('a contract nobody owns can be claimed', giveAlpha.ok, giveAlpha.out + giveAlpha.err);
+  const steal = coord(['contracts', 'gamma', '--add', '/api/alpha'], { human: true });
+  ok('taking a contract another repo owns is refused',
+    !steal.ok && /already owned by another repo/.test(steal.out + steal.err), steal.out + steal.err);
+  ok('and the refusal names the owner and how to free it',
+    /\/api\/alpha\s+->\s+alpha/.test(steal.out + steal.err) && /coord contracts alpha --rm \/api\/alpha/.test(steal.out + steal.err), steal.out + steal.err);
+  ok('nothing moved', JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8'))
+    .repos.find(r => r.name === 'alpha').contracts.includes('/api/alpha'));
+  coord(['contracts', 'alpha', '--rm', '/api/alpha'], { human: true });   // leave the fixture as found
+
+  const cbad = coord(['contracts', 'gamma', '--own', 'notapath'], { human: true });
+  ok('a contract has to be a path', !cbad.ok && /starts with/.test(cbad.out + cbad.err), cbad.out + cbad.err);
+  const crm = coord(['contracts', 'gamma', '--rm', '/internal/legacy'], { human: true });
+  ok('and can be taken off again', crm.ok && /removed:\s+\/internal\/legacy/.test(crm.out), crm.out);
+  const cre = coord(['onboard', 'gamma', '--apply'], { human: true });
+  ok('onboarding an onboarded repo says so in words, and writes nothing',
+    !cre.ok && /already onboarded/.test(cre.out + cre.err) && /coord contracts gamma/.test(cre.out + cre.err), cre.out + cre.err);
   ok('.git/info/exclude got the local-only entries',
     /\.serena\//.test(fs.readFileSync(path.join(dir, '.git', 'info', 'exclude'), 'utf8')) &&
     /CLAUDE\.local\.md/.test(fs.readFileSync(path.join(dir, '.git', 'info', 'exclude'), 'utf8')));
@@ -1299,6 +1390,17 @@ function onboarding() {
   ok('offboarded repo listed as such', /offboarded \(1\)[\s\S]*gamma/.test(coord(['repos']).out), coord(['repos']).out);
   ok('repo files untouched by offboarding', fs.existsSync(path.join(dir, 'src', 'routes.js')));
   ok('check still clean after offboarding', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
+
+  // Bringing one back. regPut replaces the row rather than merging, and an offboarded
+  // repo passes the "not already onboarded" check -- so a bare --apply here used to
+  // silently empty everything it owned.
+  const back = coord(['onboard', name, '--apply'], { human: true });
+  const e3 = JSON.parse(fs.readFileSync(path.join(CO, 'repos.json'), 'utf8')).repos.find(r => r.name === name);
+  ok('an offboarded repo can be onboarded again', back.ok && e3.status === 'active', back.out + back.err);
+  ok('and comes back owning what it owned, not nothing',
+    e3.contracts.join(',') === '/api/gamma', JSON.stringify(e3.contracts));
+  ok('it says so rather than leaving you to diff the registry', /already owned/.test(back.out), back.out);
+  ok('check clean after the round trip', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
 }
 
 function archiving(id) {

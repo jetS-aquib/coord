@@ -128,9 +128,21 @@ const daysAgo = iso => (Date.now() - new Date(iso).getTime()) / 86400000;
 // Every repo ON THIS MACHINE: the registered ones wherever they live, plus any git
 // folder sitting beside the board that nobody has onboarded yet. A repo on the board but
 // not on this disk is simply absent here — that is normal, you clone what you work on.
-let _dirs;
+// Memoised because one CLI run asks for this a dozen times and each answer costs a stat
+// per folder. A CLI run is over in a moment, so a plain memo was fine -- until the
+// dashboard, which is a server. It held a map built at 12:12 for three hours, missed a
+// repo cloned at 15:41, and then reported that repo as "exists but is not a git repo",
+// because repos.json had it and this did not. So: keep the memo, but notice the two
+// things that can invalidate it. Two stats instead of one per repo, and no clock.
+let _dirs, _dirsKey = '';
+const dirsKey = () => {                       // repos.json changes on onboarding, the root on a clone
+  const at = f => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } };
+  return `${at(P.registry)}:${at(P.root)}`;
+};
 function repoDirs() {                         // { name: absolute dir } for what is actually here
-  if (_dirs) return _dirs;
+  const k = dirsKey();
+  if (_dirs && _dirsKey === k) return _dirs;
+  _dirsKey = k;
   const out = {};
   for (const e of registry()) {
     const dir = real(repoDir(e.name));
@@ -186,6 +198,25 @@ function regPut(entry) {                       // insert or replace one entry, a
   writeRegistry(list);
   return entry;
 }
+// One contract, one owner: the stub file carries `owner: <repo>` and nothing on the board
+// can make sense of two. Two of these repos are forks of each other and really do both
+// serve /api/auth, so this is not hypothetical -- it is the normal way a row gets stolen.
+function contractClashes(names, except) {
+  const out = [];
+  for (const r of registry()) {
+    if (r.name === except || r.status !== 'active') continue;
+    for (const c of r.contracts || []) if (names.includes(c)) out.push({ contract: c, owner: r.name });
+  }
+  return out;
+}
+const clashMsg = (clashes, taker) => [
+  `already owned by another repo:`,
+  ...clashes.map(c => `  ${c.contract}  ->  ${c.owner}`),
+  `A contract has one owner. If ${taker} is the right one, take it off the other repo first:`,
+  ...[...new Set(clashes.map(c => c.owner))].map(o =>
+    `  coord contracts ${o} --rm ${clashes.filter(c => c.owner === o).map(c => c.contract).join(',')}`),
+].join('\n');
+
 const onboarded = () => registry().filter(r => r.status === 'active').map(r => r.name).sort();
 const offboarded = () => registry().filter(r => r.status === 'offboarded').map(r => r.name).sort();
 const isOnboarded = name => registry().some(r => r.name === name && r.status === 'active');
@@ -714,4 +745,4 @@ function whosAround() {
     .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
 }
 
-module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, repoAt, sessionRepo, setSessionRepo, statusDir, statusFile, statusPeople, migrateStatus, whoSlugPublic, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };
+module.exports = { P, plain, real, realish, TOOLS, hasLicence, grantLicence, licences, repoAt, sessionRepo, setSessionRepo, statusDir, statusFile, statusPeople, migrateStatus, whoSlugPublic, isWindows, scanRepo, othersOn, lastSync, addHandoff, localState, setLocal, notifyState, setNotify, repoDir, repoDirs, setRepoPath, pathMap, onPlatform, within, isRepoAt, SRC_EXT, logFailure, failures, clearFailures, paused, setPaused, TICKET_PREFIX, TICKET_RE, codeRefs, codeMaxTicket, gitConfig, people, writePeople, putPerson, me, personNamed, recentActivity, whosAround, reposFor, latestHandoff, currentTicket, setCurrentTicket, registry, writeRegistry, regGet, regPut, contractClashes, clashMsg, onboarded, offboarded, isOnboarded, discovered, TICKET_STATUS, REPO_STATUS, TRANSITIONS, read, exists, ls, lsMd, atomicWrite, atomicAppend, nowISO, day, daysAgo, repos, repoOf, parse, stringify, sections, slug, pad3, nextNum, createWithId, findTicket, findDecision, loadTicket, sh, coordGit, snapshot, state, setState, isHuman, actor, statusTemplate, ensureStatusFiles, readStatus, activityFile, logActivity, activityLines, lastActivityPerRepo, idDirs };

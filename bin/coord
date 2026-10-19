@@ -223,6 +223,8 @@ const USAGE = `coord — cross-repo coordination for the jetKreate platform
   repos                          onboarded / discovered / offboarded
   depends <repo>                 what it depends on
       [--on a,b|--add X|--rm X]  set, add or remove one (a person's call)
+  contracts <repo>               what it owns; with no flags, re-scans and shows the
+      [--own a,b|--add X|--rm X] difference (a person's call to change it)
   where [<repo> [<path>]]        where each repo is on THIS machine (--forget <repo>)
   onboard <repo> [--at <path>] --preflight
                                  read-only report: validation, stack, setup, candidates
@@ -599,6 +601,45 @@ const CMDS = {
     L.snapshot(`coord: ${repo} depends on ${next.join(', ') || 'nothing'}`);
     console.log(`OK  ${repo} depends on: ${next.join(', ') || 'nothing'}`);
     const gone = cur.filter(d => !next.includes(d)), add = next.filter(d => !cur.includes(d));
+    if (add.length) console.log(`    added:   ${add.join(', ')}`);
+    if (gone.length) console.log(`    removed: ${gone.join(', ')}`);
+  },
+
+  // The mirror of `depends`. A registry row is written once at onboarding and then
+  // never re-read, so a row the scanner got wrong stays wrong -- and the scanner does
+  // get better. With no flags this re-scans and prints the difference, writing nothing.
+  contracts() {
+    const repo = rest[0] && L.isOnboarded(rest[0]) ? rest[0] : die('usage: coord contracts <repo> [--own a,b | --add X | --rm X]');
+    const e = L.regGet(repo);
+    const list = s => String(s).split(',').map(x => x.trim()).filter(Boolean);
+    const cur = e.contracts || [];
+    let next = cur;
+    if ('own' in flags) next = typeof flags.own === 'string' ? list(flags.own) : [];   // --own with nothing after it clears
+    else if (typeof flags.add === 'string') next = [...new Set([...cur, ...list(flags.add)])];
+    else if (typeof flags.rm === 'string') next = cur.filter(c => !list(flags.rm).includes(c));
+    else {
+      console.log(`${repo} owns: ${cur.join(', ') || 'nothing'}`);
+      let found;
+      try { found = O.detect(repo).contracts; }
+      catch (err) { return console.log(`  (cannot re-scan it here: ${err.message})`); }
+      const gone = cur.filter(c => !found.some(f => f.group === c));
+      const extra = found.filter(f => !cur.includes(f.group));
+      if (!gone.length && !extra.length) return console.log(`  a fresh scan of the code agrees.`);
+      for (const f of extra) console.log(`  in the code, not on the board   ${f.group}  [${f.confidence}]  ${f.pathCount} route(s)`);
+      for (const g of gone) console.log(`  on the board, not in the code   ${g}`);
+      return console.log(`\n  nothing written. To take the scan as it stands:\n  coord contracts ${repo} --own ${found.map(f => f.group).join(',')}`);
+    }
+
+    if (!L.isHuman()) die(`changing what a repo owns is a person's call, not an agent's. Ask them to run: coord contracts ${repo} --${'own' in flags ? 'own' : typeof flags.add === 'string' ? 'add' : 'rm'} ...`);
+    const bad = next.filter(c => !c.startsWith('/'));
+    if (bad.length) die(`a contract is a path and starts with "/": ${bad.join(', ')}`);
+    const clashes = L.contractClashes(next.filter(c => !cur.includes(c)), repo);
+    if (clashes.length) die(L.clashMsg(clashes, repo));
+    next = [...new Set(next)].sort();
+    L.regPut({ ...e, contracts: next });
+    L.snapshot(`coord: ${repo} owns ${next.join(', ') || 'nothing'}`);
+    console.log(`OK  ${repo} owns: ${next.join(', ') || 'nothing'}`);
+    const gone = cur.filter(c => !next.includes(c)), add = next.filter(c => !cur.includes(c));
     if (add.length) console.log(`    added:   ${add.join(', ')}`);
     if (gone.length) console.log(`    removed: ${gone.join(', ')}`);
   },
@@ -1108,17 +1149,23 @@ function printPreflight(r) {
   for (const [k, v] of Object.entries(r.claude)) console.log(`  ${k}: ${yn(v)}`);
   console.log(`\n## Candidate contracts (${r.contracts.length}) — scanned ${r.files} files`);
   if (!r.contracts.length) console.log('  none detected — this repo may not expose an API');
-  for (const c of r.contracts) console.log(`  ${c.group}  [${c.confidence}]  ${c.pathCount} route(s)  e.g. ${c.paths.slice(0, 3).join(' ')}  (${c.evidence[0]})`);
+  for (const c of r.contracts.slice(0, 30)) console.log(`  ${c.group}  [${c.confidence}]  ${c.pathCount} route(s)  e.g. ${c.paths.slice(0, 3).join(' ')}  (${c.evidence[0]})`);
+  if (r.contracts.length > 30) console.log(`  … and ${r.contracts.length - 30} more — coord contracts ${r.name} lists every one`);
   console.log(`\n## Candidate depends_on (${r.depends_on.length})`);
   if (!r.depends_on.length) console.log('  none detected');
   for (const d of r.depends_on) console.log(`  ${d.repo}  [${d.confidence}]  ${d.evidence.join('; ')}`);
-  console.log(`\n## Planned changes (apply does nothing until you run --apply)`);
-  console.log(`  create  .coord/status/${r.name}.md`);
-  console.log(`  modify  .coord/repos.json`);
+  // This box used to list the contract stubs and the decision record too. --apply has
+  // never written either -- they are steps 4 and 5 of the runbook, done by hand -- so
+  // the box was promising work the tool does not do.
+  console.log(`\n## What --apply writes (nothing until you run it)`);
+  console.log(`  create  .coord/status/${r.name}/<you>.md`);
+  console.log(`  modify  .coord/repos.json  (only the contracts and deps you name)`);
   console.log(`  modify  ${r.name}/.git/info/exclude  ${r.excludes.length ? '(+ ' + r.excludes.join(', ') + ')' : '(already covered)'}`);
-  console.log(`  create  .coord/contracts/*.md stubs for confirmed contracts`);
-  console.log(`  create  .coord/decisions/D-xxx-onboarded-${r.name}.md`);
-  console.log(`\nvalidation: ${bad.length ? 'FAILED — ' + bad.join('; ') : 'passed'}`);
+  console.log(`  snapshot .coord before and after`);
+  console.log(`\n## Then, by hand — .coord/ONBOARDING.md steps 4-5`);
+  console.log(`  .coord/contracts/<name>.md stub per contract you registered`);
+  console.log(`  coord decide --title "onboarded ${r.name}" --repos ${r.name}`);
+  console.log(`\nvalidation: ${bad.length ? 'FAILED — ' + bad.map(b => O.why(b, r.name)).join('; ') : 'passed'}`);
 }
 
 // id/note come from the long verbs' argv, or are handed in by `ok`/`no`, which worked
