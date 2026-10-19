@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-19T18:10:22+05:30",
+  "updated": "2026-10-19T18:43:57+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -52,18 +52,17 @@
       "name": "iris",
       "stack": "pnpm + Turborepo",
       "contracts": [
-        "/api/studio",
-        "/api/ideas",
-        "/api/script",
-        "/api/remix",
-        "/api/rollstock",
-        "/api/tools",
-        "/api/films",
         "/api/billing",
-        "/api/youtube",
         "/api/chats",
         "/api/director",
-        "/jobs"
+        "/api/films",
+        "/api/ideas",
+        "/api/remix",
+        "/api/rollstock",
+        "/api/script",
+        "/api/studio",
+        "/api/tools",
+        "/api/youtube"
       ],
       "depends_on": [
         "creater-ai-backend",
