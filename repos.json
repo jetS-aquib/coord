@@ -103,7 +103,8 @@
       "stack": "npm + TypeScript + React + Vite + Redux Toolkit + React Query + Tailwind + Firebase",
       "contracts": [],
       "depends_on": [
-        "music-jetkreate-backend"
+        "music-jetkreate-backend",
+        "video-processing-backend"
       ],
       "onboarded": "2026-10-19",
       "status": "active"
