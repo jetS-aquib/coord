@@ -8,3 +8,6 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-20T20:59:01+05:30
+
+Session ended while on JET-193. Touched: src/shared/services/captchaService.ts. Nothing committed. (written automatically — no one said what is next)

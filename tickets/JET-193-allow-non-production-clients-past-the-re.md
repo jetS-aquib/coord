@@ -4,9 +4,9 @@ title: Allow non-production clients past the reCAPTCHA gate on login and registe
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-10-20T20:52:41+05:30
-updated: 2026-10-20T20:52:41+05:30
+updated: 2026-10-20T20:58:05+05:30
 decisions: 
 ---
 
@@ -40,3 +40,5 @@ With NODE_ENV=development: POST /api/auth/login with a valid email and password 
 
 ## Thread
 2026-10-20T20:52:41+05:30 aquib N: created ticket, status: - -> open
+2026-10-20T20:57:10+05:30 aquib N: status: open -> approved
+2026-10-20T20:58:05+05:30 aquib N: status: approved -> in_progress — work started in music-jetkreate-backend
