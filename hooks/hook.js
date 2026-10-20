@@ -108,11 +108,20 @@ function brief(L, repo, onboarded) {
   const some = (ts, head) => ts.length <= 6 ? `${head}:\n${ts.map(fmt).join('\n')}`
     : `${head} (${ts.length}, newest 5 — the rest: coord list):\n${ts.slice(-5).map(fmt).join('\n')}`;
 
+  // A 4 MB wiki nobody is told about is worth nothing, and one an agent reads whole is
+  // worse than nothing -- it spends the context the work needed. index.md is a table of
+  // contents by community plus the god nodes, which is exactly the shape that makes a
+  // targeted read possible, so the briefing names the index and says to stop there.
+  const wikiOf = r => L.exists(path.join(L.P.graphs, r, 'wiki', 'index.md')) ? `.coord/graphs/${r}/wiki/index.md` : '';
+  const HOWTO = 'Open the index, pick the one or two articles it names, read those. Never read the whole wiki.';
+
   if (repo === 'platform-root') {
     lines.push(`This session is at the jetKreate platform root, not inside a repo. Coordination state lives in .coord/.`);
     lines.push(`Onboarded repos: ${L.onboarded().join(', ') || 'none'}.`);
     const disc = L.discovered();
     if (disc.length) lines.push(`Discovered but not onboarded: ${disc.join(', ')}. The runbook is .coord/ONBOARDING.md.`);
+    const mapped = L.onboarded().filter(r => wikiOf(r));
+    if (mapped.length) lines.push(`Knowledge-graph wikis are on the board for ${mapped.join(', ')}, each at .coord/graphs/<repo>/wiki/index.md. ${HOWTO}`);
     const busy = L.onboarded().map(r => L.readStatus(r)).filter(s => s.status !== 'idle');
     for (const s of busy) lines.push(`  ${s.repo}: ${s.status}${s.task && s.task !== '—' ? ` — ${s.task}` : ''}`);
     if (!busy.length) lines.push(`All of them are idle.`);
@@ -125,6 +134,11 @@ function brief(L, repo, onboarded) {
     lines.push(`Its status file .coord/status/${repo}.md currently reads: Status "${s.status}", Current task "${s.task || '—'}", Blockers "${s.blockers || '—'}".`);
     if ((e.contracts || []).length) lines.push(`${repo} owns these contracts: ${e.contracts.join(', ')}.`);
     if ((e.depends_on || []).length) lines.push(`${repo} depends on: ${e.depends_on.join(', ')}.`);
+
+    const mine = wikiOf(repo);
+    if (mine) lines.push(`A knowledge-graph map of ${repo} is on the board at ${mine} — its communities and its most-connected symbols, as of the last build. ${HOWTO} "coord graph" says how far behind the code it is.`);
+    const alsoMapped = L.onboarded().filter(r => r !== repo && wikiOf(r));
+    if (alsoMapped.length) lines.push(`The same maps are on the board for ${alsoMapped.join(', ')} — read one before guessing at another repo's internals, and read its contract in .coord/contracts/ before guessing at its API.`);
 
     const inbox = tickets.filter(t => t.to === repo && !['done', 'rejected'].includes(t.status));
     const outbox = tickets.filter(t => t.from === repo && !['done', 'rejected'].includes(t.status));

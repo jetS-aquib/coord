@@ -1402,6 +1402,22 @@ function onboarding() {
   const last = log.trim().split('\n').at(-1);
   // the earlier "discovered" breadcrumb stays in history; what matters is the new entry
   ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start(\t|$)/.test(last) && !/discovered/.test(last), last);
+  // A map nobody is told about is not a map. The briefing has to name the index and say
+  // to stop there, or an agent either never opens it or reads four megabytes of it.
+  const wdir = path.join(CO, 'graphs', 'gamma', 'wiki');
+  fs.mkdirSync(wdir, { recursive: true });
+  fs.writeFileSync(path.join(wdir, 'index.md'), '# Knowledge Graph Index\n\n## Communities\n- [Thing](Thing.md) - 3 nodes\n');
+  const wbrief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
+    input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('the briefing names the repo its own graph index', /graphs\/gamma\/wiki\/index\.md/.test(wbrief.stdout), wbrief.stdout.slice(0, 400));
+  ok('and says to read the index, not the wiki', /Never read the whole wiki/.test(wbrief.stdout), wbrief.stdout.slice(0, 400));
+  fs.rmSync(path.join(CO, 'graphs', 'gamma'), { recursive: true, force: true });
+  const nobrief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
+    input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
+  });
+  ok('and says nothing about a graph that does not exist', !/wiki\/index\.md/.test(nobrief.stdout), nobrief.stdout.slice(0, 300));
+
   ok('briefing switches from discovered to onboarded', /onboarded repo of the jetKreate platform/.test(hres.stdout) && !/is not onboarded/.test(hres.stdout), hres.stdout.slice(0, 140));
   ok('tickets can be filed at it', coord(['new', '--from', 'alpha', '--to', name, '--title', 'gamma please'], { cwd: path.join(TMP, 'alpha') }).ok);
   ok('check is clean after onboarding', !coord(['check']).out.includes('ERROR'), coord(['check']).out);
