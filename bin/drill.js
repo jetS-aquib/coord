@@ -13,6 +13,8 @@ const ok = (name, cond, detail = '') => {
   console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${cond || !detail ? '' : '\n        ' + String(detail).trim().split('\n').join('\n        ')}`);
 };
 const git = (args, cwd) => cp.spawnSync('git', args, { cwd, encoding: 'utf8' });
+// Local offset, like L.nowISO(). Never toISOString(): the board compares these as strings.
+const L_nowish = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().replace('Z', '+00:00');
 const statusPath = (CO, repo) => {
   const d = path.join(CO, 'status', repo);
   const f = (fs.existsSync(d) ? fs.readdirSync(d) : []).find(n => n.endsWith('.md'));
@@ -1403,20 +1405,36 @@ function onboarding() {
   // the earlier "discovered" breadcrumb stays in history; what matters is the new entry
   ok('hooks log it normally once onboarded', hres.status === 0 && /\tgamma\tsession-start(\t|$)/.test(last) && !/discovered/.test(last), last);
   // A map nobody is told about is not a map. The briefing has to name the index and say
-  // to stop there, or an agent either never opens it or reads four megabytes of it.
+  // to stop there, or an agent either never opens it or reads four megabytes of it. And
+  // a map is only true as of the commit it was built at, so the drift goes in the same
+  // line -- a session that has to run a command to learn it is a session that will not.
   const wdir = path.join(CO, 'graphs', 'gamma', 'wiki');
   fs.mkdirSync(wdir, { recursive: true });
   fs.writeFileSync(path.join(wdir, 'index.md'), '# Knowledge Graph Index\n\n## Communities\n- [Thing](Thing.md) - 3 nodes\n');
-  const wbrief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
+  fs.writeFileSync(path.join(CO, 'graphs', 'gamma', 'REPORT.md'), '# gamma graph\n');
+  git(['add', '-A'], dir);
+  git(['-c', 'user.email=d@d', '-c', 'user.name=drill', 'commit', '-qm', 'gamma base'], dir);
+  const atHead = git(['rev-parse', 'HEAD'], dir).stdout.trim();
+  fs.writeFileSync(path.join(CO, 'graphs', 'gamma', 'built.json'),
+    JSON.stringify({ repo: 'gamma', commit: atHead, built: L_nowish(), by: 'drill' }));
+  const brf = () => cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
     input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
-  });
-  ok('the briefing names the repo its own graph index', /graphs\/gamma\/wiki\/index\.md/.test(wbrief.stdout), wbrief.stdout.slice(0, 400));
-  ok('and says to read the index, not the wiki', /Never read the whole wiki/.test(wbrief.stdout), wbrief.stdout.slice(0, 400));
+  }).stdout;
+  const wbrief = brf();
+  ok('the briefing names the repo its own graph index', /graphs\/gamma\/wiki\/index\.md/.test(wbrief), wbrief.slice(0, 400));
+  ok('and says to read the index, not the wiki', /Never read the whole wiki/.test(wbrief), wbrief.slice(0, 400));
+  ok('a graph built at HEAD is called current', /It is current with HEAD/.test(wbrief), wbrief.slice(0, 600));
+
+  fs.writeFileSync(path.join(dir, 'drift.js'), '// moved on\n');
+  git(['add', '-A'], dir);
+  git(['-c', 'user.email=d@d', '-c', 'user.name=drill', 'commit', '-qm', 'drift'], dir);
+  const sbrief = brf();
+  ok('a graph behind HEAD says how far, without being asked',
+    /built 1 commit\(s\) before gamma's HEAD/.test(sbrief), sbrief.slice(0, 600));
+  ok('and names what brings it up to date', /coord graph gamma/.test(sbrief), sbrief.slice(0, 600));
+
   fs.rmSync(path.join(CO, 'graphs', 'gamma'), { recursive: true, force: true });
-  const nobrief = cp.spawnSync(process.execPath, [HOOK, 'session-start'], {
-    input: JSON.stringify({ cwd: dir }), encoding: 'utf8', env: { ...process.env, COORD_ROOT: CO },
-  });
-  ok('and says nothing about a graph that does not exist', !/wiki\/index\.md/.test(nobrief.stdout), nobrief.stdout.slice(0, 300));
+  ok('and says nothing about a graph that does not exist', !/wiki\/index\.md/.test(brf()), brf().slice(0, 300));
 
   ok('briefing switches from discovered to onboarded', /onboarded repo of the jetKreate platform/.test(hres.stdout) && !/is not onboarded/.test(hres.stdout), hres.stdout.slice(0, 140));
   ok('tickets can be filed at it', coord(['new', '--from', 'alpha', '--to', name, '--title', 'gamma please'], { cwd: path.join(TMP, 'alpha') }).ok);

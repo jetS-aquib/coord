@@ -114,6 +114,20 @@ function brief(L, repo, onboarded) {
   // targeted read possible, so the briefing names the index and says to stop there.
   const wikiOf = r => L.exists(path.join(L.P.graphs, r, 'wiki', 'index.md')) ? `.coord/graphs/${r}/wiki/index.md` : '';
   const HOWTO = 'Open the index, pick the one or two articles it names, read those. Never read the whole wiki.';
+  // A map is only true as of the commit it was built at, and graphs.js already counts the
+  // drift for `coord graph`. Saying "coord graph tells you how stale it is" makes the
+  // session run a command to learn something the briefing could have said -- and the one
+  // that does not run it answers confidently about code that moved weeks ago, which is
+  // the failure this whole thing exists to reduce. So state the number.
+  const freshness = r => {
+    let n = null;
+    try { n = require(path.join(__dirname, '..', 'bin', 'graphs.js')).statusOf(r).behind; }
+    catch { return ''; }
+    if (n === null) return '';
+    return n > 0
+      ? ` It was built ${n} commit(s) before ${r}'s HEAD, so check what it tells you against the file before relying on it; a fresh "graphify" there and then "coord graph ${r}" brings it up to date.`
+      : ' It is current with HEAD.';
+  };
 
   if (repo === 'platform-root') {
     lines.push(`This session is at the jetKreate platform root, not inside a repo. Coordination state lives in .coord/.`);
@@ -121,7 +135,12 @@ function brief(L, repo, onboarded) {
     const disc = L.discovered();
     if (disc.length) lines.push(`Discovered but not onboarded: ${disc.join(', ')}. The runbook is .coord/ONBOARDING.md.`);
     const mapped = L.onboarded().filter(r => wikiOf(r));
-    if (mapped.length) lines.push(`Knowledge-graph wikis are on the board for ${mapped.join(', ')}, each at .coord/graphs/<repo>/wiki/index.md. ${HOWTO}`);
+    if (mapped.length) {
+      lines.push(`Knowledge-graph wikis are on the board for ${mapped.join(', ')}, each at .coord/graphs/<repo>/wiki/index.md. ${HOWTO}`);
+      const stale = mapped.map(r => ({ r, n: (() => { try { return require(path.join(__dirname, '..', 'bin', 'graphs.js')).statusOf(r).behind; } catch { return null; } })() }))
+        .filter(x => x.n > 0);
+      if (stale.length) lines.push(`Behind their code: ${stale.map(x => `${x.r} (${x.n})`).join(', ')} — rebuild with "graphify" in the repo, then "coord graph <repo>".`);
+    }
     const busy = L.onboarded().map(r => L.readStatus(r)).filter(s => s.status !== 'idle');
     for (const s of busy) lines.push(`  ${s.repo}: ${s.status}${s.task && s.task !== '—' ? ` — ${s.task}` : ''}`);
     if (!busy.length) lines.push(`All of them are idle.`);
@@ -136,7 +155,7 @@ function brief(L, repo, onboarded) {
     if ((e.depends_on || []).length) lines.push(`${repo} depends on: ${e.depends_on.join(', ')}.`);
 
     const mine = wikiOf(repo);
-    if (mine) lines.push(`A knowledge-graph map of ${repo} is on the board at ${mine} — its communities and its most-connected symbols, as of the last build. ${HOWTO} "coord graph" says how far behind the code it is.`);
+    if (mine) lines.push(`A knowledge-graph map of ${repo} is on the board at ${mine} — its communities and its most-connected symbols. ${HOWTO}${freshness(repo)}`);
     const alsoMapped = L.onboarded().filter(r => r !== repo && wikiOf(r));
     if (alsoMapped.length) lines.push(`The same maps are on the board for ${alsoMapped.join(', ')} — read one before guessing at another repo's internals, and read its contract in .coord/contracts/ before guessing at its API.`);
 
