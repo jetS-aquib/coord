@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-19T18:43:57+05:30",
+  "updated": "2026-10-20T20:51:32+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -107,6 +107,17 @@
         "video-processing-backend"
       ],
       "onboarded": "2026-10-19",
+      "status": "active"
+    },
+    {
+      "name": "music-jetkreate-mobile",
+      "remote": "",
+      "stack": "npm + TypeScript + React Native (Expo SDK 58, Expo Router, Hermes), Android-first",
+      "contracts": [],
+      "depends_on": [
+        "music-jetkreate-backend"
+      ],
+      "onboarded": "2026-10-20",
       "status": "active"
     },
     {
