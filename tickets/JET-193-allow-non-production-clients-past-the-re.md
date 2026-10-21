@@ -4,9 +4,9 @@ title: Allow non-production clients past the reCAPTCHA gate on login and registe
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-10-20T20:52:41+05:30
-updated: 2026-10-20T20:58:05+05:30
+updated: 2026-10-21T11:45:50+05:30
 decisions: 
 ---
 
@@ -36,9 +36,19 @@ With NODE_ENV=development: POST /api/auth/login with a valid email and password 
 
 ## Test steps
 
-—
+1. With the backend running and NODE_ENV unset or "development", POST to
+   /api/auth/login with a valid email and password and NO captchaToken.
+   Expect 200 with accessToken and refreshToken, and a warn line in the backend
+   log reading `CAPTCHA skipped for action "login"`.
+2. Same call with NODE_ENV=production. Expect 403 and
+   `{"error":"CAPTCHA token is required"}`. This is the gate that matters.
+3. In the Expo app with no EXPO_PUBLIC_DEV_REFRESH_TOKEN set, sign in through the
+   real form on the sign-in screen. Expect to land on the signed-in screen.
+4. Register a new account from the app with no captchaToken. Expect the verify
+   screen with a six digit code, confirming createUser took the same path.
 
 ## Thread
 2026-10-20T20:52:41+05:30 aquib N: created ticket, status: - -> open
 2026-10-20T20:57:10+05:30 aquib N: status: open -> approved
 2026-10-20T20:58:05+05:30 aquib N: status: approved -> in_progress — work started in music-jetkreate-backend
+2026-10-21T11:45:50+05:30 aquib N: status: in_progress -> review — Backend bypass is in at the captchaService.verify() chokepoint with a warn log, exactly as planned. Mobile side: removed the dev refresh-token workaround that stood in for this; the real sign-in form is now the only path.

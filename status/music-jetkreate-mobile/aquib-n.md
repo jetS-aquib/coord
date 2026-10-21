@@ -1,13 +1,17 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Auth screen shipped; waiting on JET-193 so the real sign-in form can work
-- **Status:** waiting on human
-- **Blockers:** JET-193 needs approval — mobile cannot produce a reCAPTCHA token, so login and register are unreachable
-- **Last updated:** 2026-10-20T21:05:00+05:30
+- **Current task:** Nav Read committed; next is the Library screen and the (create) flow
+- **Status:** working
+- **Blockers:** none. JET-193 landed; real sign-in works and the dev bypass is deleted
+- **Last updated:** 2026-10-21T11:50:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-21T11:46:13+05:30
+
+Session ended. Touched: aquib-n.md, src/config/env.ts, src/lib/session-context.tsx, src/lib/auth.ts, .env, MOBILE-DESIGN.md. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-20T20:53:26+05:30
 
 Session ended. Touched: aquib-n.md. Nothing committed. (written automatically — no one said what is next)
