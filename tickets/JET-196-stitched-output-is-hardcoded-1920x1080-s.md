@@ -4,9 +4,9 @@ title: Stitched output is hardcoded 1920x1080, so portrait clips come back pilla
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-10-22T13:35:21+05:30
-updated: 2026-10-22T15:28:11+05:30
+updated: 2026-10-22T15:34:50+05:30
 decisions: D-005
 ---
 
@@ -69,3 +69,4 @@ Stitching a set of 720x1280 portrait clips with audio produces a portrait master
 2026-10-22T15:21:24+05:30 aquib N: status: approved -> in_progress — work started in video-processing-backend
 2026-10-22T15:28:11+05:30 aquib N: linked decision D-005 (Stitch output orientation follows the source clips)
 2026-10-22T15:34:50+05:30 aquib N: Implemented. Orientation derived from the clips, frame size held fixed (D-005) so landscape is unchanged; both caption canvases follow the frame, including the classic style's deliberate 4:3 canvas, which is scaled rather than rebuilt. Verified by real render in the container: portrait 720x1280 clips -> 1080x1920, landscape 1920x1080 clips -> 1920x1080, 306 tests pass, no new lint. Caption preview is still landscape-only and is NOT fixed here — recorded as a known gap on video-captions.md; it needs a field on the preview request and a client to send it.
+2026-10-22T15:34:50+05:30 aquib N: status: in_progress -> review
