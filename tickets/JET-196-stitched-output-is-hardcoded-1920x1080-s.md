@@ -4,9 +4,9 @@ title: Stitched output is hardcoded 1920x1080, so portrait clips come back pilla
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-10-22T13:35:21+05:30
-updated: 2026-10-22T13:40:05+05:30
+updated: 2026-10-22T15:21:24+05:30
 decisions: 
 ---
 
@@ -66,3 +66,4 @@ Stitching a set of 720x1280 portrait clips with audio produces a portrait master
 ## Thread
 2026-10-22T13:35:21+05:30 aquib N: created ticket, status: - -> open
 2026-10-22T13:40:05+05:30 aquib N: status: open -> approved
+2026-10-22T15:21:24+05:30 aquib N: status: approved -> in_progress — work started in video-processing-backend
