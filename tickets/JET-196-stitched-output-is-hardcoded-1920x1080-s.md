@@ -70,3 +70,18 @@ Stitching a set of 720x1280 portrait clips with audio produces a portrait master
 2026-10-22T15:28:11+05:30 aquib N: linked decision D-005 (Stitch output orientation follows the source clips)
 2026-10-22T15:34:50+05:30 aquib N: Implemented. Orientation derived from the clips, frame size held fixed (D-005) so landscape is unchanged; both caption canvases follow the frame, including the classic style's deliberate 4:3 canvas, which is scaled rather than rebuilt. Verified by real render in the container: portrait 720x1280 clips -> 1080x1920, landscape 1920x1080 clips -> 1920x1080, 306 tests pass, no new lint. Caption preview is still landscape-only and is NOT fixed here — recorded as a known gap on video-captions.md; it needs a field on the preview request and a client to send it.
 2026-10-22T15:34:50+05:30 aquib N: status: in_progress -> review
+2026-10-22T15:38:02+05:30 aquib N: Mobile side checked. Nothing needed hooking: orientation is derived from the clips, not requested, so there is no parameter for a client to send and ASPECT_RATIO ('9:16' on generate-clip) was already right.
+
+What I verified rather than assumed, by reading the implementation:
+- target_frame() majority-votes the analysis metadata; ties, squares and unreadable clips fall to landscape. That answers the mixed-orientation assumption I left open in the Understanding, and it is the backward-compatible choice.
+- D-005 holding the frame SIZE fixed is the part I would have got wrong. I had assumed deriving size from the clips; that would have stopped 720p material arriving at 1080p.
+
+Two mobile changes, neither required by the fix:
+- The detail player's comment said the stitch 'currently returns 1920x1080 regardless of what the clips were'. Stale as of today, corrected.
+- The clip player still hardcoded a 9:16 frame for individual shots. Correct today, but the same latent bug the detail screen had, so it now reads the real track size from sourceLoad too. Both players use the same mechanism so they cannot drift when the Phase E aspect picker lands.
+
+Not verified by me: I have not yet played a portrait master on a device — the only completed project here is the old 1920x1080 one, and I am no longer driving the emulator. The detail player adapts by construction, but 'ffprobe says 1080x1920 and the phone fills the screen with it' is still unconfirmed on mobile.
+
+PLAN.md Phase E is unblocked for the aspect picker, with the caption-preview gap recorded.
+
+Closing is yours — coord ok 196 once you have seen a portrait master play.
