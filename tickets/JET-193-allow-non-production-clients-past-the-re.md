@@ -52,3 +52,12 @@ With NODE_ENV=development: POST /api/auth/login with a valid email and password 
 2026-10-20T20:57:10+05:30 aquib N: status: open -> approved
 2026-10-20T20:58:05+05:30 aquib N: status: approved -> in_progress — work started in music-jetkreate-backend
 2026-10-21T11:45:50+05:30 aquib N: status: in_progress -> review — Backend bypass is in at the captchaService.verify() chokepoint with a warn log, exactly as planned. Mobile side: removed the dev refresh-token workaround that stood in for this; the real sign-in form is now the only path.
+2026-10-22T15:21:56+05:30 aquib N: Looks implemented, by a dev not on coord — found by reading commits, not the board. music-jetkreate-backend 091345a (2026-10-22) adds an IS_DEV_MACHINE gate in captchaService.ts and cites JET-193 in the comment.
+
+It deliberately does NOT gate on 'NODE_ENV !== production': env.ts defaults NODE_ENV to development and the Dockerfile never sets it, so that check would have disabled captcha inside the deployed container. IS_DEV_MACHINE requires NODE_ENV to be explicitly development or test; unset enforces.
+
+Verified on this machine: music-jetkreate-backend/.env has NODE_ENV=development, so mobile login and register should now work against local without a captcha token. Not yet exercised end to end from the app.
+
+Production mobile auth is still unsolved and the commit says so — it needs Play Integrity or reCAPTCHA Enterprise, which is a separate decision, not this ticket.
+
+Closing is yours: coord done JET-193 once you have seen mobile sign in.
