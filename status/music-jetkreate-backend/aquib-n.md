@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-22T18:21:22+05:30
+
+Session ended while on JET-193. Touched: src/middleware/generationLimiter.ts, src/config/env.ts, src/shared/services/captchaService.ts. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-22T18:14:56+05:30
 
 Session ended while on JET-193. Touched: src/middleware/generationLimiter.ts, src/config/env.ts, src/shared/services/captchaService.ts. Nothing committed. (written automatically — no one said what is next)
