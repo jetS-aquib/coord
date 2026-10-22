@@ -18,6 +18,22 @@ All three require the `X-Service-Assertion` header (see Notes).
 - `POST /api/v1/clip-stitching-with-audio` — ordered clip URLs + one `audio_url` → transitioned MP4 with master audio.
 - `POST /api/v1/clip-stitching-with-lyrics` — clip URLs + `audio_url` + optional lyrics/caption settings (`caption_style`, `caption_position`, …) → transitioned MP4 with burnt-in captions.
 
+## Output frame
+
+There is no resolution, orientation or aspect field on any of these requests,
+and `extra="forbid"` means sending one is rejected rather than ignored. The
+frame is decided from the clips you send (JET-196):
+
+- `clip-stitching` — always `1280x720@24`, whatever the clips are.
+- `clip-stitching-with-audio` and `clip-stitching-with-lyrics` — `1920x1080@30`,
+  or `1080x1920@30` when **more than half** the clips are taller than they are
+  wide. A tie, square clips, and clips whose dimensions could not be read all
+  give landscape, so a caller sending landscape gets exactly what it always did.
+
+Clips that do not match the chosen frame are still scaled down and padded into
+it, so a stray landscape clip in a portrait set is letterboxed rather than
+cropped. Captions follow the frame; nothing about a caption request changes.
+
 ## Notes
 
 Shapes are not documented yet. The owner fills these in; everyone else reads.

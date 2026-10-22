@@ -24,3 +24,10 @@ Shapes are not documented yet. The owner fills these in; everyone else reads.
 `caption-preview` is reached by a browser (`music-jetkreate-frontend`) as well as
 server-side. The two `GET`s had no caller at onboarding time; they are documented in
 the repo README as the selector feed.
+
+**Known gap (JET-196):** the preview is always rendered on a landscape canvas and
+takes no orientation. Since a stitch can now produce a portrait master, a preview
+shown next to a portrait job does not represent what that job will output. The
+styles and fonts it reports are correct either way; only the rendered preview's
+shape is wrong. Not fixed here — it needs a field on the preview request, which
+needs a client to send it.

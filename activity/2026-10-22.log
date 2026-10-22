@@ -65,3 +65,6 @@
 2026-10-22T15:25:15+05:30	video-processing-backend	edit	aquib N	tests/test_target_frame.py
 2026-10-22T15:26:17+05:30	video-processing-backend	edit	aquib N	jet196_check.py
 2026-10-22T15:26:57+05:30	video-processing-backend	edit	aquib N	jet196_ass.py
+2026-10-22T15:27:49+05:30	video-processing-backend	edit	aquib N	video-stitching.md
+2026-10-22T15:27:58+05:30	video-processing-backend	edit	aquib N	video-captions.md
+2026-10-22T15:28:29+05:30	video-processing-backend	edit	aquib N	app/pipeline/stitch_pipeline.py

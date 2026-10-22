@@ -6,3 +6,4 @@
 | D-002 | Onboarded music-jetkreate-frontend to coordination | 2026-10-19 | active | music-jetkreate-frontend |  |
 | D-003 | Onboarded video-processing-backend to coordination | 2026-10-19 | active | video-processing-backend |  |
 | D-004 | Onboarded music-jetkreate-mobile to coordination | 2026-10-20 | active | music-jetkreate-mobile |  |
+| D-005 | Stitch output orientation follows the source clips | 2026-10-22 | active | video-processing-backend music-jetkreate-mobile music-jetkreate-backend creater-ai-backend | JET-196 |
