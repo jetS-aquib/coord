@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-22T15:35:25+05:30
+
+Session ended while on JET-196. Touched: Dockerfile, docker-compose.yml, app/pipeline/stitch_pipeline.py, app/processors/ffmpeg/ffmpeg_engine.py, tests/test_target_frame.py, jet196_check.py, jet196_ass.py, video-stitching.md, +2 more. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-22T14:05:00+05:30
 
 JET-196 implemented and moved to review. The audio/lyrics workflows now derive
