@@ -11,3 +11,4 @@
 | D-007 | v1 render orchestrator is standalone, not a jobService job type | 2026-10-23 | active | music-jetkreate-backend |  |
 | D-008 | v1 needs no data migration: the project document stays the source of truth | 2026-10-23 | active | music-jetkreate-backend music-jetkreate-frontend music-jetkreate-mobile |  |
 | D-009 | No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend | 2026-10-23 | active | music-jetkreate-backend video-processing-backend | JET-197 |
+| D-010 | Frame endpoints answer synchronously and return the frame inline | 2026-10-23 | active | video-processing-backend music-jetkreate-backend | JET-197 |

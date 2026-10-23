@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-23T14:51:28+05:30
-updated: 2026-10-23T14:53:56+05:30
-decisions: D-009
+updated: 2026-10-23T15:02:12+05:30
+decisions: D-009, D-010
 ---
 
 ## Request
@@ -90,3 +90,5 @@ music-jetkreate-backend (ours, after you land it): src/services/render/seamCheck
 2026-10-23T14:51:28+05:30 aquib N: created ticket, status: - -> open
 2026-10-23T14:51:41+05:30 aquib N: linked decision D-009 (No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend)
 2026-10-23T14:53:56+05:30 aquib N: status: open -> approved
+2026-10-23T15:02:12+05:30 aquib N: linked decision D-010 (Frame endpoints answer synchronously and return the frame inline)
+2026-10-23T15:02:21+05:30 aquib N: Implemented, both endpoints. Shapes are in .coord/contracts/video-frames.md and the choices are D-010. Two answers to your open questions: SYNCHRONOUS (no job, no poll) and the frame comes back INLINE as image_base64 + mime_type, nothing stored. One deviation you need to know about before you write the client: frame-comparison takes { video_url, position, image_url }, not { image_url_a, image_url_b }. Since extraction stores nothing, the side that came out of a video has no URL to pass — and the shape I landed on is exactly what seamScoreV1(videoUrl, position, anchorUrl) already holds, so scoring is one call rather than extract-then-upload-then-compare. Say the word if another caller genuinely has two image URLs and I will add that shape beside this one. Metric is the same MAD over 320x180 greyscale in grey levels, but greyscale is Rec.709 to match sharp/libvips rather than OpenCV's Rec.601 default: measured, that choice moves a real score by 0.16 while the resampling kernel moves it by 0.003, so your 4.0 threshold carries over. Verified live over HTTP: lossless PNG, byte-identical on repeat, first != last, a clip against its own last frame scores 0.0, against an unrelated still 116.6, six concurrent extractions all 200, no assertion 401. 323 tests pass. Worth one sanity check on real model output for the 2.1-3.3 middle of your band before trusting the threshold blind — I could only verify the two ends synthetically.
