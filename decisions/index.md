@@ -10,3 +10,4 @@
 | D-006 | Build the v1 render pipeline additively rather than migrating v0 | 2026-10-23 | active | music-jetkreate-backend |  |
 | D-007 | v1 render orchestrator is standalone, not a jobService job type | 2026-10-23 | active | music-jetkreate-backend |  |
 | D-008 | v1 needs no data migration: the project document stays the source of truth | 2026-10-23 | active | music-jetkreate-backend music-jetkreate-frontend music-jetkreate-mobile |  |
+| D-009 | No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend | 2026-10-23 | active | music-jetkreate-backend video-processing-backend | JET-197 |

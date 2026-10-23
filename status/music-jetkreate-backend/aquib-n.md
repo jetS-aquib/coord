@@ -1,13 +1,46 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 render pipeline — Batch 2 committed, Batch 3 built and uncommitted
-- **Status:** waiting on human
-- **Blockers:** —
-- **Last updated:** 2026-10-23T14:46:25+05:30
+- **Current task:** v1 render pipeline — Batch 3 built; waiting on JET-197 before the ffmpeg cleanup
+- **Status:** blocked
+- **Blockers:** JET-197 (video-processing-backend) — frame extraction as API
+- **Last updated:** 2026-10-23T14:51:57+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T14:51:57+05:30
+
+**Filed JET-197 to video-processing-backend. Nothing in this repo changes until it lands.**
+
+Aquib's call: no ffmpeg in the Node backend. It belongs in video-processing-backend,
+which already owns stitching, audio and captions and already has the binary. Recorded
+as D-009, linked to JET-197.
+
+What JET-197 asks for:
+  1. frame extraction — video URL + 'first'|'last' -> lossless PNG. We need the BYTES,
+     because that frame is handed to the video model as the still the next clip opens on.
+  2. frame comparison (optional for them) — two image URLs -> mean absolute difference,
+     320x180 greyscale. If they decline it we keep that part in Node with sharp, which
+     is not ffmpeg.
+  Open question left to them: their endpoints are 202+poll, and we call this ~66 times
+  per song, six at a time. We asked for synchronous but it is their shape to choose.
+
+Until it is approved, implemented and the shapes are published, the ffmpeg in
+`src/services/render/seamCheckV1.ts` STAYS AS IT IS and keeps working. Aquib will say
+when video-processing-backend is done. Do not start the swap before then.
+
+When it does land, the change here is small and already scoped:
+  - seamCheckV1.ts loses extractFrameV1, toComparableFrameV1 and the sharp import and
+    becomes two HTTP calls. meanAbsoluteDifferenceV1 and its tests go too IF they take
+    endpoint 2; keep both if they don't.
+  - renderOrchestratorV1.ts's carry-forward fallback stops calling
+    extractLastFrameOfVideo from services/ai/thumbnails.ts.
+  - v0 is untouched either way: thumbnails.ts keeps its own extractor for the existing
+    endpoints, and that file is on the do-not-touch list regardless.
+
+Batch 3 is still uncommitted and still unverified by a live render. Both of those are
+unchanged by this.
+
 ### 2026-10-23T14:46:25+05:30
 
 **Batch 2 committed as `6785ba5`. Batch 3 is written, typechecked and unit-tested (31
