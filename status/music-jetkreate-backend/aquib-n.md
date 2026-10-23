@@ -43,6 +43,16 @@ Things worth knowing before the next sitting:
   keys in the registry are rejected at plan time with a clear message.
 - Clip count is 33 for a 4:08 song, not 31: clips never straddle a scene boundary, so
   each scene rounds up on its own. Same seconds, same $24.80.
+- NO MIGRATION is needed for web or mobile to adopt v1, and that is now enforced by
+  code rather than by hope. v0 has no render collection: per-scene state is
+  `MusicVideo.storyboard[i].clipUrl` / `.status`, which both clients read directly.
+  The orchestrator mirrors each finished scene back to those fields (plus a new
+  `clipUrls` array for a scene that needed several clips), so RenderPlanV1 stays
+  derived and disposable and old projects need no backfill. D-008, and the field map
+  is in `coord ctx`.
+- A v1 render deliberately does NOT adopt existing v0 clipUrls on a part-finished
+  project: different model, no frame pinning, so reusing them reproduces the exact
+  jumping-scenes bug v1 exists to fix. It re-renders from clip 0.
 - NOT DONE and not asked for: 2.8, mobile switching to the v1 call. Cross-repo.
 - NOT RUN: a live end-to-end render. It is ~$25 of real spend against a live DB and
   key. Unit tests and typecheck only. A one-scene project renders for ~$0.80 if a
