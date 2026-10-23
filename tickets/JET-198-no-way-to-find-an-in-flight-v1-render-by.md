@@ -4,9 +4,9 @@ title: No way to find an in-flight v1 render by project id, so a client that los
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-23T16:43:42+05:30
-updated: 2026-10-23T16:43:42+05:30
+updated: 2026-10-23T16:46:01+05:30
 decisions: 
 ---
 
@@ -62,3 +62,4 @@ GET /api/v1/music-videos/:id/render returns the live render's summarizePlanV1 pa
 
 ## Thread
 2026-10-23T16:43:42+05:30 aquib N: created ticket, status: - -> open
+2026-10-23T16:46:01+05:30 aquib N: status: open -> approved
