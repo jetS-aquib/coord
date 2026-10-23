@@ -89,3 +89,4 @@
 2026-10-23T15:01:29+05:30	video-processing-backend	edit	aquib N	app/main.py
 2026-10-23T15:01:51+05:30	video-processing-backend	edit	aquib N	video-frames.md
 2026-10-23T15:01:55+05:30	video-processing-backend	registry	aquib N	owns: /api/v1/caption-fonts /api/v1/caption-preview /api/v1/caption-styles /api/v1/clip-stitching /api/v1/clip-stitching-with-audio /api/v1/clip-stitching-with-lyrics /api/v1/frame-extraction /api/v1/jobs
+2026-10-23T15:01:55+05:30	video-processing-backend	registry	aquib N	owns: /api/v1/caption-fonts /api/v1/caption-preview /api/v1/caption-styles /api/v1/clip-stitching /api/v1/clip-stitching-with-audio /api/v1/clip-stitching-with-lyrics /api/v1/frame-comparison /api/v1/frame-extraction /api/v1/jobs

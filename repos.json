@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-23T15:01:54+05:30",
+  "updated": "2026-10-23T15:01:55+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -131,6 +131,7 @@
         "/api/v1/clip-stitching",
         "/api/v1/clip-stitching-with-audio",
         "/api/v1/clip-stitching-with-lyrics",
+        "/api/v1/frame-comparison",
         "/api/v1/frame-extraction",
         "/api/v1/jobs"
       ],
