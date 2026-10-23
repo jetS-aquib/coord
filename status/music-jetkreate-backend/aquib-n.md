@@ -1,13 +1,62 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 render pipeline — Batch 2 built, uncommitted, awaiting a live render
+- **Current task:** v1 render pipeline — Batch 2 committed, Batch 3 built and uncommitted
 - **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-23T14:25:01+05:30
+- **Last updated:** 2026-10-23T14:46:25+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T14:46:25+05:30
+
+**Batch 2 committed as `6785ba5`. Batch 3 is written, typechecked and unit-tested (31
+checks across 3 files). NOT committed — waiting for the go-ahead.**
+
+Batch 3 turns the sequential renderer into anchors + parallel. Four phases now, all
+checkpointed, so a restart resumes at the first unfinished unit of whichever phase it
+died in:
+
+  anchoring   one still per clip boundary (clips + 1), each generated with the
+              PREVIOUS still as generateSceneImage's `referenceImageUrl`. Sequential,
+              because that conditioning IS the continuity. v0 passes undefined there,
+              which is why it drifts; v0's caller is untouched.
+  rendering   every clip at once behind the model's verified cap of 6, each pinned
+              between its two stills. Clips no longer wait for each other.
+  verifying   seam score per clip (MAD on 320x180 grey, threshold 4.0); one
+              re-render for anything over.
+  stitching   unchanged, still the existing synthesis service.
+
+New files: `src/services/render/renderPromptsV1.ts` (pure prompt text),
+`src/services/render/seamCheckV1.ts` (MAD + frame extraction),
+`src/services/render/renderV1.test.ts` (20 checks).
+Touched: `renderOrchestratorV1.ts` (rewritten loop), `models/RenderPlanV1.ts`
+(anchors, seamScore, attempts, `deriveAnchorsV1`), `services/ai/omniVideoService.ts`
+(seed passthrough + policy-rejection class), `services/ai/thumbnails.ts` (one flag).
+
+Expensive things learned or decided this sitting:
+- Six parallel clips each checkpointing meant six concurrent `plan.save()` calls on
+  ONE mongoose document — overlapping writes of the same doc. Saves are now queued per
+  plan. The checkpoint is the one thing here that must not be approximate.
+- Frame extraction was lossy WebP. That frame is BOTH the pin handed back to the model
+  AND the yardstick it is then measured against, so compression error was being scored
+  as model error. `-lossless 1`. Also improves the v0 path.
+- A content refusal is now re-asked as pure motion between the clip's two anchors.
+  About one generation in five is refused, and a refusal is deterministic, so the
+  fallback is what keeps one refusal from costing the song.
+- `seed` is plumbed but sent ONLY when set: it is the one field never verified against
+  the live Interactions API. Default behaviour is exactly what was measured. One cheap
+  clip with a seed confirms or disproves it.
+- 3.8 (@imageN stripping) and 3.5 (policy classification) are done for v1 only. The v0
+  homes for both — `videoService.ts` and `providers/circuitBreaker.ts` — are on the
+  do-not-touch list, so v0 still has both bugs.
+
+NOT MEASURED, and both batches claim numbers that only a live render settles: resume,
+under-10-minutes wall clock, every seam below 4.0. ~$25 for a full song; a one-scene
+project exercises all four phases for ~$0.80.
+
+Plan artifact updated with per-task status: https://claude.ai/artifact/HC8zmKZb7zFjjtTmvR3h1P
+
 ### 2026-10-23T14:25:01+05:30
 
 **Batch 2 of the v1 render pipeline is written, typechecked and unit-tested. NOT committed.**
