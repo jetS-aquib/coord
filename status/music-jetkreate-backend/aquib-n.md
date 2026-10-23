@@ -1,13 +1,53 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 render pipeline — Batch 1 done, Batch 2 next
-- **Status:** idle
+- **Current task:** v1 render pipeline — Batch 2 built, uncommitted, awaiting a live render
+- **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-23T14:15:58+05:30
+- **Last updated:** 2026-10-23T14:25:01+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T14:25:01+05:30
+
+**Batch 2 of the v1 render pipeline is written, typechecked and unit-tested. NOT committed.**
+
+New files (additive; no shared v0 file touched — D-006):
+- `src/models/RenderPlanV1.ts` — the plan document. Ordered clips derived from the
+  storyboard by the pure `deriveClipsV1(storyboard, modelKey, trim)`, plus model,
+  aspect, seed and optional trim. Each clip's `videoUrl` IS the checkpoint.
+- `src/services/render/renderOrchestratorV1.ts` — start / run / cancel / rerender /
+  resume-on-startup, sequential, one clip at a time, carrying the previous clip's last
+  frame forward as the next clip's `startFrame`.
+- `src/modules/musicVideo/musicVideoV1.routes.ts` — POST /:id/render,
+  GET /render/:jobId, GET /render/:jobId/events (SSE), POST /render/:jobId/cancel,
+  POST /render/:jobId/clips/:idx/rerender. Mounted BEFORE musicVideo.routes so
+  `/render/...` is not swallowed by its `GET /:id`.
+- `src/models/RenderPlanV1.test.ts` — 5 tests over the plan derivation. 11/11 pass.
+
+Two-line edits: `src/routes/index.ts` (mount) and `src/index.ts` (startup resume).
+
+Decisions taken, both recorded as D-007:
+- Standalone orchestrator, NOT jobService's declared-but-unhandled `music_video` type.
+- Resume ignores age. jobService's recoverJobsOnStartup fails anything older than 25
+  minutes; a song outlives that, so copying it would destroy the render and the spend.
+
+Things worth knowing before the next sitting:
+- Re-render of one clip is just "mark it pending and run the loop again" — the loop
+  skips `done` clips, renders the one, then re-stitches. Same path, no second code path.
+- Cancel is read from the DB between clips, so it works across processes. The clip
+  already in flight finishes and is kept; it is paid for either way.
+- A clip is retried once. A failed frame extraction degrades to an unpinned clip
+  rather than failing the song.
+- Only `omni` is renderable: generateClipV1 speaks the Interactions API only. BytePlus
+  keys in the registry are rejected at plan time with a clear message.
+- Clip count is 33 for a 4:08 song, not 31: clips never straddle a scene boundary, so
+  each scene rounds up on its own. Same seconds, same $24.80.
+- NOT DONE and not asked for: 2.8, mobile switching to the v1 call. Cross-repo.
+- NOT RUN: a live end-to-end render. It is ~$25 of real spend against a live DB and
+  key. Unit tests and typecheck only. A one-scene project renders for ~$0.80 if a
+  cheap smoke test is wanted first.
+
 ### 2026-10-23T14:16:24+05:30
 
 Session ended while on JET-193. Touched: src/middleware/generationLimiter.ts, src/config/env.ts, src/shared/services/captchaService.ts, render-pipeline.html, interp.js, implementation-plan.html, src/config/aiModels.ts, src/services/ai/videoService.ts, +3 more. Nothing committed. (written automatically — no one said what is next)
