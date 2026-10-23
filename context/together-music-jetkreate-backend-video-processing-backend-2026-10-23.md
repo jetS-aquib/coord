@@ -7,10 +7,13 @@ by: aquib N
 
 aquib N changed music-jetkreate-backend and video-processing-backend in the same sitting.
 
-**music-jetkreate-backend** — src/middleware/generationLimiter.ts, src/config/env.ts, src/shared/services/captchaService.ts, render-pipeline.html, interp.js, implementation-plan.html
-**video-processing-backend** — Dockerfile, docker-compose.yml, app/pipeline/stitch_pipeline.py, app/processors/ffmpeg/ffmpeg_engine.py, tests/test_target_frame.py, jet196_check.py, jet196_ass.py, video-stitching.md, video-captions.md, aquib-n.md
+**music-jetkreate-backend** — src/models/RenderPlanV1.ts, src/services/render/renderOrchestratorV1.ts, src/modules/musicVideo/musicVideoV1.routes.ts, src/models/RenderPlanV1.test.ts, src/services/render/renderPromptsV1.ts, src/services/render/seamCheckV1.ts, src/services/render/renderV1.test.ts, render-pipeline-plan.html, src/middleware/generationLimiter.ts, src/config/env.ts, +4 more
+**video-processing-backend** — app/services/frames.py, app/schemas/frames.py, app/api/v1/routes/frames.py, app/api/v1/router.py, tests/test_frames.py, jet197_live.py, app/main.py, video-frames.md, JET-197-frame-extraction-and-frame-comparison-as.md, aquib-n.md, +9 more
 
 _Written automatically from the activity log._
+
+Why they moved together is not recorded here. If you know, write it under this line —
+that sentence is the whole point, and the rest is only there so you recognise the change.
 
 Why they moved together is not recorded here. If you know, write it under this line —
 that sentence is the whole point, and the rest is only there so you recognise the change.

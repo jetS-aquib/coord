@@ -1,13 +1,59 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 render pipeline — Batch 3 built; waiting on JET-197 before the ffmpeg cleanup
-- **Status:** blocked
-- **Blockers:** JET-197 (video-processing-backend) — frame extraction as API
-- **Last updated:** 2026-10-23T14:51:57+05:30
+- **Current task:** v1 render pipeline — Batch 3 built, ffmpeg delegated; uncommitted, unverified
+- **Status:** waiting on human
+- **Blockers:** —
+- **Last updated:** 2026-10-23T15:09:28+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T15:09:28+05:30
+
+**JET-197 landed and is integrated. No ffmpeg and no image processing left in this
+repo's v1 path. Still uncommitted, still unverified by a live render.**
+
+Their shapes are in `.coord/contracts/video-frames.md`; the choices are D-010.
+Synchronous, not 202+poll. Frame comes back inline as `image_base64` + `mime_type`,
+nothing stored — which maps straight onto our `{ data, mimeType }`.
+
+Their one deviation was better than what we asked for: `frame-comparison` takes
+`{ video_url, position, image_url }`, not two image URLs. Because extraction stores
+nothing there is no URL for the side that came out of a video — and that shape is
+exactly `seamScoreV1(videoUrl, position, anchorUrl)`, so scoring is ONE call and the
+extract-upload-compare round trip never existed. Signature unchanged on our side.
+
+What moved:
+- `seamCheckV1.ts` lost its ffmpeg (`extractFrameV1`), its sharp (`toComparableFrameV1`)
+  and `meanAbsoluteDifferenceV1`. The metric is theirs now — one definition of the
+  number, on the side that owns media. We kept `SEAM_THRESHOLD_V1` (policy, not
+  metric) and a test asserting it still sits in the measured band.
+- The orchestrator's carry-forward fallback no longer calls `extractLastFrameOfVideo`.
+- Two methods added to the EXISTING `src/modules/video/video-api.service.ts` rather
+  than a new client, so the service assertion is minted in one place as it is for
+  stitching. Nothing in v0 changed.
+- Their greyscale is Rec.709 to match sharp, not OpenCV's Rec.601. Measured: that
+  choice moves a real score by 0.16, the resampling kernel by 0.003. So our 4.0
+  carries over unchanged — that is why it carries over, not luck.
+
+Two known ceilings, neither blocking:
+- The 2.1-3.3 MIDDLE of the seam band is still unconfirmed on real material. They
+  verified 0 and 10+ synthetically and said so. Confirming it is OURS and needs the
+  live render. Nobody should trust 4.0 blind until then.
+- Anchor stills are written by `generateSceneImage` as WebP q82, so the image_url side
+  of every comparison carries compression artefacts. The measurement stays fair (the
+  model is pinned to the same compressed still it is scored against) but the pin is
+  worse than it needs to be. If scores cluster near 4.0 instead of near 2-3, suspect
+  this first. Marked with a `ponytail:` comment at `anchorFrameV1`. The fix means
+  changing what `generateSceneImage` writes, which is shared with v0.
+
+Also still true from earlier: `-lossless 1` in `services/ai/thumbnails.ts` is now
+unrelated to v1 (nothing in v1 calls that extractor any more). It is kept because v0
+feeds the same frames back to a model as start frames, so it fixes the same bug there.
+One flag; revert it if touching that file is unwanted.
+
+NOT COMMITTED: Batch 3 plus this integration. Aquib has not given the word.
+
 ### 2026-10-23T14:51:57+05:30
 
 **Filed JET-197 to video-processing-backend. Nothing in this repo changes until it lands.**
