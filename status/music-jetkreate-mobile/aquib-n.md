@@ -1,6 +1,6 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Task 2.8 done in code — mobile renders via v1 and polls. Needs one live render to verify; nothing in this path has run end to end.
+- **Current task:** v1 render + the blocked-render decision screen. Both in code, neither verified against a live render.
 - **Status:** working
 - **Blockers:** none in code. JET-198 landed and is used. A live render costs ~$25 for a full song, ~$0.80 for a one-scene project.
 - **Last updated:** 2026-10-23T11:00:00+05:30
@@ -12,6 +12,30 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-23T17:25:25+05:30
+
+Session ended. Touched: src/lib/generation.ts. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-10-23 (later) — blocked renders
+
+`blocked` is handled as a decision, not an ending. It IS in `TERMINAL` (no
+worker will touch it) but it is not "finished" — `GET /:id/render` still
+returns it, which is how reopening the app lands back on the decision instead
+of a start button that would 409.
+
+**Product call, and it is a guess worth revisiting with real data:** per-shot
+prompt editing for **3 or fewer** refused shots; above that the screen names
+the direction as the cause and offers to change it. Reasoning: every scene
+prompt carries the direction, so many refusals share one cause, and nobody
+edits twenty prompts on a phone. `EDIT_INDIVIDUALLY_UP_TO` in
+`features/create/blocked-decision.tsx`.
+
+Also: the re-render button on a refused shot is disabled until the text
+actually differs from the original, because a refusal is deterministic and
+re-sending the same words just spends another call to get the same answer.
+
+`warnings` are shown during healthy renders too, not only blocked ones.
 
 ### 2026-10-23T16:56:09+05:30
 
