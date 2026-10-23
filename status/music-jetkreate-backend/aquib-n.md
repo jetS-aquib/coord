@@ -1,13 +1,47 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 render pipeline — Batch 3 built, ffmpeg delegated; uncommitted, unverified
+- **Current task:** JET-198 handed back for review; v1 pipeline uncommitted and unverified
 - **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-23T15:09:28+05:30
+- **Last updated:** 2026-10-23T16:49:39+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T16:49:39+05:30
+
+**JET-198 done and handed back (`review`). Mobile asked for a way to find an in-flight
+render by project id; it exists now.**
+
+`GET /api/v1/music-videos/:id/render` -> the active plan's summarizePlanV1 payload, or
+404. Without it a client that lost its jobId had to POST a second render and regex it
+out of the 409's prose, which made re-attaching depend on an error message's wording.
+
+The part worth remembering: the guard and the route share ONE query,
+`findActivePlanV1(musicVideoId, userId?)`, so the 409 and the 404 cannot disagree.
+There is no status list kept in two places. `userId` scopes it per request; the guard
+omits it deliberately — it has already checked project ownership, and a render by
+anyone else still has to block a second one on the same song.
+
+Also done here, beyond what was asked:
+- Statuses are now partitioned in code: `RENDER_STATUSES_V1` (the schema enum is built
+  from it), `TERMINAL_STATUSES_V1`, `ACTIVE_STATUSES_V1`, with a test asserting every
+  status is in exactly one side. A future status belonging to neither now fails a test
+  rather than being found during a $25 render.
+- `.coord/contracts/api-music-videos.md` went from stub to active and now documents
+  the WHOLE v1 render surface: every endpoint, the state payload field by field, and
+  the four things a client has to know. Other repos should not need to read our routes.
+
+STILL TRUE AND STILL THE BIGGEST OPEN ITEM: no v1 render has been run end to end by
+anyone. Everything across Batches 2 and 3, the JET-197 integration and this route is
+typechecked and unit-tested (30 checks) and NOT ONE of the claims that matter —
+resume, under-10-minute wall clock, seams in the 2.1-3.3 band, a song that actually
+renders — has been observed. A one-scene project costs ~$0.80 and exercises every
+phase; that is the cheapest way to turn all of it from "should" into "does".
+
+NOT COMMITTED: Batch 3, the JET-197 integration, and JET-198. Three commits' worth
+sitting in the working tree. Aquib has not given the word since `6785ba5`.
+
 ### 2026-10-23T15:09:28+05:30
 
 **JET-197 landed and is integrated. No ffmpeg and no image processing left in this

@@ -4,9 +4,9 @@ title: No way to find an in-flight v1 render by project id, so a client that los
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-23T16:43:42+05:30
-updated: 2026-10-23T16:46:01+05:30
+updated: 2026-10-23T16:49:21+05:30
 decisions: 
 ---
 
@@ -63,3 +63,17 @@ GET /api/v1/music-videos/:id/render returns the live render's summarizePlanV1 pa
 ## Thread
 2026-10-23T16:43:42+05:30 aquib N: created ticket, status: - -> open
 2026-10-23T16:46:01+05:30 aquib N: status: open -> approved
+2026-10-23T16:49:09+05:30 aquib N: status: approved -> in_progress — picking it up in music-jetkreate-backend
+2026-10-23T16:49:21+05:30 aquib N: status: in_progress -> review — Done. GET /api/v1/music-videos/:id/render returns the active render's summarizePlanV1 payload, or 404.
+
+Your assumption 1 was the right instinct and I went further than a shared status list: the guard and the route now call ONE function, findActivePlanV1(musicVideoId, userId?), so there is no list to keep in sync. startRenderV1's 409 and this endpoint cannot disagree because they are the same query. userId scopes it for the request; the guard omits it, since it has already checked the caller owns the project and a render by anyone else still has to block a second one on the same song.
+
+All five of your assumptions were correct as filed. 404 not 200-with-null; summarizePlanV1 verbatim so you need no second parser; scoped by userId as getPlanV1 is; and a finished render is NOT active — read finalVideoUrl off the project as you do today.
+
+Two things I added that you did not ask for:
+1. The status enum is now partitioned in code — RENDER_STATUSES_V1, TERMINAL_STATUSES_V1, ACTIVE_STATUSES_V1 — with a test asserting every status is in exactly one side. Your done-when wanted the two verified against each other by running a render; this makes a future status that belongs to neither fail a test instead, which is cheaper than finding it at $25 a go.
+2. .coord/contracts/api-music-videos.md now documents the whole v1 render surface, not just this route: every endpoint, the state payload with field meanings, and the four things a client has to know — clips complete out of order, per-scene progress is ALSO written to storyboard[i].clipUrl so you may not need clips[] at all, the storyboard must be saved before rendering, and what a song costs. It was a stub; it is now active. You should not have to read my routes file.
+
+Route ordering: GET /:id/render and GET /render/:jobId cannot shadow each other — they differ in which segment is the literal word 'render', and no project id or jobId is ever that word. Yours is first anyway, with a comment saying why.
+
+Not verified live, and I would rather say so than let it read as tested: no v1 render has been run end to end by anyone yet, so your test steps 1-5 are the right ones and nobody has walked them. Typecheck clean, 30 unit tests pass. Still uncommitted pending Aquib's go-ahead.
