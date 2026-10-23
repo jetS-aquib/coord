@@ -36,7 +36,10 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `POST /api/v1/music-videos/render/:jobId/cancel` — stops at the next clip boundary;
   work already in flight is paid for and kept.
 - `POST /api/v1/music-videos/render/:jobId/clips/:idx/rerender` — `202`; re-renders
-  that one clip and re-stitches.
+  that one clip and re-stitches. Body `{ prompt? }` replaces that clip's prompt — the
+  only way out of a refusal, since the provider refuses the same words again.
+- `POST /api/v1/music-videos/render/:jobId/stitch` — `202`; assembles a `blocked`
+  render as it is, missing shots and all. Deliberate opt-in; `409` on any other status.
 
 ### The state payload
 
@@ -46,7 +49,8 @@ parser.
 ```jsonc
 { "jobId": "mvr_…", "musicVideoId": "mv_…",
   "status": "rendering",        // queued | anchoring | rendering | verifying
-                                // | stitching | completed | failed | cancelled
+                                // | stitching | blocked
+                                // | completed | failed | cancelled
   "progress": 62,               // 0-100
   "modelKey": "omni", "aspectRatio": "9:16", "concurrency": 6,
   "clipsTotal": 33, "clipsDone": 20, "clipsRefused": 0,
@@ -56,11 +60,36 @@ parser.
   "finalVideoUrl": "", "error": "",
   "clips": [{ "index": 0, "status": "done", "durationSeconds": 8,
               "videoUrl": "https://…", "seamScore": 2.9, "error": "" }],
+  "warnings": [{ "sceneIndex": 3, "reason": "…", "rewritten": "…" }],
   "updatedAt": "2026-10-23T…" }
 ```
 
-Clip status is `pending | done | failed | refused`. `refused` means the model declined
-it on content grounds and it could not be salvaged; the song still finishes without it.
+Clip status is `pending | done | failed | refused`. On a `refused` clip, `error` is
+written for the person who wrote the prompt, not for a developer — show it.
+
+`warnings` lists scene prompts that were **rewritten before rendering** because the
+provider would have refused them. Show them: a storyboard silently rewritten on
+someone's behalf is worse than the refusal it prevented.
+
+### `blocked` — a song with holes is not a shorter song
+
+Measured on the first live render: 20 of 31 shots were refused by the provider and the
+remaining 11 were stitched anyway, producing a video that holds a frozen frame for
+minutes against a full-length track. That looks like it worked, which is worse than
+failing.
+
+So a render that finishes with ANY shot missing now ends as `blocked` and is **not
+assembled**. `error` names how many shots are missing and what to do. Everything that
+did render is kept and paid for once. Three ways out, all the caller's choice:
+
+- re-render the missing shots with edited prompts (`…/clips/:idx/rerender` with `prompt`)
+- assemble it as it is (`…/stitch`)
+- cancel it
+
+`blocked` is terminal for the workers — nothing resumes it on its own — but it is NOT
+"finished": `GET /:id/render` still returns it, and starting a new render on that
+project is refused with a `409` until it is dealt with, so a second render cannot
+quietly abandon the first one's spend.
 
 ### Things a client has to know
 
@@ -77,6 +106,11 @@ it on content grounds and it could not be salvaged; the song still finishes with
   derived from it, along with `showLyrics` and `includeClipAudio`.
 - One song is ~33 clips and ~$24.80. A one-scene project exercises every phase for
   about $0.80.
+- **Scene prompts are checked and rewritten before any still is drawn.** The provider
+  refuses real people's names and likenesses, and the anchor stills are generated from
+  these prompts, so a likeness in the text becomes a likeness in the images and then
+  every clip pinned to them is refused. Surface `warnings` so the author knows what
+  changed.
 
 ## Notes
 

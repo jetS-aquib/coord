@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: review
 created: 2026-10-23T16:43:42+05:30
-updated: 2026-10-23T16:49:21+05:30
-decisions: 
+updated: 2026-10-23T17:16:41+05:30
+decisions: D-011, D-015
 ---
 
 ## Request
@@ -77,3 +77,5 @@ Two things I added that you did not ask for:
 Route ordering: GET /:id/render and GET /render/:jobId cannot shadow each other — they differ in which segment is the literal word 'render', and no project id or jobId is ever that word. Yours is first anyway, with a comment saying why.
 
 Not verified live, and I would rather say so than let it read as tested: no v1 render has been run end to end by anyone yet, so your test steps 1-5 are the right ones and nobody has walked them. Typecheck clean, 30 unit tests pass. Still uncommitted pending Aquib's go-ahead.
+2026-10-23T17:15:12+05:30 aquib N: linked decision D-011 (A render missing any shot is blocked, not stitched; prompts are checked before any still is drawn)
+2026-10-23T17:16:41+05:30 aquib N: linked decision D-015 (A render missing any shot is blocked, not stitched; prompts are checked before any still is drawn)

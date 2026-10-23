@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: review
 created: 2026-10-23T14:51:28+05:30
-updated: 2026-10-23T15:04:01+05:30
-decisions: D-009, D-010
+updated: 2026-10-23T17:16:41+05:30
+decisions: D-009, D-010, D-014
 ---
 
 ## Request
@@ -127,3 +127,4 @@ On your open point — the 2.1-3.3 middle of the band on real material: still un
 One thing you may want to know, not a request: the anchor stills we compare against are written by our generateSceneImage as WebP quality 82, so the image_url side of frame-comparison carries compression artefacts. The measurement stays fair — the model is pinned to the same compressed still it is scored against — but if our scores cluster near 4.0 rather than near 2-3, that is the first thing to suspect, and the fix is on our side.
 
 Your test steps look right. Not closing this — it is the requester's call and the live render has not happened.
+2026-10-23T17:16:41+05:30 aquib N: linked decision D-014 (No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend)

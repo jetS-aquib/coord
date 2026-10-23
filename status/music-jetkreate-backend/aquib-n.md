@@ -1,13 +1,63 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-198 handed back for review; v1 pipeline uncommitted and unverified
+- **Current task:** v1 pipeline — first live render analysed, refusal handling rebuilt
 - **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-23T16:49:39+05:30
+- **Last updated:** 2026-10-23T17:17:23+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T17:17:23+05:30
+
+**FIRST LIVE RENDER RAN. It failed, usefully. Everything below is measured, not theory.**
+
+What happened: 20 of 31 clips came back `400 Input blocked: we can't create videos
+with real people's names or likenesses`. The 11 that rendered were stitched anyway,
+and the output holds a frozen frame for minutes against the full-length track.
+
+THE MEASUREMENT THAT MATTERS, and the reason not to guess at this again: the refusal
+fallback re-asked each clip with a prompt containing NO names — "continuous cinematic
+motion between the provided frames" — and was refused with the IDENTICAL message, 20
+times out of 20. Two calls, one carrying the original wording and one not, same
+refusal. The only thing they shared was the two anchor stills. **The refusal is
+image-side, not text-side.** The old fallback tested the wrong variable 20 times.
+
+But anchors are generated FROM the storyboard prompts, so the likeness got into the
+images through the text. That makes the prompt the root cause and the ONLY point where
+it can be fixed — cleaning the text before any still is drawn prevents both; cleaning
+it afterwards prevents neither.
+
+Fixed (D-015):
+- `src/services/render/promptSafetyV1.ts` (new) — one text-model call over the whole
+  storyboard at PLAN time, before anchoring. Rewrites only provider-refusal causes,
+  never mood, camera or structure. Discards a rewrite that drops >60% of a prompt.
+  If the check itself fails, the render proceeds unchanged.
+- A render finishing with ANY shot missing is now `blocked` and NOT stitched. A song
+  with holes is not a shorter song; the old guard only checked "at least one clip".
+- `blocked` is terminal for the workers but NOT finished: the project lookup still
+  returns it and a new render on that project is refused, so a second render cannot
+  quietly abandon the first one's spend. Nothing auto-resumes it.
+- Three ways out, all explicit: rerender a clip WITH AN EDITED PROMPT (new `prompt`
+  body field — without it a refused clip can never succeed), `POST .../stitch` to
+  assemble the incomplete cut on purpose, or cancel.
+- The fallback now drops the anchors and keeps the text — the variable the measurement
+  points at. Unpinned, so cuts show; the seam check reports it.
+- `warnings` in the payload lists what was rewritten. SHOW IT: a storyboard silently
+  rewritten on someone's behalf is worse than the refusal it prevented.
+
+MESS I MADE AND CLEANED UP: `coord decide` has no `--body` flag — it takes
+`--context --options --decision --reason --consequences`. It ignored `--body` silently,
+so D-007, D-008, D-009 and D-011 were recorded as EMPTY SHELLS with only titles. All
+four re-recorded with content as D-012, D-013, D-014, D-015 and the empty ones
+superseded; code comments repointed. D-006 was written by an earlier session and is
+fine. If you record a decision, use the five flags, and check the file afterwards.
+
+Also seen in the screenshots and NOT mine to fix: "Could not reach the media host" on
+mobile — that is JET-194, already filed and still waiting.
+
+STILL NOT COMMITTED: Batch 3, JET-197 integration, JET-198, and all of the above.
+
 ### 2026-10-23T16:49:39+05:30
 
 **JET-198 done and handed back (`review`). Mobile asked for a way to find an in-flight
