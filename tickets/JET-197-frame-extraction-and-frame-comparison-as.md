@@ -4,9 +4,9 @@ title: Frame extraction and frame comparison as API, so the Node backend runs no
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-23T14:51:28+05:30
-updated: 2026-10-23T14:51:41+05:30
+updated: 2026-10-23T14:53:56+05:30
 decisions: D-009
 ---
 
@@ -89,3 +89,4 @@ music-jetkreate-backend (ours, after you land it): src/services/render/seamCheck
 ## Thread
 2026-10-23T14:51:28+05:30 aquib N: created ticket, status: - -> open
 2026-10-23T14:51:41+05:30 aquib N: linked decision D-009 (No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend)
+2026-10-23T14:53:56+05:30 aquib N: status: open -> approved
