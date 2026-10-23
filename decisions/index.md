@@ -17,3 +17,4 @@
 | D-013 | v1 needs no data migration: the project document stays the source of truth | 2026-10-23 | active | music-jetkreate-backend music-jetkreate-frontend music-jetkreate-mobile |  |
 | D-014 | No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend | 2026-10-23 | active | music-jetkreate-backend video-processing-backend | JET-197 |
 | D-015 | A render missing any shot is blocked, not stitched; prompts are checked before any still is drawn | 2026-10-23 | active | music-jetkreate-backend music-jetkreate-mobile | JET-198 |
+| D-016 | A clip is one shot: prompts carry the environment, anchors share one plate, and identity survives | 2026-10-23 | active | music-jetkreate-backend | JET-198 |

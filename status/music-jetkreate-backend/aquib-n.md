@@ -1,13 +1,66 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 pipeline — first live render analysed, refusal handling rebuilt
+- **Current task:** v1 pipeline — seam/consistency root cause fixed, awaiting a verifying render
 - **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-23T17:17:23+05:30
+- **Last updated:** 2026-10-23T18:34:48+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-23T18:34:48+05:30
+
+**Investigated why the first complete render looked inconsistent, found the cause, fixed
+all five contributors. D-016. Verified by dry run against the real storyboard, no spend.**
+
+THE FINDING, from the plan in Mongo plus the actual frames: every pin was ignored.
+All 28 measurable clips scored above the 4.0 threshold — min 4.118, max 67.8, nothing
+near the 2.1-3.3 band a held pin measures. Clip 1 was pinned to a blue classic car on
+a lit forecourt and OPENED ON a black modern sedan in a dark car park. Confirmed by
+eye, not inferred.
+
+Cause: the clip prompt gave three orders at once — the storyboard said cut twice
+("[Shot 1] -> [Shot 2] -> [Shot 3]"), my continuity line said never cut, and the pin
+instruction said begin and end on exact frames. The model followed the longest and most
+specific and treated the stills as references. Batch 1's 6/6 pin measurement was taken
+with a SHORT prompt; it never tested one carrying a shot progression.
+
+Fixed, in the order they matter:
+1. A CLIP IS ONE SHOT. The progression collapses to the shot the clip opens on, and
+   when both ends are pinned the prompt keeps only what MOVES — the stills already
+   show the people, the place and the grade, so repeating them only competes with the
+   pins. 99 words -> 48. The pin went from a third of the text to the majority.
+2. `environment` is carried onto every clip and into every anchor. v1 read only
+   `scene.prompt`, so environment/mood/style were dropped and 13 of 32 anchors had no
+   place word at all while every scene carried one.
+3. Anchors are a STAR on one establishing plate, not a 32-link chain. A chain copies
+   its predecessor's errors and adds its own.
+4. Identity survives: @imageN becomes a per-character description, from
+   selectedCharacters or from `autoGenerateCast` — which already exists in v0's
+   videoService and is IMPORTED, not modified. Three characters stay three.
+5. A seam re-render now strips the prompt to the movement alone and KEEPS WHICHEVER
+   TAKE LANDED CLOSER. The last render re-rendered 29 of 31 clips with identical
+   inputs and failed every one — 60 generations for 31 clips, double the money, no
+   change. Same lesson as refusals, finally applied to seams.
+
+Dry run against the storyboard that failed: no-place anchors 13 -> 3, garbled
+"the subjects, and the subject" 9 -> 0, stray style tails 0, three characters preserved.
+
+Also fixed, unrelated and found while doing this: `npm run build` emitted test files
+into dist/, and `npm test` then picked up the compiled copies and failed them for being
+CommonJS. New `tsconfig.build.json` keeps tests out of the build; `tsconfig.json` still
+includes them so `tsc --noEmit` keeps typechecking them. Do not "simplify" that back
+into one file — excluding tests from tsconfig.json silently stops typechecking them.
+
+WHAT IS STILL UNPROVEN: whether the pins now hold. Everything above is measured on
+prompts and data, not on a render. The number to watch is the seam score — if the fix
+worked, scores drop from 4.1-67.8 into the 2-3 range. One cheap render answers it.
+
+A render was in flight during the investigation (mvr_1792759993278) on the OLD code.
+Its output will still be wrong; ignore it.
+
+STILL NOT COMMITTED: Batch 3, JET-197, JET-198, the refusal work, and all of this.
+
 ### 2026-10-23T17:17:23+05:30
 
 **FIRST LIVE RENDER RAN. It failed, usefully. Everything below is measured, not theory.**
