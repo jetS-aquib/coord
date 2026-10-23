@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-20T20:51:32+05:30",
+  "updated": "2026-10-23T15:01:54+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -125,13 +125,14 @@
       "remote": "git@codebasehq.com:js/mcn/video-processing-backend.git",
       "stack": "pip + Python 3.11 + FastAPI + Uvicorn + ffmpeg + faster-whisper + GCS (Demucs optional)",
       "contracts": [
+        "/api/v1/caption-fonts",
+        "/api/v1/caption-preview",
+        "/api/v1/caption-styles",
         "/api/v1/clip-stitching",
         "/api/v1/clip-stitching-with-audio",
         "/api/v1/clip-stitching-with-lyrics",
-        "/api/v1/jobs",
-        "/api/v1/caption-preview",
-        "/api/v1/caption-styles",
-        "/api/v1/caption-fonts"
+        "/api/v1/frame-extraction",
+        "/api/v1/jobs"
       ],
       "depends_on": [],
       "onboarded": "2026-10-19",
