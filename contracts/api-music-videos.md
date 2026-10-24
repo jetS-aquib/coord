@@ -26,10 +26,14 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `POST /api/v1/music-videos/:id/render` — start one. Body
   `{ modelKey?, aspectRatio?, seed?, trim? }`, all optional; defaults come from the
   project. `202` with the state below plus `pollUrl` and `eventsUrl`.
-- `GET /api/v1/music-videos/:id/render` — **the render running for this project**, or
-  `404` when none is. Same state payload. Added for JET-198: a jobId is handed out
-  once, so a client that loses it (reinstall, new device, a render started from the
-  web) needs a supported way back to it.
+- `GET /api/v1/music-videos/:id/render` — **the render running for this project, or
+  the most recent one that could be picked back up**; `404` when there is neither.
+  Same state payload, with `resumable` saying which of the two it is. Added for
+  JET-198: a jobId is handed out once, so a client that loses it (reinstall, new
+  device, a render started from the web) needs a supported way back to it.
+- `POST /api/v1/music-videos/render/:jobId/resume` — `202`; picks a stopped render
+  back up from its checkpoints. Valid on `cancelled`, `failed` and `blocked`.
+  Everything already rendered is kept, so it costs only what is left.
 - `GET /api/v1/music-videos/render/:jobId` — poll one by id.
 - `GET /api/v1/music-videos/render/:jobId/events` — SSE, same payload per event.
   Mobile should poll: the stream drops when an app backgrounds.
@@ -57,7 +61,7 @@ parser.
   "anchorsTotal": 34, "anchorsDone": 34,
   "worstSeamScore": 3.2, "seamThreshold": 4.0,   // null until verifying
   "estimatedCostUsd": 24.80,
-  "finalVideoUrl": "", "error": "",
+  "finalVideoUrl": "", "error": "", "resumable": false,
   "clips": [{ "index": 0, "status": "done", "durationSeconds": 8,
               "videoUrl": "https://…", "seamScore": 2.9, "error": "" }],
   "warnings": [{ "sceneIndex": 3, "reason": "…", "rewritten": "…" }],
@@ -90,6 +94,18 @@ did render is kept and paid for once. Three ways out, all the caller's choice:
 "finished": `GET /:id/render` still returns it, and starting a new render on that
 project is refused with a `409` until it is dealt with, so a second render cannot
 quietly abandon the first one's spend.
+
+### Stopping is not discarding
+
+A render cancelled at clip 8 of 31 still holds 30 anchor stills and 8 clips that were
+paid for — on one real render, $6.40 of clips and every still. `cancelled` and
+`failed` are terminal for the workers, but they are not finished business, so the
+project lookup returns them with `resumable: true` and `POST …/resume` continues from
+the checkpoints. Resuming that render costs $18.40; restarting it costs $24.80.
+
+Starting a NEW render is never refused because of one of these — a render somebody
+stopped should not stop them starting another. Only an in-progress or `blocked`
+render does that.
 
 ### Things a client has to know
 

@@ -1,13 +1,51 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 pipeline — seam/consistency root cause fixed, awaiting a verifying render
+- **Current task:** v1 pipeline — resume fixed; nothing committed since 6785ba5
 - **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-23T18:34:48+05:30
+- **Last updated:** 2026-10-24T15:24:53+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-24T15:24:53+05:30
+
+**"Resume is not working" — diagnosed and fixed. The render had been CANCELLED, not
+interrupted, and cancel was a dead end.**
+
+What the logs showed: `GET /api/v1/music-videos/mv_1792759986023_8p6uo1/render` 404ing
+on every poll. That was correct behaviour, and that was the bug. The plan
+(`mvr_1792759993278_5cc95fbe`) was `status=cancelled` with **30 of 32 anchors and 8 of
+31 clips already rendered**. `cancelled` is terminal, `findActivePlanV1` excludes
+terminal, so the lookup returned 404 forever and every bit of that work was stranded.
+
+I had given `blocked` three ways out and left `cancelled` and `failed` with none.
+
+Fixed:
+- `RESUMABLE_STATUSES_V1` = cancelled, failed, blocked. `isResumableV1(plan)` is true
+  when one of those still has unfinished clips AND never produced a video.
+- `POST /render/:jobId/resume` continues from the checkpoints. Clips marked `failed`
+  get their attempts cleared so a resume is a fresh go, not an instant give-up.
+- `GET /:id/render` now returns the running render OR the most recent resumable one,
+  with `resumable` on the payload saying which. Running always wins.
+- Starting a NEW render is still never refused because of a cancelled or failed one —
+  somebody who stopped a render must not be trapped by it. Only in-progress and
+  `blocked` refuse.
+
+Verified against the real stranded plan: resumable=true, a resume renders 2 anchors +
+23 clips for ~$18.40 against ~$24.80 to restart.
+
+STILL OPEN, not fixed, worth knowing:
+- `MusicVideo.status` stays `in_production` after a cancel, so the project reads as
+  mid-render in any list view. Cosmetic but confusing; left alone because it is
+  arguably correct while the render is resumable.
+- Mobile has no resume affordance yet. It polls `GET /:id/render`, which now returns
+  the stopped render instead of 404 — the app needs to read `resumable` and offer it.
+  That is a mobile-side change; JET-198's hand-off prompt predates this field.
+
+STILL NOT COMMITTED: everything since 6785ba5 — Batch 3, JET-197, JET-198, the refusal
+work, the consistency fixes (D-016), and this.
+
 ### 2026-10-23T18:34:48+05:30
 
 **Investigated why the first complete render looked inconsistent, found the cause, fixed
