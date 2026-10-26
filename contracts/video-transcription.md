@@ -60,6 +60,13 @@ song re-signed an hour later is a different string and would miss a
 URL-keyed cache every time. It also means a re-render of an unchanged song
 is free, and a song whose audio was edited is correctly a miss.
 
+The key also carries the whole transcription configuration — every
+`WHISPER_*` and `LYRIC_*` setting on the deployment, plus `APP_VERSION` —
+read from the settings themselves rather than a list somebody maintains. A
+deployment that retunes Whisper, or a release that changes how it works,
+therefore cannot be handed a transcript made the old way. Nothing has to be
+reconfigured and no caller has to opt in or out.
+
 Entries live 24 hours, and the most recent 64 are kept. Both are far more
 than a render needs; nothing in your flow should depend on either.
 
