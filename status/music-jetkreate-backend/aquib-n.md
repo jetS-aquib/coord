@@ -1,13 +1,95 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 pipeline committed through cbab697; awaiting a verifying render
+- **Current task:** JET-199 to JET-203 all implemented and uncommitted; one render verifies all five at once
 - **Status:** waiting on human
-- **Blockers:** —
-- **Last updated:** 2026-10-26T13:05:08+05:30
+- **Blockers:** no verifying render yet — every number here is from the plan collection or from code, not from a song rendered with these changes
+- **Last updated:** 2026-10-26T14:01:47+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-26T14:01:47+05:30
+
+Took JET-199 to JET-203 in one sitting. All five are implemented and uncommitted.
+video-processing-backend shipped the JET-201/202 endpoints mid-session and wrote the
+contracts (video-transcription.md, video-segments.md, D-021, D-022), so the two I had
+parked got built too.
+
+**JET-199 — anchors fan out.** renderAnchorsV1 was a for-loop with an await in it, left
+serial when the topology became a star. Only the plate is serial now; the rest go
+through runCappedV1 at IMAGE_CONCURRENCY_V1 — its own env knob
+(RENDER_IMAGE_CONCURRENCY), NOT plan.concurrency, which is the video provider's cap on
+a different quota. Progress counts settled anchors instead of a loop index. The case
+the old loop handled implicitly and the new one handles explicitly: if the first still
+fails it keeps drawing serially until one succeeds, rather than fanning out with no
+plate and drawing 32 unrelated places.
+
+**JET-200 — the threshold was below the entire distribution.** Read the seamScores off
+the five scored RenderPlanV1 documents: 132 clips, all post-re-render best-of-two,
+nothing below 3.89, bodies 4.6-8.9, tails 9.8-67.9. The 2.1-3.3 band that 4.0 was set
+against has never once been reached by a real clip, so every clip tripped it and five
+consecutive renders each paid for a second full generation pass. SEAM_THRESHOLD_V1 =
+9.0 (above every body's 8.93, below every tail's 9.81) plus rerenderBudgetV1 =
+ceil(clips/5), worst first, warning loudly when it bites. D-018. The 132 scores are
+now the test fixture, so the next person to move the constant has to move it against
+data.
+
+**JET-203 — plate is a drawn six-panel sheet.** platePromptV1 + renderPlateSpriteV1,
+stored as plan.plateUrl so a resume keeps the same one, falling back to the old
+first-anchor plate on any failure. thumbnails.ts untouched: its no-grids rule only
+applies on the '## SCENE DESCRIPTION' branch, which the plate prompt does not take.
+On by default, RENDER_PLATE_SPRITE=0 disables — deliberate, D-019, because the
+acceptance test is a side-by-side and a flag defaulted off never gets rendered.
+
+**JET-201 — transcription starts with the run.** prefetchTranscriptV1 fires at the top
+of runPlanV1 behind showLyrics && audioUrl, unawaited, catch attached at creation so
+the map entry cannot reject; awaited immediately before stitchPlanV1, where a missing
+entry is a no-op. A resume in another process has no entry and the stitch transcribes
+inline, as before. The non-obvious bug this closed: `language` must be the same value
+on the prefetch and the stitch or Whisper runs twice, with the second on the critical
+path. It was a literal 'auto' in stitchPlanV1; it is now LYRIC_LANGUAGE_V1 used by all
+three call sites.
+
+**JET-202 — scene-aligned segments.** segmentClipsV1 (pure, tested) groups consecutive
+clips by sceneIndex: never splits a scene, never emits a one-clip segment, always
+returns every clip in order. stitchInSegmentsV1 posts them in parallel, polls each,
+then posts segment-concat with the job ids. Any failure falls back to the single call.
+Narrowed on purpose and said so on the ticket: segments close AFTER verifySeamsV1, not
+as each is verified, so they go out all at once. That buys the parallel encodes and the
+free remux without touching the rendering or verifying loops; it does not buy the
+overlap with generation. Interleaving means merging phases 2 and 3, worth maybe another
+15s, marked in the code as the upgrade path.
+
+**One open question on the board (JET-202).** segment-concat is extra="forbid" and its
+contract says "the lyrics stitch request you send today" while showing camelCase
+examples; the lyrics stitch itself is snake_case. I send
+segments / audioUrl / showLyrics / language / lyricsDisplay / ...captionSettings.
+If language or lyricsDisplay are wrong or absent there, every render quietly falls back
+to the single call and we lose the feature with no error anyone would notice. Asked
+them to name the accepted fields in the contract.
+
+**What is next: one render, and it verifies all five.** Nothing here has run against a
+live service. The order that keeps the measurements clean:
+
+1. RENDER_PLATE_SPRITE=0, lyrics off — times JET-199's anchoring in isolation.
+2. Same storyboard, sprite on — JET-203's side-by-side, and the seam scores move or
+   they do not.
+3. Either run: count re-rendered clips for JET-200, and watch the boundaries of clips
+   scoring 4.6-8.9. If any of those is a visible jump cut, 9.0 is too high. That one is
+   a judgement only a person can make, and the sheet for it is below.
+4. Watch the log for "stitching N segments of ...". If every render says "segment
+   stitching failed", that is the 422 above, not a real failure.
+5. A song with showLyrics ON — none of the recent renders had it, so JET-201 is
+   otherwise untested entirely.
+
+Calibration sheet for step 3, from the 26 Oct render (mvr_1792997658858_74e370ce,
+final at .../f0b56c3c39d04a1c9411e5042448a3fa/final.mp4): clips are 8s, so joins land
+on every 8s mark. Scoring over 9.0 and therefore flagged: 01:20 (40.72) and 03:44
+(11.28). The top of the accepted band is 00:08 (8.93), 00:48 (8.91) and 03:20 (8.51) —
+if any of those three looks like a jump cut, 9.0 comes down to about 8.
+
+Uncommitted. Nothing has been committed or pushed.
+
 ### 2026-10-26T13:05:08+05:30
 
 **Everything is committed. Four commits on `features`, nothing left in the working tree.**
