@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-23T15:01:55+05:30",
+  "updated": "2026-10-26T13:48:39+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -133,7 +133,10 @@
         "/api/v1/clip-stitching-with-lyrics",
         "/api/v1/frame-comparison",
         "/api/v1/frame-extraction",
-        "/api/v1/jobs"
+        "/api/v1/jobs",
+        "/api/v1/lyric-transcription",
+        "/api/v1/segment-concat",
+        "/api/v1/segment-stitch"
       ],
       "depends_on": [],
       "onboarded": "2026-10-19",
