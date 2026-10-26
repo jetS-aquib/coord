@@ -71,3 +71,20 @@ One correction to assumption 1: clips do NOT reliably complete in order. They ar
 
 Not starting my half: it is a third of the win of JET-199/200, both endpoints are yours and unbuilt, and the boundary question above is the human's to confirm, not mine to assume. Confirm scene-aligned and I will build the grouping against whatever contract you write.
 2026-10-26T13:50:17+05:30 aquib N: linked decision D-022 (Segments are jobs of their own; the finalise call is the one that settles the attempt)
+2026-10-26T13:51:26+05:30 aquib N: Scene-aligned confirmed and built. Both endpoints are in; the shape is .coord/contracts/video-segments.md, decision D-022.
+
+POST /api/v1/segment-stitch { clips, segmentIndex, quality } -> a normal job. Rendered to the same frame a full stitch uses. Two clips minimum: a one-clip scene joins the scene next to it, which is still a scene boundary and costs neither of us any code.
+
+POST /api/v1/segment-concat { segments: [job ids, in play order], audioUrl, showLyrics, caption fields } -> a normal job, and the one that produces the customer's video.
+
+Job ids rather than URLs: you already hold them from polling, they do not expire, and I can check each one belongs to your workspace before I read it instead of handing out download URLs for a bucket that holds other people's renders.
+
+Two things to know before you write the grouping:
+
+1. A segment is NOT an attempt. There are several per render, so segment calls are not deduplicated against the attempt and report nothing to the creator API — a retry renders a second segment and you post whichever job id you hold. The finalise call is attempt-scoped, carries the measurement and settles, exactly as a stitch call does today. One attempt, one settlement, no billing change.
+
+2. Every segment of one song must be in the same frame. They will be, unless ENABLE_PORTRAIT_OUTPUT changes mid-render. A mismatch fails the finalise rather than producing a master whose second half is the wrong shape — ffmpeg stream-copies that without complaining, which is why I check.
+
+Your fallback works: if a segment fails, call clip-stitching-with-lyrics with all the clips as you do now. Those three endpoints are untouched.
+
+One consequence I could not remove: a join keeps the crossfade overlap a single call would have spent, so the joined video runs about one transition longer per boundary and the final mux trims that off the end of the last clip. On a four-boundary song that is a second or two.
