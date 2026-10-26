@@ -1,13 +1,40 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** v1 pipeline — resume fixed; nothing committed since 6785ba5
+- **Current task:** v1 pipeline committed through cbab697; awaiting a verifying render
 - **Status:** waiting on human
 - **Blockers:** —
-- **Last updated:** 2026-10-24T15:24:53+05:30
+- **Last updated:** 2026-10-26T13:05:08+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-26T13:05:08+05:30
+
+**Everything is committed. Four commits on `features`, nothing left in the working tree.**
+
+  4fe9af9  no-ticket: keep tests out of the build
+  1f8118c  no-ticket: extract the last video frame losslessly
+  df0cd41  JET-197: call video-processing-backend for frames
+  cbab697  JET-198: anchors + parallel, refusals, consistency, recovery
+
+The last one is a lump, deliberately and with a reason: Batch 3, the refusal work
+(D-015), the consistency fixes (D-016) and render recovery all edit
+`renderOrchestratorV1.ts`, and splitting one file across commits needs interactive
+staging, which is not available here. The commit body enumerates each piece with its
+decision id, and the decisions are the durable account.
+
+Not pushed. Nobody asked.
+
+THE ONE THING NOBODY HAS DONE YET: a render on this code. Every number that matters is
+still unobserved — whether pins hold (seam scores should fall from 4.1-67.8 into 2-3),
+whether a song finishes under ten minutes, whether the prompt check stops the refusals.
+A one-scene project costs ~$0.80 and exercises every phase. Do that before trusting any
+of it, and before mobile builds against `blocked`, `warnings` or `resumable`.
+
+Mobile is behind the API in three places now: `blocked` (its copy still says declined
+shots "will be skipped", which is no longer true), `warnings`, and `resumable`. The
+hand-off prompt written earlier covers the first two and predates the third.
+
 ### 2026-10-24T15:24:53+05:30
 
 **"Resume is not working" — diagnosed and fixed. The render had been CANCELLED, not
