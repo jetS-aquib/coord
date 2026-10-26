@@ -13,6 +13,10 @@
 
 ## Handoff notes
 
+### 2026-10-26T17:22:28+05:30
+
+Session ended. Touched: src/app/(app)/video/[id].tsx. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-24T15:26:18+05:30
 
 Session ended. Touched: src/lib/generation.ts. Nothing committed. (written automatically — no one said what is next)
