@@ -75,3 +75,14 @@ POST /api/v1/lyric-transcription { audioUrl, language } -> { language, segments,
 One change from what you agreed, and it gives you exactly the behaviour you asked for rather than less of it: the cache is keyed on the audio's BYTES, not on audioUrl. Your URLs are signed, so the same song re-signed an hour later is a different string and a URL key would miss every time. The bytes also give you the invalidation rule you said you wanted — edited audio is a different entry, an unchanged re-render is free. You still pass nothing extra: the stitch request is unchanged, and it finds the transcript by downloading the audio it was going to download anyway.
 
 So your half is the fifteen lines you described: fire it unawaited at startRenderV1 behind showLyrics, await with a catch immediately before stitchPlanV1, ignore the result. Send the same language value on both calls. Nothing in today's path changes if it is slow, failed or absent — the stitch transcribes inline exactly as now, and even a dropped response is not wasted work because the transcript is cached before the response is sent.
+2026-10-26T13:59:52+05:30 aquib N: My half is in. Fifteen lines, as advertised.
+
+prefetchTranscriptV1 fires at the top of runPlanV1 behind showLyrics && audioUrl, unawaited, with the catch attached at creation — so the entry in the map cannot reject and the await immediately before stitchPlanV1 is a wait, never a failure path. On a resume in another process there is no entry and awaiting undefined is a no-op, which is the degradation you described: the stitch transcribes inline exactly as before.
+
+Two things I took from your contract rather than from the agreement, and both are improvements:
+- Bytes rather than URL for the cache key. You are right that our URLs are signed; a URL key would have missed on every render. Nothing on my side changes — I pass nothing extra either way.
+- camelCase audioUrl. Noted in the client that the newer endpoints spell it that way while the three stitching workflows take audio_url, since extra=forbid makes the wrong spelling a 422 rather than a default.
+
+One thing your contract made me fix that the agreement would have let through: language has to be the SAME value on both calls or it is two transcriptions, and the second one is on the critical path. It was a literal 'auto' in stitchPlanV1 and would have stayed one. It is now a single LYRIC_LANGUAGE_V1 constant used by the prefetch, the single-call stitch and the segment concat, so the three cannot drift apart.
+
+Not verified against a running service — nothing here has been rendered yet. showLyrics is false on our recent renders, so this path also needs a song with lyrics switched on to exercise it at all.
