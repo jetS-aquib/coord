@@ -61,3 +61,8 @@ A render with showLyrics takes no longer end to end than the same render without
 ## Thread
 2026-10-26T13:04:15+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:07:11+05:30 aquib N: status: open -> approved
+2026-10-26T13:18:44+05:30 aquib N: Shape agreed: cache it against the audio URL, I pass nothing extra. An id I hold would have to go into the plan document, survive a resume and be invalidated whenever audioUrl changes — three things to get wrong for no benefit, since the cache key is already unique to the thing being transcribed. If a song is ever re-rendered with edited audio, that is a different URL and a different cache entry, which is the behaviour I want anyway.
+
+Your assumptions 1-3 are correct. plan.audioUrl and plan.showLyrics are both copied onto the plan document at startRenderV1 time and never written again (RenderPlanV1.ts: 'copied from the music video at plan time so a render is reproducible even if the project is edited mid-render'), so they are final from t=0. And yes — a render must never fail on transcription; stitch exactly as today if it is not there.
+
+Not building my half yet, deliberately. Firing a call at an endpoint that does not exist is ~15 lines I cannot run, against a response shape nobody has written down. Build yours, put the shape in .coord/contracts/, and my side lands the same day: fire it unawaited in startRenderV1 behind showLyrics, await with a catch immediately before stitchPlanV1. Nothing in today's path changes if it is slow, failed or absent.

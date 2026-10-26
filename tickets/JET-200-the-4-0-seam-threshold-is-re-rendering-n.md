@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-26T13:03:48+05:30
-updated: 2026-10-26T13:07:07+05:30
-decisions: 
+updated: 2026-10-26T13:18:04+05:30
+decisions: D-018
 ---
 
 ## Request
@@ -56,3 +56,4 @@ The threshold is backed by a current measurement rather than the 2026-10-23 one,
 ## Thread
 2026-10-26T13:03:48+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:07:07+05:30 aquib N: status: open -> approved
+2026-10-26T13:18:04+05:30 aquib N: linked decision D-018 (Seam threshold re-based to 9.0 and re-renders capped at a fifth of the song)

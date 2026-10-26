@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-26T13:05:05+05:30
-updated: 2026-10-26T13:07:18+05:30
-decisions: 
+updated: 2026-10-26T13:18:18+05:30
+decisions: D-019
 ---
 
 ## Request
@@ -56,3 +56,4 @@ Anchors drawn against a sprite plate hold the cast and environment at least as c
 ## Thread
 2026-10-26T13:05:05+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:07:18+05:30 aquib N: status: open -> approved
+2026-10-26T13:18:18+05:30 aquib N: linked decision D-019 (The anchor plate is a drawn six-panel reference sheet, on by default)
