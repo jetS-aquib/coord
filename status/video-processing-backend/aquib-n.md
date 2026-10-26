@@ -1,13 +1,39 @@
 # video-processing-backend — aquib N
 
-- **Current task:** render performance — config wins landed; JET-196/197 waiting on verification
+- **Current task:** pipeline performance — JET-199..203 filed to music-jetkreate-backend; this repo's half next
 - **Status:** waiting on human
-- **Blockers:** —
-- **Last updated:** 2026-10-26T12:00:00+05:30
+- **Blockers:** JET-201 and JET-202 need shape decisions from the requester before the endpoints can be built
+- **Last updated:** 2026-10-26T13:30:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-26T13:13:29+05:30
+
+Session ended while on JET-197. Touched: bench_assembly.py, docker-compose.yml, app/main.py, app/core/config.py, app/pipeline/stitch_pipeline.py, tests/test_target_frame.py, scripts/compare_whisper_models.py, video-stitching.md, +3 more. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-10-26T13:30:00+05:30
+
+Profiled a real 31-clip render end to end from the container logs. The finding that
+matters: of 318s elapsed, this service was busy 94s. 224s was idle while Node
+re-rendered clips. Stitching is 59s and fine. Filed JET-199..203 against
+music-jetkreate-backend for the Node-side half; they are being worked on now.
+
+Measured, so nobody re-derives it: assembly 0.23x realtime and linear in clip count;
+caption burn 0.08x; Whisper large-v3 cold start 99s / 2.9 GB, 6.2s with the cache
+volume; MoviePy 4x SLOWER than the current filter graph (rejected); encode at native
+720x1280@24 is 13.6s vs 24.4s at today's 1920x1080@30, and the portrait flag is
+SLOWER still at 27.8s because black bars are nearly free to encode.
+
+Next in this repo, in order: (1) render at the clips' native size — worth 1.8x on the
+encode and revisits D-005/D-017, which the measurement shows were wrong for mobile's
+material; (2) the transcription endpoint JET-201 needs; (3) the segment stitch and
+concat endpoints JET-202 needs. Both (2) and (3) are blocked on shape decisions the
+tickets ask for. Also still open: caption preview is landscape-only and needs its own
+ticket, and D-005's superseded_by points at D-011 instead of D-017 and needs a human
+with direct board access.
+
+Nothing is committed. Working tree holds JET-196, JET-197 and the perf work together.
 ### 2026-10-26T13:05:25+05:30
 
 Session ended while on JET-197. Touched: bench_assembly.py, docker-compose.yml, app/main.py, app/core/config.py, app/pipeline/stitch_pipeline.py, tests/test_target_frame.py, scripts/compare_whisper_models.py, video-stitching.md, +3 more. Nothing committed. (written automatically — no one said what is next)
