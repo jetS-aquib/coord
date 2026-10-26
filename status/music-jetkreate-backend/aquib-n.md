@@ -1,13 +1,81 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-199 to JET-203 all implemented and uncommitted; one render verifies all five at once
+- **Current task:** v1 render cohesion — JET-199/200 verified on a real render; four causes of character/lighting drift identified; inline seam verification and per-clip state built
 - **Status:** waiting on human
-- **Blockers:** no verifying render yet — every number here is from the plan collection or from code, not from a song rendered with these changes
-- **Last updated:** 2026-10-26T14:01:47+05:30
+- **Blockers:** JET-202 unverified (logs lost); JET-203 and JET-201 still need their own renders
+- **Last updated:** 2026-10-26T18:38:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-26T18:38:00+05:30
+
+First real render on the new code, and the diagnosis that came out of watching it.
+
+**mvr_1793003811615, 26 Oct, RENDER_PLATE_SPRITE=0, lyrics off.** 430s wall against
+713/770/765/739s for the four comparable renders before it — about 4.7 minutes saved.
+3 clips re-rendered against 31/31/31/29. Seam median 5.86, max 10.95, one clip over
+the 9.0 threshold; the old 4.0 would have re-rendered 30 of 31 again. JET-199 and
+JET-200 both work.
+
+**But the song is visibly incoherent** — characters change between shots, lighting
+flips bright to dark. That is NOT in conflict with the good scores, and the reason
+matters: the seam check measures a clip against ITS OWN anchors and never compares
+anchor N to anchor N+1. Anchors that disagree with each other produce low seam scores
+and an incoherent song. The check is structurally blind to it.
+
+Four causes, all confirmed in the plan data (D-023 has the detail):
+1. selectedCharacters and characterImageUrls are both EMPTY. Three characters held
+   together by text description alone, redrawn 32 times. Text cannot pin a face.
+2. The plate was anchor 0 — "low angle on wet asphalt as a dark car pulls in". A car.
+   No cast information at all. This is what JET-203's sprite exists to fix and it was
+   switched off for this render.
+3. DEFAULT_IMAGE_MODEL is nano-banana-2-lite, the cheapest tier, drawing the 32 images
+   that carry continuity for the entire song.
+4. Each anchor prompt is ~1100 chars of which ~800 is cast description REPEATED TWICE
+   — once inlined by substituteImageTagsV1 into the shot line, once again by
+   castBlockV1. The shot and the location are buried. This one is a plain bug.
+
+The storyboard itself is fine: all 31 environments say night/neon/fluorescent, so the
+model is inventing daylight against the text.
+
+**Dev's call on the model tier: leave lite wired, record the ceiling.** D-023. Not
+gemini-2.5-flash-image — it retires 2027-03-15, so the successor should be chosen
+fresh. Also noted as a ponytail comment next to IMAGE_CONCURRENCY_V1.
+
+**Built this sitting (D-024):**
+- Seams are measured as each clip lands, not in a phase afterwards. verifyClipV1 is
+  the single place a seam is measured and acted on, called inline and again by a
+  sweep. verifySeamsV1 is KEPT as that sweep — a resumed render holds clips that are
+  already done and were never scored, and the clip loop skips them precisely because
+  they are done. Deleting it would be the quiet kind of bug.
+- One shared mutable RerenderBudgetV1 across both paths, spent first-come instead of
+  worst-N. That is the one property given up; the worst N cannot be known without the
+  barrier that is being removed, and on a 31-clip song the budget of 7 rarely binds.
+- clip.seamScores keeps EVERY measurement including discarded takes, so "does
+  re-rendering actually help" is answerable from data next time. Twice now the answer
+  has been no.
+- Clip statuses gained 'generating' and 'regenerating', checkpointed BEFORE the
+  generation so a watcher sees which shot is being worked on.
+- clipStateV1 derives one label for clients: queued/generating/regenerating/checking/
+  finalized/failed/refused. Derived in one place on purpose — 'done' is not finished,
+  a done clip can still be re-rendered when its seam is measured.
+- summarizePlanV1 now sends sceneIndex, state, seamScores and attempts per clip.
+
+**JET-204 filed to music-jetkreate-mobile** for the corner icons. Needs approving.
+
+**Still to do:**
+- JET-203 sprite comparison — same storyboard, RENDER_PLATE_SPRITE unset. Cause 2.
+- The prompt duplication in cause 4. Not ticketed yet; it is our own bug, in
+  renderPromptsV1 (substituteImageTagsV1 + castBlockV1 both spending the cast).
+- Reference images for the cast — a product question, not a code one.
+- JET-201 untested; needs a song with showLyrics on.
+- JET-202 still unverified: the terminal scrollback was lost before anyone could see
+  whether it posted segments or fell back to the single call. Watch for "stitching N
+  segments of ..." on the next render.
+
+Uncommitted. Nothing has been committed or pushed.
+
 ### 2026-10-26T14:01:47+05:30
 
 Took JET-199 to JET-203 in one sitting. All five are implemented and uncommitted.

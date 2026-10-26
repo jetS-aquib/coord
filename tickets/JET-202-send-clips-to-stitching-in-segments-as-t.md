@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-26T13:04:41+05:30
-updated: 2026-10-26T13:50:17+05:30
-decisions: D-022
+updated: 2026-10-26T18:36:48+05:30
+decisions: D-022, D-024
 ---
 
 ## Request
@@ -101,3 +101,4 @@ language because the transcription contract says it must match the stitch call o
 Deliberate narrowing, so it is on the record rather than discovered later: segments close AFTER verifySeamsV1 rather than as each one is verified, so they are all posted at once. That gets the parallel encodes and the free concat — most of the 59s — without touching the rendering or verifying loops. It does NOT get the overlap with generation you were really after. Interleaving means merging phases 2 and 3 so a segment closes the moment its own clips are scored, and it is worth maybe a further 15s on a 31-clip song. Marked in the code as the upgrade path, worth doing when songs get long enough that the longest segment stops being small.
 
 Also noted your crossfade-overlap consequence — a second or two off the end of the last clip on a four-boundary song. Nothing on my side can shorten it and it is not worth a plan field.
+2026-10-26T18:36:48+05:30 aquib N: linked decision D-024 (Seams are measured as each clip lands, and the budget is spent first-come)

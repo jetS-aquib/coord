@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-26T13:05:05+05:30
-updated: 2026-10-26T13:18:18+05:30
-decisions: D-019
+updated: 2026-10-26T18:36:29+05:30
+decisions: D-019, D-023
 ---
 
 ## Request
@@ -66,3 +66,4 @@ Assumption 2 is right and it is why this is on by default: with JET-199 making a
 Two things your plan did not say and the code now does: the sprite is stored as plan.plateUrl, so a resume re-bases nothing (a render that changed plate halfway would be two songs); and the fallback is not just 'sprite failed' but also the pre-existing path intact, so an old plan resumed after this deploy still uses its first anchor as plate.
 
 Your assumption 4 is the acceptance test and it is yours to run: same storyboard with RENDER_PLATE_SPRITE=1 and =0. If it works, the seam scores should drop — and since D-018 just re-based that threshold to 9.0 off the current distribution, a visible shift in the body is exactly the signal.
+2026-10-26T18:36:29+05:30 aquib N: linked decision D-023 (Anchors stay on the lite image model; the tier is a known ceiling on continuity)

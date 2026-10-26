@@ -24,3 +24,5 @@
 | D-020 | Lyric transcription is cached on the audio's bytes, not a transcript id | 2026-10-26 | superseded by D-021 | video-processing-backend music-jetkreate-backend | JET-201 |
 | D-021 | Lyric transcription is cached on the audio's bytes, not a transcript id | 2026-10-26 | active | video-processing-backend music-jetkreate-backend | JET-201 |
 | D-022 | Segments are jobs of their own; the finalise call is the one that settles the attempt | 2026-10-26 | active | video-processing-backend music-jetkreate-backend | JET-202 |
+| D-023 | Anchors stay on the lite image model; the tier is a known ceiling on continuity | 2026-10-26 | active | music-jetkreate-backend | JET-203 |
+| D-024 | Seams are measured as each clip lands, and the budget is spent first-come | 2026-10-26 | active | music-jetkreate-backend | JET-200 JET-202 |

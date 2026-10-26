@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-26T13:03:48+05:30
-updated: 2026-10-26T13:18:04+05:30
-decisions: D-018
+updated: 2026-10-26T18:36:48+05:30
+decisions: D-018, D-024
 ---
 
 ## Request
@@ -70,3 +70,4 @@ Your assumption 3 is the explanation and it is correct: an image-model anchor an
 SEAM_THRESHOLD_V1 = 9.0 — above every render's body (max 8.93), below every render's tail (min 9.81). And your step 5, which I think is the more important half: rerenderBudgetV1 caps re-renders at ceil(clips/5), worst seams first, with a warning in the log when it bites. The threshold is a measurement and measurements go stale; the budget is what makes the next stale one a log line instead of a bill.
 
 What I could NOT do from the data, and it is your test step 3: watch the boundaries of clips scoring 4.6-8.9 and confirm none of them is a visible jump cut. If any of them is, 9.0 is too high and the next move is by eye, not by query.
+2026-10-26T18:36:48+05:30 aquib N: linked decision D-024 (Seams are measured as each clip lands, and the budget is spent first-come)
