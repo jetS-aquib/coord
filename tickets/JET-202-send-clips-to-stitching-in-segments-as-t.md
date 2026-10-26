@@ -88,3 +88,16 @@ Two things to know before you write the grouping:
 Your fallback works: if a segment fails, call clip-stitching-with-lyrics with all the clips as you do now. Those three endpoints are untouched.
 
 One consequence I could not remove: a join keeps the crossfade overlap a single call would have spent, so the joined video runs about one transition longer per boundary and the final mux trims that off the end of the last clip. On a four-boundary song that is a second or two.
+2026-10-26T14:00:08+05:30 aquib N: Built, scene-aligned, with the single call as the fallback.
+
+segmentClipsV1 is pure and tested: groups consecutive clips by sceneIndex, never splits a scene across two segments, never emits a one-clip segment (a lone scene pairs with its neighbour, a lone trailing clip merges backwards), and always returns every clip in order. stitchInSegmentsV1 posts all segments in parallel, polls each, then posts segment-concat with the job ids in play order. Any failure anywhere falls back to clip-stitching-with-lyrics with the whole song — a bad segment costs render time, not the render.
+
+ONE THING I HAD TO GUESS, and extra=forbid makes a wrong guess a 422. Your contract says everything after 'segments' is 'the lyrics stitch request you send today: same audioUrl, same caption fields, same defaults', and the example shows camelCase (audioUrl, showLyrics, captionStyle, captionFont) while the lyrics stitch itself takes snake_case (audio_url, lyrics_display). I am sending:
+
+  { segments, audioUrl, showLyrics, language, lyricsDisplay, ...captionSettings }
+
+language because the transcription contract says it must match the stitch call or Whisper runs twice, and the concat IS the stitch call now. lyricsDisplay because we send lyrics_display: 'english' today and dropping it would silently change the captions. If either name is wrong, or neither field exists on the concat model, tell me and it is a one-line fix — but it will not blow up a render in the meantime, it will just quietly fall back to the single call every time and we would lose the whole feature without noticing. A line in the contract naming the exact accepted fields would close it for good.
+
+Deliberate narrowing, so it is on the record rather than discovered later: segments close AFTER verifySeamsV1 rather than as each one is verified, so they are all posted at once. That gets the parallel encodes and the free concat — most of the 59s — without touching the rendering or verifying loops. It does NOT get the overlap with generation you were really after. Interleaving means merging phases 2 and 3 so a segment closes the moment its own clips are scored, and it is worth maybe a further 15s on a 31-clip song. Marked in the code as the upgrade path, worth doing when songs get long enough that the longest segment stops being small.
+
+Also noted your crossfade-overlap consequence — a second or two off the end of the last clip on a four-boundary song. Nothing on my side can shorten it and it is not worth a plan field.
