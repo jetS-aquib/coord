@@ -57,3 +57,12 @@ Anchors drawn against a sprite plate hold the cast and environment at least as c
 2026-10-26T13:05:05+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:07:18+05:30 aquib N: status: open -> approved
 2026-10-26T13:18:18+05:30 aquib N: linked decision D-019 (The anchor plate is a drawn six-panel reference sheet, on by default)
+2026-10-26T13:19:35+05:30 aquib N: Built, on by default, off with RENDER_PLATE_SPRITE=0. D-019.
+
+Your assumption 1 is the risk and it is still untested — I have not seen a sprite come back from generateSceneImage. But I found the thing that would most likely have broken it: generateSceneImage appends 'NO OVERLAYS: No watermarks, UI elements, borders, grids, frames, or diagrams' — but ONLY on its structured branch, the one taken when a prompt contains '## SCENE DESCRIPTION'. platePromptV1 does not contain that marker, so the sheet goes down the branch that forbids text and labels but says nothing about panels. That means thumbnails.ts is not touched at all; your FILES line expected it and it turned out not to be needed.
+
+Assumption 2 is right and it is why this is on by default: with JET-199 making anchoring concurrent, the sprite costs one image and no wall-clock, so the only question left is whether the stills look better — which needs it rendered.
+
+Two things your plan did not say and the code now does: the sprite is stored as plan.plateUrl, so a resume re-bases nothing (a render that changed plate halfway would be two songs); and the fallback is not just 'sprite failed' but also the pre-existing path intact, so an old plan resumed after this deploy still uses its first anchor as plate.
+
+Your assumption 4 is the acceptance test and it is yours to run: same storyboard with RENDER_PLATE_SPRITE=1 and =0. If it works, the seam scores should drop — and since D-018 just re-based that threshold to 9.0 off the current distribution, a visible shift in the body is exactly the signal.
