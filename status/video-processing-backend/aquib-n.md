@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-26T13:05:25+05:30
+
+Session ended while on JET-197. Touched: bench_assembly.py, docker-compose.yml, app/main.py, app/core/config.py, app/pipeline/stitch_pipeline.py, tests/test_target_frame.py, scripts/compare_whisper_models.py, video-stitching.md, +3 more. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-26T13:01:18+05:30
 
 Session ended while on JET-197. Touched: bench_assembly.py, docker-compose.yml, app/main.py, app/core/config.py, app/pipeline/stitch_pipeline.py, tests/test_target_frame.py, scripts/compare_whisper_models.py, video-stitching.md, +3 more. Nothing committed. (written automatically — no one said what is next)
