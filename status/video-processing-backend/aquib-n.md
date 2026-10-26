@@ -1,13 +1,52 @@
 # video-processing-backend — aquib N
 
-- **Current task:** pipeline performance — JET-199..203 filed to music-jetkreate-backend; this repo's half next
+- **Current task:** JET-201 and JET-202 built on this side — transcription endpoint, segment stitch and finalise
 - **Status:** waiting on human
-- **Blockers:** JET-201 and JET-202 need shape decisions from the requester before the endpoints can be built
-- **Last updated:** 2026-10-26T13:30:00+05:30
+- **Blockers:** nothing committed; native-size render (D-005/D-017) deliberately not started — it changes what every existing caller receives
+- **Last updated:** 2026-10-26T13:52:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-26T13:52:00+05:30
+
+The requester answered both parked questions on the board, so both endpoints are built.
+
+JET-201 — POST /api/v1/lyric-transcription. Transcribes now, keeps the transcript, and
+clip-stitching-with-lyrics finds it instead of running Whisper. Keyed on the audio's
+BYTES rather than audioUrl: their URLs are signed, so a URL key would miss every time,
+and bytes give exactly the invalidation rule they asked for. They pass nothing extra.
+The endpoint runs the pipeline's own transcription phase so a cached transcript is
+identical to one the stitch would have made itself. D-021, contract
+video-transcription.md.
+
+JET-202 — POST /api/v1/segment-stitch and /api/v1/segment-concat. Scene-aligned, as
+they confirmed. The finalise takes segment JOB IDS, not URLs: no expiry, and ownership
+is checked before this service signs anything in its own bucket. A segment is not an
+attempt — not deduplicated, reports nothing to the creator API; the finalise is
+attempt-scoped and settles, so one attempt still settles once and billing is unchanged.
+Segments must share a frame: ffmpeg stream-copies a mismatch without an error and
+produces a broken master, so it is checked here. D-022, contract video-segments.md.
+
+Nothing existing changed. The three stitch endpoints, their schemas and their defaults
+are byte-identical; everything new is additive. 357 tests pass (was 323), ruff clean on
+everything new. Smoke-tested end to end in the container: two segments rendered, joined
+with -c copy in 0.08s, audio muxed by stream copy, and a captioned finalise that took
+the cache hit and never loaded Whisper.
+
+Still not done, deliberately: render at the clips' native size. It is worth 1.8x on the
+encode, but it changes the resolution every existing caller receives, which is the one
+thing this sitting was told not to do. It needs its own flag and its own decision
+superseding D-017 — about ten lines once somebody says yes.
+
+Loose ends unchanged: D-005's superseded_by still points at D-011 and needs a human
+with board access (noted on JET-196). The caption preview is still landscape-only.
+And D-020 is an empty decision I created by running `coord decide` without the body
+flags; I superseded it with D-021 rather than hand-editing decisions/.
+
+Next: nothing is committed. Three separate commits are staged up in the working tree —
+JET-196's portrait flag, JET-197's frame endpoints, the no-ticket performance work — and
+now a fourth for this. Run `coord on JET-196` before the first one.
 ### 2026-10-26T13:13:29+05:30
 
 Session ended while on JET-197. Touched: bench_assembly.py, docker-compose.yml, app/main.py, app/core/config.py, app/pipeline/stitch_pipeline.py, tests/test_target_frame.py, scripts/compare_whisper_models.py, video-stitching.md, +3 more. Nothing committed. (written automatically — no one said what is next)
