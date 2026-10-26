@@ -21,3 +21,6 @@
 | D-017 | Portrait output is opt-in per deployment, not the default | 2026-10-26 | active | video-processing-backend music-jetkreate-mobile music-jetkreate-backend creater-ai-backend | JET-196 |
 | D-018 | Seam threshold re-based to 9.0 and re-renders capped at a fifth of the song | 2026-10-26 | active | music-jetkreate-backend video-processing-backend | JET-200 |
 | D-019 | The anchor plate is a drawn six-panel reference sheet, on by default | 2026-10-26 | active | music-jetkreate-backend | JET-203 |
+| D-020 | Lyric transcription is cached on the audio's bytes, not a transcript id | 2026-10-26 | superseded by D-021 | video-processing-backend music-jetkreate-backend | JET-201 |
+| D-021 | Lyric transcription is cached on the audio's bytes, not a transcript id | 2026-10-26 | active | video-processing-backend music-jetkreate-backend | JET-201 |
+| D-022 | Segments are jobs of their own; the finalise call is the one that settles the attempt | 2026-10-26 | active | video-processing-backend music-jetkreate-backend | JET-202 |

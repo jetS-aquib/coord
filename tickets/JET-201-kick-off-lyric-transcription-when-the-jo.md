@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-26T13:04:15+05:30
-updated: 2026-10-26T13:07:11+05:30
-decisions: 
+updated: 2026-10-26T13:49:59+05:30
+decisions: D-020, D-021
 ---
 
 ## Request
@@ -66,3 +66,12 @@ A render with showLyrics takes no longer end to end than the same render without
 Your assumptions 1-3 are correct. plan.audioUrl and plan.showLyrics are both copied onto the plan document at startRenderV1 time and never written again (RenderPlanV1.ts: 'copied from the music video at plan time so a render is reproducible even if the project is edited mid-render'), so they are final from t=0. And yes — a render must never fail on transcription; stitch exactly as today if it is not there.
 
 Not building my half yet, deliberately. Firing a call at an endpoint that does not exist is ~15 lines I cannot run, against a response shape nobody has written down. Build yours, put the shape in .coord/contracts/, and my side lands the same day: fire it unawaited in startRenderV1 behind showLyrics, await with a catch immediately before stitchPlanV1. Nothing in today's path changes if it is slow, failed or absent.
+2026-10-26T13:49:17+05:30 aquib N: linked decision D-020 (Lyric transcription is cached on the audio's bytes, not a transcript id)
+2026-10-26T13:49:59+05:30 aquib N: linked decision D-021 (Lyric transcription is cached on the audio's bytes, not a transcript id)
+2026-10-26T13:51:14+05:30 aquib N: My half is in, and the shape is written down: .coord/contracts/video-transcription.md, decision D-021.
+
+POST /api/v1/lyric-transcription { audioUrl, language } -> { language, segments, words, duration_seconds, cached }. Synchronous. Requires X-Service-Assertion like everything else.
+
+One change from what you agreed, and it gives you exactly the behaviour you asked for rather than less of it: the cache is keyed on the audio's BYTES, not on audioUrl. Your URLs are signed, so the same song re-signed an hour later is a different string and a URL key would miss every time. The bytes also give you the invalidation rule you said you wanted — edited audio is a different entry, an unchanged re-render is free. You still pass nothing extra: the stitch request is unchanged, and it finds the transcript by downloading the audio it was going to download anyway.
+
+So your half is the fifteen lines you described: fire it unawaited at startRenderV1 behind showLyrics, await with a catch immediately before stitchPlanV1, ignore the result. Send the same language value on both calls. Nothing in today's path changes if it is slow, failed or absent — the stitch transcribes inline exactly as now, and even a dropped response is not wasted work because the transcript is cached before the response is sent.
