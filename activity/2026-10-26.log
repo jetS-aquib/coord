@@ -13,3 +13,5 @@
 2026-10-26T12:02:29+05:30	video-processing-backend	edit	aquib N	aquib-n.md
 2026-10-26T12:03:06+05:30	video-processing-backend	session-stop	aquib N
 2026-10-26T12:07:27+05:30	video-processing-backend	edit	aquib N	Dockerfile
+2026-10-26T12:07:32+05:30	video-processing-backend	edit	aquib N	docker-compose.yml
+2026-10-26T12:14:59+05:30	video-processing-backend	edit	aquib N	README.md
