@@ -53,3 +53,12 @@ A song's anchors complete in roughly the time of ceil(32/concurrency) image call
 ## Thread
 2026-10-26T13:03:20+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:06:55+05:30 aquib N: status: open -> approved
+2026-10-26T13:19:09+05:30 aquib N: Done in code, not yet verified on a render.
+
+Your assumption 1 was the right thing to flag and I still cannot settle it — nothing in the logs or the plan documents times the anchoring phase, so ~5 minutes remains an estimate from the code. What is now true either way: only the plate is serial, the other 31 stills fan out through runCappedV1, and progress counts settled anchors instead of a loop index.
+
+Assumption 4, the one you said you did not know: still not measured, so it is not inherited. Anchors run at IMAGE_CONCURRENCY_V1, which is its own env knob (RENDER_IMAGE_CONCURRENCY) defaulting to 6 — the same number as the video cap, but not the same setting, so turning one down does not touch the other. First 429 during anchoring, turn it down.
+
+One thing your plan did not cover and the code now does: if the first still FAILS, the old loop quietly promoted the next successful one to plate. Fanning out at that point would have drawn 32 unrelated places. It draws serially until one succeeds, then fans out — normally one pass.
+
+Note that the plate itself is no longer the first anchor when JET-203 is on (default): it is the drawn sprite. Your assumption 2 — 'each anchor sees exactly the same plate it sees today' — holds for JET-199 alone, and is deliberately broken by JET-203. Render with RENDER_PLATE_SPRITE=0 to time this one in isolation.
