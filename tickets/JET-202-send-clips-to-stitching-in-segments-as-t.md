@@ -4,9 +4,9 @@ title: Send clips to stitching in segments as they finish, instead of one call a
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-26T13:04:41+05:30
-updated: 2026-10-26T13:04:41+05:30
+updated: 2026-10-26T13:07:15+05:30
 decisions: 
 ---
 
@@ -62,3 +62,4 @@ A song's stitching finishes within a few seconds of its last clip being verified
 
 ## Thread
 2026-10-26T13:04:41+05:30 aquib N: created ticket, status: - -> open
+2026-10-26T13:07:15+05:30 aquib N: status: open -> approved

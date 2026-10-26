@@ -4,9 +4,9 @@ title: Anchor stills render one at a time, but the star topology no longer requi
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-26T13:03:20+05:30
-updated: 2026-10-26T13:03:20+05:30
+updated: 2026-10-26T13:06:55+05:30
 decisions: 
 ---
 
@@ -52,3 +52,4 @@ A song's anchors complete in roughly the time of ceil(32/concurrency) image call
 
 ## Thread
 2026-10-26T13:03:20+05:30 aquib N: created ticket, status: - -> open
+2026-10-26T13:06:55+05:30 aquib N: status: open -> approved

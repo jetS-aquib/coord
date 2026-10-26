@@ -4,9 +4,9 @@ title: The 4.0 seam threshold is re-rendering nearly every clip, still, and doub
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-26T13:03:48+05:30
-updated: 2026-10-26T13:03:48+05:30
+updated: 2026-10-26T13:07:07+05:30
 decisions: 
 ---
 
@@ -55,3 +55,4 @@ The threshold is backed by a current measurement rather than the 2026-10-23 one,
 
 ## Thread
 2026-10-26T13:03:48+05:30 aquib N: created ticket, status: - -> open
+2026-10-26T13:07:07+05:30 aquib N: status: open -> approved

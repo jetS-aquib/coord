@@ -4,9 +4,9 @@ title: Make the anchor plate a small sprite of the cast and environment instead 
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-26T13:05:05+05:30
-updated: 2026-10-26T13:05:05+05:30
+updated: 2026-10-26T13:07:18+05:30
 decisions: 
 ---
 
@@ -55,3 +55,4 @@ Anchors drawn against a sprite plate hold the cast and environment at least as c
 
 ## Thread
 2026-10-26T13:05:05+05:30 aquib N: created ticket, status: - -> open
+2026-10-26T13:07:18+05:30 aquib N: status: open -> approved

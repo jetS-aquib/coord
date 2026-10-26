@@ -4,9 +4,9 @@ title: Kick off lyric transcription when the job starts, not when the clips are 
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-26T13:04:15+05:30
-updated: 2026-10-26T13:04:15+05:30
+updated: 2026-10-26T13:07:11+05:30
 decisions: 
 ---
 
@@ -60,3 +60,4 @@ A render with showLyrics takes no longer end to end than the same render without
 
 ## Thread
 2026-10-26T13:04:15+05:30 aquib N: created ticket, status: - -> open
+2026-10-26T13:07:11+05:30 aquib N: status: open -> approved
