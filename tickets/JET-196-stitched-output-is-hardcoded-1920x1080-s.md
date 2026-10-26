@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: review
 created: 2026-10-22T13:35:21+05:30
-updated: 2026-10-22T15:34:50+05:30
-decisions: D-005
+updated: 2026-10-26T12:01:27+05:30
+decisions: D-005, D-017
 ---
 
 ## Request
@@ -85,3 +85,5 @@ Not verified by me: I have not yet played a portrait master on a device — the 
 PLAN.md Phase E is unblocked for the aspect picker, with the caption-preview gap recorded.
 
 Closing is yours — coord ok 196 once you have seen a portrait master play.
+2026-10-26T12:01:27+05:30 aquib N: linked decision D-017 (Portrait output is opt-in per deployment, not the default)
+2026-10-26T12:02:02+05:30 aquib N: Correction to the record: D-005's successor is D-017 (portrait output is opt-in per deployment), NOT D-011. I ran 'coord supersede D-005 D-011' guessing the next id instead of reading the one coord returned, and D-011 is an unrelated JET-198 decision. The CLI will not re-point an already-superseded decision and decisions/ is not hand-editable, so D-005's frontmatter still reads superseded_by: D-011 and needs fixing by someone who can edit the board directly. Read D-005 together with D-017.

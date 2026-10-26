@@ -2,8 +2,8 @@
 id: D-005
 title: Stitch output orientation follows the source clips
 date: 2026-10-22
-status: active
-superseded_by: 
+status: superseded
+superseded_by: D-011
 repos: video-processing-backend, music-jetkreate-mobile, music-jetkreate-backend, creater-ai-backend
 tickets: JET-196
 ---

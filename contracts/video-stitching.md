@@ -25,10 +25,18 @@ and `extra="forbid"` means sending one is rejected rather than ignored. The
 frame is decided from the clips you send (JET-196):
 
 - `clip-stitching` — always `1280x720@24`, whatever the clips are.
-- `clip-stitching-with-audio` and `clip-stitching-with-lyrics` — `1920x1080@30`,
-  or `1080x1920@30` when **more than half** the clips are taller than they are
-  wide. A tie, square clips, and clips whose dimensions could not be read all
-  give landscape, so a caller sending landscape gets exactly what it always did.
+- `clip-stitching-with-audio` and `clip-stitching-with-lyrics` — `1920x1080@30`.
+
+**Portrait output is opt-in and off by default.** With `ENABLE_PORTRAIT_OUTPUT=true`
+on the deployment, those two workflows instead produce `1080x1920@30` when
+**more than half** the clips are taller than they are wide; a tie, square clips,
+and clips whose dimensions could not be read still give landscape. Off — which
+is every deployment until someone sets it — the frame is landscape whatever the
+clips are, exactly as it has always been.
+
+It is a deployment flag, not a request field: turn it on once the players and
+any downstream compositing on that deployment are known to handle a non-16:9
+file.
 
 Clips that do not match the chosen frame are still scaled down and padded into
 it, so a stray landscape clip in a portrait set is letterboxed rather than
