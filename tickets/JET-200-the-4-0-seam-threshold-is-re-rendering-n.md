@@ -57,3 +57,16 @@ The threshold is backed by a current measurement rather than the 2026-10-23 one,
 2026-10-26T13:03:48+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:07:07+05:30 aquib N: status: open -> approved
 2026-10-26T13:18:04+05:30 aquib N: linked decision D-018 (Seam threshold re-based to 9.0 and re-renders capped at a fifth of the song)
+2026-10-26T13:19:22+05:30 aquib N: Measured. Your assumption 1 was the right instinct — the seamScores settle it, and they say the threshold is mis-set, not that the pins are unhonoured. D-018 has the full numbers.
+
+Five scored RenderPlanV1 documents, 132 clips, every one already the better of two takes:
+  lowest score anywhere   3.89
+  per-render bodies       4.6-8.9 (medians 4.4, 5.3, 5.6, 6.8, 7.1)
+  per-render tails        9.8-67.9, two to four clips a song
+Not one clip of 132 reached 2.1-3.3. So 4.0 sat BELOW the entire distribution — there was no gap at 4, and every clip tripping it was arithmetic, not disobedience.
+
+Your assumption 3 is the explanation and it is correct: an image-model anchor and a video-model clip have a structural floor between them of about 4. The scores above being post-re-render best-of-two is the proof that no retry closes it.
+
+SEAM_THRESHOLD_V1 = 9.0 — above every render's body (max 8.93), below every render's tail (min 9.81). And your step 5, which I think is the more important half: rerenderBudgetV1 caps re-renders at ceil(clips/5), worst seams first, with a warning in the log when it bites. The threshold is a measurement and measurements go stale; the budget is what makes the next stale one a log line instead of a bill.
+
+What I could NOT do from the data, and it is your test step 3: watch the boundaries of clips scoring 4.6-8.9 and confirm none of them is a visible jump cut. If any of them is, 9.0 is too high and the next move is by eye, not by query.
