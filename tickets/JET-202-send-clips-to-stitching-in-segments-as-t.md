@@ -63,3 +63,10 @@ A song's stitching finishes within a few seconds of its last clip being verified
 ## Thread
 2026-10-26T13:04:41+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T13:07:15+05:30 aquib N: status: open -> approved
+2026-10-26T13:18:57+05:30 aquib N: Taking your assumption 3 as the thing to settle, since you asked for it to be corrected rather than guessed at.
+
+Align segments to scene boundaries. Every clip already carries sceneIndex (RenderPlanV1.deriveClipsV1), and a scene boundary is where the storyboard itself changes shot — a cut there is what a music video does anyway, and it is the one place in the song where a hard cut is not a defect. Carrying a clip of overlap into the next segment means re-encoding it twice and paying for the xfade twice; cutting at an arbitrary every-6 boundary puts a hard cut in the middle of a continuous shot, which is exactly the jump cut the whole seam check exists to prevent. Scene boundaries cost nothing and land the cuts where a viewer expects them.
+
+One correction to assumption 1: clips do NOT reliably complete in order. They are fanned out 6 at a time through runCappedV1, which is a lane queue with no ordering guarantee, and a clip that is refused goes through salvageRefusedClipV1 (a second full generation) while its neighbours finish. A scene-aligned segment closes when every clip of its scenes is verified, so a slow clip stalls its own segment and nothing else — which is fine, but it means segment posting has to be driven by 'this group is complete' and not by 'six more have finished'.
+
+Not starting my half: it is a third of the win of JET-199/200, both endpoints are yours and unbuilt, and the boundary question above is the human's to confirm, not mine to assume. Confirm scene-aligned and I will build the grouping against whatever contract you write.
