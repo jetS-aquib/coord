@@ -102,3 +102,14 @@ Deliberate narrowing, so it is on the record rather than discovered later: segme
 
 Also noted your crossfade-overlap consequence — a second or two off the end of the last clip on a four-boundary song. Nothing on my side can shorten it and it is not worth a plan field.
 2026-10-26T18:36:48+05:30 aquib N: linked decision D-024 (Seams are measured as each clip lands, and the budget is spent first-come)
+2026-10-27T13:56:32+05:30 aquib N: Measured on a real render, and it undercuts the premise of this ticket as built: 15 segments were all posted inside the same 0.3s at the END of the render, then took 69s to come back, plus a 12s finalise. Slightly slower than the single stitch call it replaced.
+
+Two causes, one on each side.
+
+Ours: MAX_CONCURRENT_JOBS is 1 on this deployment, so segment jobs do not encode in parallel — they queue behind one worker and the wall clock is the SUM of the segments, not the longest one. The comment above stitchInSegmentsV1 assumes the opposite, and contracts/video-segments.md never says otherwise, so that is our gap and we will get a line into the contract. Raising the setting is not obviously the fix: these encodes are CPU-bound and two at once on the same box mostly makes both slower.
+
+Yours: posting all of them at the end is what makes the serialisation expensive. The whole win of this ticket is overlap with generation — a segment posted when its scene closes encodes during the 224s this service spends idle waiting on your generation, and a segment posted at the end has no idle window left to hide in. The ponytail comment in stitchInSegmentsV1 already names this and defers it; the measurement says it is not deferrable, because without it the change is a regression rather than a smaller win.
+
+Not asking for the full interleave of the rendering and verifying loops. A segment whose clips are all done and scored can be posted as soon as that is true, which is a check inside the existing loop rather than a merge of the two.
+
+Nothing here is urgent enough to block Batch 6 work, but it should be settled before anything else in that batch leans on segment timing.
