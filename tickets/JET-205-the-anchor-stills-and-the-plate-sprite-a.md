@@ -4,9 +4,9 @@ title: The anchor stills and the plate sprite are drawn but never sent, so the s
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-10-27T12:03:04+05:30
-updated: 2026-10-27T12:03:04+05:30
+updated: 2026-10-27T12:08:11+05:30
 decisions: 
 ---
 
@@ -40,7 +40,15 @@ The state payload carries, for every clip, the URL of the still it opens on, and
 
 ## Test steps
 
-—
+1. POST /api/v1/music-videos/:id/render on a project with a saved storyboard (a one-scene project is about $0.80).
+2. While it reads `anchoring`, poll GET /api/v1/music-videos/render/:jobId. `plateUrl` is set from the first phase, and each clip's `openingFrameUrl` fills in as its still lands — clip i gets anchor i.
+3. Open both: `plateUrl` is one six-panel sheet of the cast and the location; `openingFrameUrl` is a single frame matching that clip's shot, not a panel grid.
+4. The same two fields arrive on every SSE event from /render/:jobId/events — it is the same payload builder.
+5. Before anything is drawn (`queued`), both are `""`, never missing and never null.
+6. npx vitest run src/services/render/renderV1.test.ts — the `summarizePlanV1` block covers the mapping and the empty case.
 
 ## Thread
 2026-10-27T12:03:04+05:30 aquib N: created ticket, status: - -> open
+2026-10-27T12:05:03+05:30 aquib N: status: open -> approved
+2026-10-27T12:08:11+05:30 aquib N: status: approved -> in_progress — picking it up
+2026-10-27T12:08:11+05:30 aquib N: status: in_progress -> review — summarizePlanV1 now carries plateUrl and clips[].openingFrameUrl; contract updated. All four assumptions in the request hold: anchor imageUrls come from the same media host rule as videoUrl, the plate is one image for the whole song, and a still is what the shot aims at until the clip lands. Nothing in the render loop changed — both values were already in RenderPlanV1, just never on the wire.

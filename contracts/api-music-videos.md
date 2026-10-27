@@ -59,17 +59,41 @@ parser.
   "modelKey": "omni", "aspectRatio": "9:16", "concurrency": 6,
   "clipsTotal": 33, "clipsDone": 20, "clipsRefused": 0,
   "anchorsTotal": 34, "anchorsDone": 34,
-  "worstSeamScore": 3.2, "seamThreshold": 4.0,   // null until verifying
+  "worstSeamScore": 5.4, "seamThreshold": 9.0,   // null until verifying
   "estimatedCostUsd": 24.80,
   "finalVideoUrl": "", "error": "", "resumable": false,
-  "clips": [{ "index": 0, "status": "done", "durationSeconds": 8,
-              "videoUrl": "https://…", "seamScore": 2.9, "error": "" }],
+  "plateUrl": "https://…",      // the reference sheet the stills were drawn against
+  "clips": [{ "index": 0, "sceneIndex": 0, "status": "done", "state": "finalized",
+              "durationSeconds": 8, "videoUrl": "https://…",
+              "openingFrameUrl": "https://…",   // the still this clip opens on
+              "seamScore": 5.4, "seamScores": [8.1, 5.4], "attempts": 2,
+              "error": "" }],
   "warnings": [{ "sceneIndex": 3, "reason": "…", "rewritten": "…" }],
   "updatedAt": "2026-10-23T…" }
 ```
 
-Clip status is `pending | done | failed | refused`. On a `refused` clip, `error` is
-written for the person who wrote the prompt, not for a developer — show it.
+Clip status is `pending | generating | done | regenerating | failed | refused`, and
+`state` is what to actually put on a tile: `queued | generating | checking |
+regenerating | finalized | failed | refused`. Use `state`, not `status` — `done` means
+the clip has a video, not that it is finished, because a bad seam re-renders it.
+Deriving that in each client is how two clients come to disagree.
+
+On a `refused` clip, `error` is written for the person who wrote the prompt, not for a
+developer — show it.
+
+### Pictures before there is video
+
+A render draws every anchor still before it renders a single clip, which is minutes of
+a progress sentence and nothing else. Those stills are already paid for, so they are on
+the wire (JET-205):
+
+- `plateUrl` — one six-panel reference sheet of the cast and the location for the whole
+  song, drawn first and used to keep every still consistent (JET-203).
+- `clips[].openingFrameUrl` — the still that clip was pinned to open on. Anchor `i` is
+  clip `i`'s opening still; the mapping is done here so no client repeats it.
+
+Both are `""` until drawn. A still is what the shot is **aiming at**, not what
+rendered — replace it with the clip's own frame once `videoUrl` lands.
 
 `warnings` lists scene prompts that were **rewritten before rendering** because the
 provider would have refused them. Show them: a storyboard silently rewritten on
