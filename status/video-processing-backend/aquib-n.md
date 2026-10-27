@@ -1,13 +1,43 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-201 and JET-202 built on this side — transcription endpoint, segment stitch and finalise
+- **Current task:** job state moved to Mongo behind MONGO_URI (D-025); JET-201/202 shipped and committed
 - **Status:** waiting on human
-- **Blockers:** nothing committed; native-size render (D-005/D-017) deliberately not started — it changes what every existing caller receives
-- **Last updated:** 2026-10-26T13:52:00+05:30
+- **Blockers:** none. MONGO_URI is unset everywhere, so the new store is dormant until somebody sets it
+- **Last updated:** 2026-10-27T12:25:45+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-27T12:25:45+05:30
+
+Job state can now live in Mongo instead of JSON files under STORAGE_ROOT (D-025).
+
+Why it mattered: STORAGE_ROOT is /tmp inside the image, so every job record went with
+the container on a deploy — a client holding a job id got a 404 — and the JET-155
+attempt deduplication being a file on one machine's disk is one of the three things
+stopping this service running as more than one instance. That started to matter when
+15 segment jobs were measured running one at a time for 69s under MAX_CONCURRENT_JOBS=1.
+
+Rejected: routing job state through music-jetkreate-backend's API. Every stage change
+would become a network call, this service would stop accepting work when Node is down,
+and /api/v1/jobs is our contract with two readers. Direct connection instead, with the
+MONGO_URI they already have — one database server on this platform.
+
+Persistence now sits behind a small store interface: FileJobStore (unchanged behaviour,
+still the default and what the offline suite uses) and MongoJobStore. Collection
+video_jobs, partial unique index on attempt_id — partial because segment jobs have no
+attempt — and a TTL index on expires_at. With MONGO_URI set the service refuses to
+start if Mongo is unreachable.
+
+Verified against the real Mongo on this machine, not just a fake: both indexes created
+as intended, six attempt-less jobs coexisting, one attempt producing exactly one
+document on the second submission, and a missing job still raising KeyError. 379 tests
+pass, ruff clean. Local gotcha worth knowing: a local replica set advertises 127.0.0.1,
+so from a container the URI needs ?directConnection=true.
+
+Next: nothing is committed for this. Still open from before — the settlement callback is
+misconfigured (CREATOR_CALLBACK_URL has no path, every job logs 404 Cannot POST /), and
+mirroring our `stage` into the Node plan document is the cheap half of live progress.
 ### 2026-10-26T13:52:00+05:30
 
 The requester answered both parked questions on the board, so both endpoints are built.
