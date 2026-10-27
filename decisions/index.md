@@ -26,3 +26,4 @@
 | D-022 | Segments are jobs of their own; the finalise call is the one that settles the attempt | 2026-10-26 | active | video-processing-backend music-jetkreate-backend | JET-202 |
 | D-023 | Anchors stay on the lite image model; the tier is a known ceiling on continuity | 2026-10-26 | active | music-jetkreate-backend | JET-203 |
 | D-024 | Seams are measured as each clip lands, and the budget is spent first-come | 2026-10-26 | active | music-jetkreate-backend | JET-200 JET-202 |
+| D-025 | video-processing-backend keeps job state in the platform's Mongo, connecting to it directly | 2026-10-27 | active | video-processing-backend music-jetkreate-backend |  |
