@@ -44,6 +44,24 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   only way out of a refusal, since the provider refuses the same words again.
 - `POST /api/v1/music-videos/render/:jobId/stitch` — `202`; assembles a `blocked`
   render as it is, missing shots and all. Deliberate opt-in; `409` on any other status.
+- `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
+  `{ audioUrl }`. Not project-scoped, because the point is that it is called at
+  **upload**, before a project exists. Fire and forget: nothing depends on it, nothing
+  waits for it, and it never fails the caller. JET-208.
+
+#### Warming the transcript
+
+Whisper costs 99s of cold model load the first time a process touches it, and 6.2s
+after. There are three triggers for it now, each only making the next cheaper:
+
+1. this route, at upload — minutes before a render, while the user reads the brief
+2. the render's own prefetch, at `startRenderV1` (JET-201)
+3. the stitch, inline, which is where it was before any of this
+
+A client that never calls the first is identical to today. Calling it twice for the
+same audio runs Whisper once: the transcript is cached on the audio's bytes (D-021).
+It warms unconditionally, since `showLyrics` is not known at upload time — one
+Whisper run against a 24h cache is the better side of that trade.
 
 ### The state payload
 
@@ -94,6 +112,16 @@ the wire (JET-205):
 
 Both are `""` until drawn. A still is what the shot is **aiming at**, not what
 rendered — replace it with the clip's own frame once `videoUrl` lands.
+
+`seamScore` is a continuity measurement and only exists where continuity is wanted.
+A clip whose next clip starts a new **scene** is not pinned to that scene's opening
+still and is not scored against it — two shots that match across a cut read as a jump
+cut, and asking a four-second clip to arrive at the next scene then charging it for a
+re-render when it does not is money spent making the video worse (JET-210). The
+distance across the cut is still measured and stored on the plan as `breakScore`, but
+nothing acts on it yet and it is not on the wire: there is no measured band for "too
+similar across a cut", and picking a threshold before measuring one is what the old
+4.0 cost.
 
 `warnings` lists scene prompts that were **rewritten before rendering** because the
 provider would have refused them. Show them: a storyboard silently rewritten on

@@ -4,9 +4,9 @@ title: Warm the transcript when the audio is uploaded, not when the render start
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-27T13:54:51+05:30
-updated: 2026-10-27T14:00:03+05:30
+updated: 2026-10-27T15:30:15+05:30
 decisions: 
 ---
 
@@ -52,8 +52,15 @@ Uploading a track and then starting a render on it logs the transcript as alread
 
 ## Test steps
 
-—
+1. `POST /api/v1/music-videos/transcript/warm` with `{ "audioUrl": "<an uploaded track>" }` and a valid token — `202 {"success":true}` immediately, no waiting.
+2. Watch the server log: `[RenderV1] warm transcript ready in 99s — en, 412 words` the first time a process touches Whisper.
+3. Now start a render on a project using that same audio. The log line for the render's own prefetch reports `cached`, and the stitch does no transcription.
+4. Call the warm route twice for the same audioUrl — Whisper runs once; the second is served from the cache keyed on the audio's bytes.
+5. Never call it: the render is identical to today (its own prefetch at startRenderV1 still fires, and the stitch still transcribes inline below that).
+6. Bad body (`{}`, or a non-URL audioUrl) is a 400 from zod; no token is a 401.
 
 ## Thread
 2026-10-27T13:54:51+05:30 aquib N: created ticket, status: - -> open
 2026-10-27T14:00:03+05:30 aquib N: status: open -> approved
+2026-10-27T15:30:15+05:30 aquib N: status: approved -> in_progress
+2026-10-27T15:30:15+05:30 aquib N: status: in_progress -> review — POST /api/v1/music-videos/transcript/warm is in and documented in contracts/api-music-videos.md — that path is what JET-209 needs on mobile. prefetchTranscriptV1 keeps its jobId key untouched, so stitchPlanV1's await is unchanged; the upload-keyed entry deletes itself on settle, since nothing awaits it. Warms unconditionally with the same 'auto' language as the stitch, so the cache hits.
