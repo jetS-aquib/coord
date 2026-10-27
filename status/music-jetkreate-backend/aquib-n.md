@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-27T16:33:44+05:30
+
+Session ended while on JET-202. Touched: artifact-832053e4-1793088363-0546.html. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-26T18:38:00+05:30
 
 First real render on the new code, and the diagnosis that came out of watching it.
