@@ -4,9 +4,9 @@ title: The seam rule is applied across scene changes too, which is where it enfo
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-27T13:56:00+05:30
-updated: 2026-10-27T13:56:00+05:30
+updated: 2026-10-27T14:00:11+05:30
 decisions: 
 ---
 
@@ -58,3 +58,4 @@ A render whose storyboard has several scenes shows no re-render triggered at a s
 
 ## Thread
 2026-10-27T13:56:00+05:30 aquib N: created ticket, status: - -> open
+2026-10-27T14:00:11+05:30 aquib N: status: open -> approved

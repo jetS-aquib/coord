@@ -4,9 +4,9 @@ title: Tell the server the song exists as soon as it has uploaded, so transcript
 from: video-processing-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-27T13:55:26+05:30
-updated: 2026-10-27T13:55:26+05:30
+updated: 2026-10-27T14:00:07+05:30
 decisions: 
 ---
 
@@ -54,3 +54,4 @@ Picking a track and waiting on the brief screen for a few seconds, then starting
 
 ## Thread
 2026-10-27T13:55:26+05:30 aquib N: created ticket, status: - -> open
+2026-10-27T14:00:07+05:30 aquib N: status: open -> approved

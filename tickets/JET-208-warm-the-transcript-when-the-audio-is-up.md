@@ -4,9 +4,9 @@ title: Warm the transcript when the audio is uploaded, not when the render start
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-27T13:54:51+05:30
-updated: 2026-10-27T13:54:51+05:30
+updated: 2026-10-27T14:00:03+05:30
 decisions: 
 ---
 
@@ -56,3 +56,4 @@ Uploading a track and then starting a render on it logs the transcript as alread
 
 ## Thread
 2026-10-27T13:54:51+05:30 aquib N: created ticket, status: - -> open
+2026-10-27T14:00:03+05:30 aquib N: status: open -> approved
