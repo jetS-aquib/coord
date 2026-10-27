@@ -1,13 +1,69 @@
 # video-processing-backend — aquib N
 
-- **Current task:** Batch 6 of the render pipeline plan — five requests filed, one local fix (pathless CREATOR_CALLBACK_URL)
+- **Current task:** JET-206 and JET-207 built and handed back for review
 - **Status:** waiting on human
-- **Blockers:** JET-206 and JET-207 need approving before any Batch 6 work lands here; JET-208/209/210 are requests out to the other two repos
-- **Last updated:** 2026-10-27T13:57:49+05:30
+- **Blockers:** none. JET-206/207 are waiting on the requester to verify and close; JET-208/209/210 are out to the Node and mobile repos
+- **Last updated:** 2026-10-27T15:23:55+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-27T15:23:55+05:30
+
+Both requests addressed to this repo are built and back with the requester.
+
+**JET-207 — per-clip in/out points.** `inSeconds`/`outSeconds` on `ClipInput`,
+so one change reached clip-stitching, -with-audio, -with-lyrics and
+segment-stitch together. The trim runs right after download, before analysis:
+the xfade offsets come from the durations analysis finds on disk, so
+transitions, captions, the master-audio mux and segment joins all work on the
+surviving frames without touching the transition graph — which is the most
+delicate arithmetic in the service and was worth routing around. An untrimmed
+clip is never decoded, so today's output is unchanged.
+
+Two divergences flagged on the ticket: the requester asked for a 422 when an
+out point runs past the end of a clip, and that half is impossible — these
+endpoints answer with a job id before any clip is fetched, so the duration is
+not known yet. It fails the job instead, naming the real duration. And there
+is a 0.05s tolerance, a little over one frame at 24fps, because the caller
+computes out points from bar lengths in floating point.
+
+**JET-206 — song read.** `POST /api/v1/song-read`: sections, downbeats, BPM,
+per-bar energy, language. New contract `contracts/video-song-read.md`.
+
+No new dependency — **D-028**. librosa would have pulled scipy, numba and
+llvmlite into an image already carrying a 2.9 GB Whisper model, for one job on
+material the requester scoped to steady 4/4 pop. numpy and the ffmpeg already
+here get within 0.05 BPM across 74–165 BPM. `requirements.txt` is untouched,
+so this deploys with no `--build`.
+
+The one thing worth not re-deriving, and it is in D-028: autocorrelation can
+only report a whole number of frames, and at a 512 hop lag 21 is 123.1 BPM
+while lag 22 is 117.5 — a real 120 BPM track can only come back as one or the
+other, both wrong by over 2 BPM, which walks the grid a full bar off the song
+over four minutes. Parabolic interpolation of the peak does *not* fix it
+either; a click-train peak is one or two frames wide so the parabola fits the
+peak's shape, not the period. What works is a fine search over real-valued
+periods for the pulse train that best fits the onsets.
+
+Ceilings, both marked in code: one tempo per song, no drift or time-signature
+detection (song_read.py); and a trimmed clip is encoded here and again by the
+xfade pass, which folding the trim into that pass's input args would avoid at
+the cost of hand-feeding trimmed durations into the xfade offset arithmetic
+(clip_trim.py).
+
+422 tests pass in the container. Nothing committed.
+
+Still open from earlier today and not done: `contracts/video-segments.md`
+should say that segments do **not** encode in parallel here
+(`MAX_CONCURRENT_JOBS=1`) — the Node side's code comment assumes they do, and
+that assumption is most of why JET-202 measured slower than the single call it
+replaced. Noted on JET-202; wants its own ticket since JET-202 does not
+authorise a contract edit on this side.
+
+Next: nothing until JET-206/207 are verified and closed. 6.4's cut plan is the
+Node repo's work and now has both of its inputs.
 
 ### 2026-10-27T13:57:49+05:30
 
