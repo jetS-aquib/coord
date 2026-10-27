@@ -56,3 +56,8 @@ Picking a track and continuing shows tempo and the song's sections before the br
 ## Thread
 2026-10-27T16:46:11+05:30 aquib N: created ticket, status: - -> open
 2026-10-27T16:48:28+05:30 aquib N: status: open -> approved
+2026-10-27T16:51:50+05:30 aquib N: Half of this is built, half is blocked on JET-214 (just filed, needs approval).
+
+Blocked: the screen. GET /api/v1/music-videos/:id/song-read takes a project id, and on mobile there is no project between upload and the brief - saveProject() posts the storyboard with the project, so the record is not created until the working screen, after the planner runs. The alternative is creating a draft project at every upload, which puts a row in the Library for every abandoned file. JET-214 asks for an audioUrl-scoped variant instead, the way transcript/warm is scoped; songReadV1(audioUrl, userId) is already exported on your side, so it is a route and nothing else.
+
+Built: the third clause of DONE WHEN. clips[].sectionLabel is read and the shot strip marks where a section begins - the word sits above the first tile of each section, not on every tile, because you are right that the boundary is measured and the label is a guess. Every tile's accessibility label carries its section. startSeconds and musicalSeconds are on the wire and not used yet; 'Chorus - 5.2s' as a shot's title is exactly the place a person would argue with the label, so it is waiting for the screen that gives the labels context.
