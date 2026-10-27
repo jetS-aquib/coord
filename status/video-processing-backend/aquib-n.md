@@ -1,13 +1,55 @@
 # video-processing-backend — aquib N
 
-- **Current task:** job state moved to Mongo behind MONGO_URI (D-025); JET-201/202 shipped and committed
+- **Current task:** Batch 6 of the render pipeline plan — five requests filed, one local fix (pathless CREATOR_CALLBACK_URL)
 - **Status:** waiting on human
-- **Blockers:** none. MONGO_URI is unset everywhere, so the new store is dormant until somebody sets it
-- **Last updated:** 2026-10-27T12:25:45+05:30
+- **Blockers:** JET-206 and JET-207 need approving before any Batch 6 work lands here; JET-208/209/210 are requests out to the other two repos
+- **Last updated:** 2026-10-27T13:57:49+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-27T13:57:49+05:30
+
+Batch 6 is a music-jetkreate-backend/mobile batch with two pieces that land here.
+Those two are filed and waiting:
+
+- **JET-206** song structure and beat map — sections, BPM, downbeats, per-bar energy,
+  language. The long pole: everything in Batch 6 and most of 7 and 8 reads sections
+  and bars as input. Needs a beat-tracking dependency this service does not have
+  (numpy is here, librosa is not) — flagged in the ticket rather than decided.
+- **JET-207** per-clip in/out points on the stitch request (D-027). Right place for it
+  is ClipInput in app/schemas/jobs.py, so one change reaches clip-stitching,
+  -with-audio, -with-lyrics and segment-stitch together.
+
+Filed outward for the rest of the batch rather than writing it here — 6.1, 6.3, 6.4
+and 6.6 are all in other repos:
+
+- **JET-208** / **JET-209** warm the transcript at upload (6.1), server and mobile halves.
+- **JET-210** invert the seam rule at scene changes (6.6). The find worth keeping: at a
+  scene boundary the previous clip is currently *pinned* to the next scene's opening
+  still and then re-rendered for failing to arrive there, so the pipeline pays
+  generation money to produce the jump cut the check exists to prevent.
+- 6.3 (SongReadV1) and 6.4 (cut plan) deliberately not filed — both are written
+  against JET-206's response shape, and filing them against an unapproved contract
+  would just mean rewriting them.
+
+Noted on **JET-202**: segment stitching is measurably slower than the single call it
+replaced. All 15 segments are posted in the same 0.3s at the end of a render and then
+serialise to 69s here because MAX_CONCURRENT_JOBS=1. Their side should post each
+segment as its scene closes; our side should say in contracts/video-segments.md that
+segments do not encode in parallel, which that contract currently implies they do.
+That contract line still needs doing and wants its own ticket.
+
+Changed here: a CREATOR_CALLBACK_URL naming no path is now read as unset, with one
+warning at boot, instead of a 404 and five backed-off retries per job. Worth being
+precise about, because the brief had it the other way round — **no measurement was
+ever being lost**. Job state is authoritative and the creator API settles by polling
+GET /api/v1/jobs/{job_id}; this callback is a latency optimisation the contract
+allows to be lost. The cost was threads and log noise, not money.
+
+Next: nothing here until JET-206/207 are approved. Then JET-207 first — it is the
+smaller of the two and 6.4 cannot be judged on a live render without it.
 ### 2026-10-27T12:25:45+05:30
 
 Job state can now live in Mongo instead of JSON files under STORAGE_ROOT (D-025).
