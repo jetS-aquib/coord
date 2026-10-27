@@ -18,7 +18,7 @@
 | D-014 | No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend | 2026-10-23 | active | music-jetkreate-backend video-processing-backend | JET-197 |
 | D-015 | A render missing any shot is blocked, not stitched; prompts are checked before any still is drawn | 2026-10-23 | active | music-jetkreate-backend music-jetkreate-mobile | JET-198 |
 | D-016 | A clip is one shot: prompts carry the environment, anchors share one plate, and identity survives | 2026-10-23 | active | music-jetkreate-backend | JET-198 |
-| D-017 | Portrait output is opt-in per deployment, not the default | 2026-10-26 | active | video-processing-backend music-jetkreate-mobile music-jetkreate-backend creater-ai-backend | JET-196 |
+| D-017 | Portrait output is opt-in per deployment, not the default | 2026-10-26 | superseded by D-026 | video-processing-backend music-jetkreate-mobile music-jetkreate-backend creater-ai-backend | JET-196 |
 | D-018 | Seam threshold re-based to 9.0 and re-renders capped at a fifth of the song | 2026-10-26 | active | music-jetkreate-backend video-processing-backend | JET-200 |
 | D-019 | The anchor plate is a drawn six-panel reference sheet, on by default | 2026-10-26 | active | music-jetkreate-backend | JET-203 |
 | D-020 | Lyric transcription is cached on the audio's bytes, not a transcript id | 2026-10-26 | superseded by D-021 | video-processing-backend music-jetkreate-backend | JET-201 |
@@ -27,3 +27,5 @@
 | D-023 | Anchors stay on the lite image model; the tier is a known ceiling on continuity | 2026-10-26 | active | music-jetkreate-backend | JET-203 |
 | D-024 | Seams are measured as each clip lands, and the budget is spent first-come | 2026-10-26 | active | music-jetkreate-backend | JET-200 JET-202 |
 | D-025 | video-processing-backend keeps job state in the platform's Mongo, connecting to it directly | 2026-10-27 | active | video-processing-backend music-jetkreate-backend |  |
+| D-026 | The output frame is chosen per render by the caller, not by a deployment flag | 2026-10-27 | active | video-processing-backend music-jetkreate-mobile music-jetkreate-backend creater-ai-backend | JET-196 |
+| D-027 | Clips are generated at the model's length and trimmed to the music's length | 2026-10-27 | active | music-jetkreate-backend video-processing-backend |  |

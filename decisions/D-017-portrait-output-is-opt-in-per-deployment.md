@@ -2,8 +2,8 @@
 id: D-017
 title: Portrait output is opt-in per deployment, not the default
 date: 2026-10-26
-status: active
-superseded_by: 
+status: superseded
+superseded_by: D-026
 repos: video-processing-backend, music-jetkreate-mobile, music-jetkreate-backend, creater-ai-backend
 tickets: JET-196
 ---
