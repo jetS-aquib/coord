@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: done
 created: 2026-10-27T13:44:41+05:30
-updated: 2026-10-27T16:21:11+05:30
-decisions: 
+updated: 2026-10-27T16:46:30+05:30
+decisions: D-031
 closed: 2026-10-27
 ---
 
@@ -101,3 +101,4 @@ One ceiling, marked in the code: a trimmed clip is encoded once here and again b
 
 Both contracts updated. Not committed — the dev commits here.
 2026-10-27T16:21:11+05:30 aquib N: status: review -> done
+2026-10-27T16:46:30+05:30 aquib N: linked decision D-031 (Scenes and clip lengths derive from the song's structure, not from the model's maximum duration)

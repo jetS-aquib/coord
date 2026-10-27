@@ -44,6 +44,12 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   only way out of a refusal, since the provider refuses the same words again.
 - `POST /api/v1/music-videos/render/:jobId/stitch` — `202`; assembles a `blocked`
   render as it is, missing shots and all. Deliberate opt-in; `409` on any other status.
+- `GET /api/v1/music-videos/:id/song-read` — what the song is doing: `bpm`,
+  `beatsPerBar`, `downbeats[]`, `energy[]` (one per bar, 0-1) and `sections[]` with
+  their timed lines. The same read the planner cuts to, so a screen showing it and a
+  render using it cannot disagree. `404` for an instrumental or when the read is
+  unavailable — there is nothing to draw, and the render falls back to duration
+  packing. JET-206.
 - `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
   `{ audioUrl }`. Not project-scoped, because the point is that it is called at
   **upload**, before a project exists. Fire and forget: nothing depends on it, nothing
@@ -90,6 +96,7 @@ parser.
   "clips": [{ "index": 0, "sceneIndex": 0, "status": "done", "state": "finalized",
               "durationSeconds": 8, "videoUrl": "https://…",
               "openingFrameUrl": "https://…",   // the still this clip opens on
+              "sectionLabel": "chorus", "startSeconds": 41.74, "musicalSeconds": 5.217,
               "seamScore": 5.4, "seamScores": [8.1, 5.4], "attempts": 2,
               "error": "" }],
   "warnings": [{ "sceneIndex": 3, "reason": "…", "rewritten": "…" }],
@@ -118,6 +125,19 @@ the wire (JET-205):
 
 Both are `""` until drawn. A still is what the shot is **aiming at**, not what
 rendered — replace it with the clip's own frame once `videoUrl` lands.
+
+### Cuts come from the song now
+
+A render plans its clips from the song's own structure when one can be read: a scene
+is a section, a clip is a whole number of bars chosen by that bar's energy, and the
+opening shot of the loudest section holds a bar longer. `durationSeconds` is what the
+model was asked to generate; `musicalSeconds` is how much of it the music wants, and
+the difference is trimmed at assembly (D-031, D-027). `sectionLabel` is a guess and
+`startSeconds` is not — show the boundaries, be careful with the names.
+
+Both are `null`, and `sectionLabel` `""`, on a render cut the old way: an instrumental,
+a song whose read was unavailable, or a plan made before this existed. That fallback
+is deliberate — the musical cutting can fail without the render failing.
 
 `seamScore` is a continuity measurement and only exists where continuity is wanted.
 A clip whose next clip starts a new **scene** is not pinned to that scene's opening

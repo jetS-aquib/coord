@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: done
 created: 2026-10-27T13:44:14+05:30
-updated: 2026-10-27T16:21:05+05:30
-decisions: D-028
+updated: 2026-10-27T16:46:30+05:30
+decisions: D-028, D-031
 closed: 2026-10-27
 ---
 
@@ -119,3 +119,4 @@ CEILING, named in the module header: one tempo for the whole song. No tempo-drif
 
 Not committed — the dev commits here.
 2026-10-27T16:21:05+05:30 aquib N: status: review -> done
+2026-10-27T16:46:30+05:30 aquib N: linked decision D-031 (Scenes and clip lengths derive from the song's structure, not from the model's maximum duration)
