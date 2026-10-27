@@ -37,6 +37,7 @@ listed here is a 422, never ignored.
   "segments": 43,
   "words": 318,
   "duration_seconds": 211.4,
+  "text": "pehla line\ndoosra line\n…",   // the lyrics, a line per segment
   "cached": false            // true when another call had already done it
 }
 ```
@@ -44,9 +45,28 @@ listed here is a 422, never ignored.
 `language` must be the same value you will send on the stitch call. A
 different language is a different transcript and will be transcribed again.
 
-The transcript itself stays here. You do not render captions — this service
-does, on the stitch call that follows — so sending back every word timing
-would be a megabyte nobody reads.
+## You get the words. You do not get the word timings.
+
+`text` is the lyrics, one line per transcribed segment, newline separated
+(JET-211). It needs no request field — it is always there, because a flag
+would be a field every caller sets to the same value forever to guard against
+a few kilobytes. A 475-word song is about 3 KB.
+
+It is the **corrected** text, the same string the captions are burnt from, so
+what you write a storyboard against and what the viewer reads are the same
+words. Empty for an instrumental, or when transcription found nothing — that
+is normal and not an error.
+
+The **word timings** still stay here, and for the original reason: you do not
+render captions, this service does on the stitch call that follows, so every
+word's start and end would be a megabyte nobody reads. If you need timed
+lines for cut planning, `POST /api/v1/song-read` already returns them — its
+sections carry `lines` with `start`, `end` and `text`, snapped to the bar grid
+(JET-206, contracts/video-song-read.md). Ask there rather than here.
+
+A cached call returns `text` exactly as a fresh one does. The summary is
+computed from the transcript and the cache holds the transcript, so there is
+nothing for a hit to be missing.
 
 ## You pass nothing extra to the stitch
 

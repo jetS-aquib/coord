@@ -1,13 +1,60 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-206 and JET-207 built and handed back for review
+- **Current task:** JET-211 built and handed back; JET-206/207 also in review
 - **Status:** waiting on human
 - **Blockers:** none. JET-206/207 are waiting on the requester to verify and close; JET-208/209/210 are out to the Node and mobile repos
-- **Last updated:** 2026-10-27T15:23:55+05:30
+- **Last updated:** 2026-10-27T16:01:12+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-27T16:01:12+05:30
+
+**JET-211 — the transcript text comes back.** `text` on the
+`/api/v1/lyric-transcription` response: the lyrics, one line per segment,
+newline separated. Not opt-in — the requester offered a request flag and we
+declined it, because it would be a field every caller sets to the same value
+forever to guard against three kilobytes.
+
+The corrected text, not `raw_text`, so the storyboard is written against the
+same string the captions are burnt from. Word timings still stay here; that
+half of the original rule was right and is unchanged.
+
+Worth knowing: the ticket asked for per-line times as a nice-to-have. They
+already exist — `/api/v1/song-read` returns `lines` with `start`/`end`/`text`
+inside each section, already snapped to the bar grid (JET-206). Better than
+timed lines from the transcription endpoint would have been, and it is now
+written into `contracts/video-transcription.md` pointing at the other contract
+by name, so the split is explicit: words here, timed lines there, word timings
+nowhere.
+
+**Unrelated, and it cost a real debugging session:** transcription was failing
+in the local venv with
+`TypeError: open() got an unexpected keyword argument 'metadata_errors'`,
+*after* Demucs and the large-v3 load had already run — about two minutes before
+it told you anything. `faster-whisper 1.2.1` calls
+`av.open(..., metadata_errors="ignore")`, a keyword **PyAV removed in 19**,
+while declaring only `av>=11`. A fresh resolve installs av 19 and every
+transcription dies. The image had escaped it purely because it was built while
+18 was still current — a rebuild would have broken it too.
+
+Pinned `av>=14,<19` in requirements.txt with the reason in a comment. Not an
+added dependency: it constrains one that already arrives transitively, and the
+image already satisfies it, so nothing changes on a rebuild except that it
+stays working.
+
+Also checked and NOT a bug, since the logs make it look like one: the startup
+banner says `Configured language: hi` while extraction says `auto`.
+`LyricsOptions.language` defaults to `"auto"`, so both the warm call and the
+stitch send `auto` and share a cache key. The `.env` value only applies when a
+caller passes nothing, which the API never does.
+
+428 tests pass. Nothing committed.
+
+Next: JET-206, JET-207 and JET-211 are all in review, waiting on the requester
+to verify and close. Still unticketed: `contracts/video-segments.md` should say
+segments do not encode in parallel here (`MAX_CONCURRENT_JOBS=1`).
 
 ### 2026-10-27T15:23:55+05:30
 
