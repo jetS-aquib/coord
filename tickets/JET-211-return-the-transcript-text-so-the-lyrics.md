@@ -4,10 +4,11 @@ title: Return the transcript text, so the lyrics we already paid to make can be 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T15:50:18+05:30
-updated: 2026-10-27T16:06:58+05:30
+updated: 2026-10-27T16:22:11+05:30
 decisions: D-030
+closed: 2026-10-27
 ---
 
 ## Request
@@ -103,3 +104,4 @@ contracts/video-transcription.md updated: the old paragraph said the transcript 
 
 Not committed — the dev commits here.
 2026-10-27T16:06:58+05:30 aquib N: linked decision D-030 (The lyrics are stored here, keyed on the audio URL, and fill MusicVideo.lyrics when a project exists)
+2026-10-27T16:22:11+05:30 aquib N: status: review -> done

@@ -4,10 +4,11 @@ title: The anchor stills and the plate sprite are drawn but never sent, so the s
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T12:03:04+05:30
-updated: 2026-10-27T12:08:11+05:30
+updated: 2026-10-27T16:21:36+05:30
 decisions: 
+closed: 2026-10-27
 ---
 
 ## Request
@@ -52,3 +53,4 @@ The state payload carries, for every clip, the URL of the still it opens on, and
 2026-10-27T12:05:03+05:30 aquib N: status: open -> approved
 2026-10-27T12:08:11+05:30 aquib N: status: approved -> in_progress — picking it up
 2026-10-27T12:08:11+05:30 aquib N: status: in_progress -> review — summarizePlanV1 now carries plateUrl and clips[].openingFrameUrl; contract updated. All four assumptions in the request hold: anchor imageUrls come from the same media host rule as videoUrl, the plate is one image for the whole song, and a still is what the shot aims at until the clip lands. Nothing in the render loop changed — both values were already in RenderPlanV1, just never on the wire.
+2026-10-27T16:21:36+05:30 aquib N: status: review -> done

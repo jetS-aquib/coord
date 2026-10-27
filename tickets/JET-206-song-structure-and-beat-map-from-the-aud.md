@@ -4,10 +4,11 @@ title: Song structure and beat map from the audio and the transcript
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T13:44:14+05:30
-updated: 2026-10-27T15:23:26+05:30
+updated: 2026-10-27T16:21:05+05:30
 decisions: D-028
+closed: 2026-10-27
 ---
 
 ## Request
@@ -117,3 +118,4 @@ One finding worth your time, because it would have bitten whoever did this next.
 CEILING, named in the module header: one tempo for the whole song. No tempo-drift detection, no time-signature detection. A track that changes tempo halfway gets a grid right for one half. The upgrade is to add librosa and delete the middle third of the file, and the seams are already in the right places for that.
 
 Not committed — the dev commits here.
+2026-10-27T16:21:05+05:30 aquib N: status: review -> done

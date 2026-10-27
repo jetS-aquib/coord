@@ -4,10 +4,11 @@ title: No way to find an in-flight v1 render by project id, so a client that los
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-23T16:43:42+05:30
-updated: 2026-10-23T18:34:25+05:30
+updated: 2026-10-27T16:23:22+05:30
 decisions: D-011, D-015, D-016
+closed: 2026-10-27
 ---
 
 ## Request
@@ -80,3 +81,4 @@ Not verified live, and I would rather say so than let it read as tested: no v1 r
 2026-10-23T17:15:12+05:30 aquib N: linked decision D-011 (A render missing any shot is blocked, not stitched; prompts are checked before any still is drawn)
 2026-10-23T17:16:41+05:30 aquib N: linked decision D-015 (A render missing any shot is blocked, not stitched; prompts are checked before any still is drawn)
 2026-10-23T18:34:25+05:30 aquib N: linked decision D-016 (A clip is one shot: prompts carry the environment, anchors share one plate, and identity survives)
+2026-10-27T16:23:22+05:30 aquib N: status: review -> done

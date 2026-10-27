@@ -4,10 +4,11 @@ title: Per-clip in and out points on the stitch request
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T13:44:41+05:30
-updated: 2026-10-27T15:08:50+05:30
+updated: 2026-10-27T16:21:11+05:30
 decisions: 
+closed: 2026-10-27
 ---
 
 ## Request
@@ -99,3 +100,4 @@ YOUR OPEN QUESTION about the segment boundary arithmetic: trimming does not chan
 One ceiling, marked in the code: a trimmed clip is encoded once here and again by the xfade pass. Folding the trim into that pass input arguments would make it free but means feeding trimmed durations into the xfade offset arithmetic by hand, which desynchs the song against its master audio if it is wrong. Worth doing when it shows up in a measurement; untrimmed clips pay nothing today.
 
 Both contracts updated. Not committed — the dev commits here.
+2026-10-27T16:21:11+05:30 aquib N: status: review -> done

@@ -4,9 +4,9 @@ title: The 4.0 seam threshold is re-rendering nearly every clip, still, and doub
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-26T13:03:48+05:30
-updated: 2026-10-26T18:36:48+05:30
+updated: 2026-10-27T16:25:21+05:30
 decisions: D-018, D-024
 ---
 
@@ -71,3 +71,5 @@ SEAM_THRESHOLD_V1 = 9.0 — above every render's body (max 8.93), below every re
 
 What I could NOT do from the data, and it is your test step 3: watch the boundaries of clips scoring 4.6-8.9 and confirm none of them is a visible jump cut. If any of them is, 9.0 is too high and the next move is by eye, not by query.
 2026-10-26T18:36:48+05:30 aquib N: linked decision D-024 (Seams are measured as each clip lands, and the budget is spent first-come)
+2026-10-27T16:25:21+05:30 aquib N: status: approved -> in_progress
+2026-10-27T16:25:21+05:30 aquib N: status: in_progress -> review — SEAM_THRESHOLD_V1 is 9.0, re-based on the 132 scored clips across five renders — body 4.6-8.9, tail 9.8-67.9, so 9.0 sits in the gap that is actually there rather than below the whole distribution. rerenderBudgetV1 caps re-renders at a fifth of the song and warns once when spent. The reasoning and the numbers are in seamCheckV1.ts's header so nobody re-derives them. D-018, shipped in e7494ab.

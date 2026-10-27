@@ -4,10 +4,11 @@ title: Stitched output is hardcoded 1920x1080, so portrait clips come back pilla
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-22T13:35:21+05:30
-updated: 2026-10-27T13:34:36+05:30
+updated: 2026-10-27T16:22:39+05:30
 decisions: D-005, D-017, D-026
+closed: 2026-10-27
 ---
 
 ## Request
@@ -88,3 +89,4 @@ Closing is yours — coord ok 196 once you have seen a portrait master play.
 2026-10-26T12:01:27+05:30 aquib N: linked decision D-017 (Portrait output is opt-in per deployment, not the default)
 2026-10-26T12:02:02+05:30 aquib N: Correction to the record: D-005's successor is D-017 (portrait output is opt-in per deployment), NOT D-011. I ran 'coord supersede D-005 D-011' guessing the next id instead of reading the one coord returned, and D-011 is an unrelated JET-198 decision. The CLI will not re-point an already-superseded decision and decisions/ is not hand-editable, so D-005's frontmatter still reads superseded_by: D-011 and needs fixing by someone who can edit the board directly. Read D-005 together with D-017.
 2026-10-27T13:34:36+05:30 aquib N: linked decision D-026 (The output frame is chosen per render by the caller, not by a deployment flag)
+2026-10-27T16:22:39+05:30 aquib N: status: review -> done

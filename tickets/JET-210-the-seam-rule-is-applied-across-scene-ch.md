@@ -4,10 +4,11 @@ title: The seam rule is applied across scene changes too, which is where it enfo
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T13:56:00+05:30
-updated: 2026-10-27T15:30:15+05:30
+updated: 2026-10-27T16:22:07+05:30
 decisions: D-029
+closed: 2026-10-27
 ---
 
 ## Request
@@ -66,3 +67,4 @@ A render whose storyboard has several scenes shows no re-render triggered at a s
 2026-10-27T15:29:39+05:30 aquib N: linked decision D-029 (Scene changes are cuts: no end pin, no seam score, measure the break and do not enforce it)
 2026-10-27T15:30:15+05:30 aquib N: status: approved -> in_progress
 2026-10-27T15:30:15+05:30 aquib N: status: in_progress -> review — Took all four points as filed; the predicate lives in RenderPlanV1.ts beside deriveAnchorsV1, which is what creates the mismatch. One thing you did not list that needed it too: measurableV1 would have called a clip measurable when its opening anchor failed and its closing one is a scene change, scored nothing, and recorded a perfect 0 — it now requires an end that is actually a continuity check. Break size stored as clip.breakScore, not acted on and not on the wire. Recorded as D-029.
+2026-10-27T16:22:07+05:30 aquib N: status: review -> done

@@ -4,10 +4,11 @@ title: Allow non-production clients past the reCAPTCHA gate on login and registe
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-20T20:52:41+05:30
-updated: 2026-10-21T11:45:50+05:30
+updated: 2026-10-27T16:22:26+05:30
 decisions: 
+closed: 2026-10-27
 ---
 
 ## Request
@@ -61,3 +62,4 @@ Verified on this machine: music-jetkreate-backend/.env has NODE_ENV=development,
 Production mobile auth is still unsolved and the commit says so — it needs Play Integrity or reCAPTCHA Enterprise, which is a separate decision, not this ticket.
 
 Closing is yours: coord done JET-193 once you have seen mobile sign in.
+2026-10-27T16:22:26+05:30 aquib N: status: review -> done

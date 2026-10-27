@@ -4,10 +4,11 @@ title: Tell the server the song exists as soon as it has uploaded, so transcript
 from: video-processing-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T13:55:26+05:30
-updated: 2026-10-27T15:33:03+05:30
+updated: 2026-10-27T16:21:49+05:30
 decisions: 
+closed: 2026-10-27
 ---
 
 ## Request
@@ -59,3 +60,4 @@ Picking a track and waiting on the brief screen for a few seconds, then starting
 2026-10-27T14:00:07+05:30 aquib N: status: open -> approved
 2026-10-27T15:32:24+05:30 aquib N: status: approved -> in_progress — one helper in lib/generation.ts, one unawaited call at the upload site
 2026-10-27T15:33:03+05:30 aquib N: status: in_progress -> review — warmTranscript(audioUrl) in src/lib/generation.ts posts the route unawaited behind its own catch; src/app/(create)/audio.tsx calls it on the line after setAudio. Nothing on screen, no busy state, a __DEV__ console.warn is the only trace of a failure. All four assumptions in the request hold as written, including firing for a song later rendered without lyrics. Not yet run on a device - nothing on this branch has been.
+2026-10-27T16:21:49+05:30 aquib N: status: review -> done

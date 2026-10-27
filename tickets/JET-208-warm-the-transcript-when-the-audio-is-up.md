@@ -4,10 +4,11 @@ title: Warm the transcript when the audio is uploaded, not when the render start
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-27T13:54:51+05:30
-updated: 2026-10-27T16:06:58+05:30
+updated: 2026-10-27T16:21:45+05:30
 decisions: D-030
+closed: 2026-10-27
 ---
 
 ## Request
@@ -65,3 +66,4 @@ Uploading a track and then starting a render on it logs the transcript as alread
 2026-10-27T15:30:15+05:30 aquib N: status: approved -> in_progress
 2026-10-27T15:30:15+05:30 aquib N: status: in_progress -> review — POST /api/v1/music-videos/transcript/warm is in and documented in contracts/api-music-videos.md — that path is what JET-209 needs on mobile. prefetchTranscriptV1 keeps its jobId key untouched, so stitchPlanV1's await is unchanged; the upload-keyed entry deletes itself on settle, since nothing awaits it. Warms unconditionally with the same 'auto' language as the stitch, so the cache hits.
 2026-10-27T16:06:58+05:30 aquib N: linked decision D-030 (The lyrics are stored here, keyed on the audio URL, and fill MusicVideo.lyrics when a project exists)
+2026-10-27T16:21:45+05:30 aquib N: status: review -> done

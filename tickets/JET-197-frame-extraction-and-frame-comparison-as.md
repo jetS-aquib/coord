@@ -4,10 +4,11 @@ title: Frame extraction and frame comparison as API, so the Node backend runs no
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-23T14:51:28+05:30
-updated: 2026-10-23T17:16:41+05:30
+updated: 2026-10-27T16:22:55+05:30
 decisions: D-009, D-010, D-014
+closed: 2026-10-27
 ---
 
 ## Request
@@ -128,3 +129,4 @@ One thing you may want to know, not a request: the anchor stills we compare agai
 
 Your test steps look right. Not closing this — it is the requester's call and the live render has not happened.
 2026-10-23T17:16:41+05:30 aquib N: linked decision D-014 (No ffmpeg in music-jetkreate-backend; frame work moves to video-processing-backend)
+2026-10-27T16:22:55+05:30 aquib N: status: review -> done
