@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-26T13:48:39+05:30",
+  "updated": "2026-10-27T15:22:29+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -136,7 +136,8 @@
         "/api/v1/jobs",
         "/api/v1/lyric-transcription",
         "/api/v1/segment-concat",
-        "/api/v1/segment-stitch"
+        "/api/v1/segment-stitch",
+        "/api/v1/song-read"
       ],
       "depends_on": [],
       "onboarded": "2026-10-19",

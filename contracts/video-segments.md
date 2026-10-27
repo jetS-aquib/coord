@@ -37,7 +37,17 @@ with a job id, settled by polling `/api/v1/jobs/{job_id}`. Both require
 { "job_id": "…", "workflow": "segment_stitch", "status": "queued", … }
 ```
 
-`order` is within the segment and starts at 1, as everywhere else here.
+`order` is within the segment and starts at 1, as everywhere else here. A clip
+here may also carry `inSeconds` / `outSeconds`, exactly as on the single-call
+endpoints and meaning exactly the same thing — it is one `clips` shape, so a
+segmented render cuts on the beat the same way a single-call one does. See
+video-stitching.md for what they are and how they fail (JET-207, D-027).
+
+One thing that is specific to segments: a trim is applied before the transition,
+so the crossfade at a segment's internal boundaries overlaps surviving frames.
+The **join** between two segments is a hard cut and overlaps nothing, so the
+per-boundary overlap noted further down is unchanged by trimming — the final mux
+still trims to the master audio.
 `segmentIndex` is your own numbering: it labels the job so a log, or a
 failed segment, can be told from its neighbours. This service never reorders
 by it — the finalise call's list is the order.

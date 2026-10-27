@@ -4,9 +4,9 @@ title: Per-clip in and out points on the stitch request
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-27T13:44:41+05:30
-updated: 2026-10-27T13:47:36+05:30
+updated: 2026-10-27T15:08:50+05:30
 decisions: 
 ---
 
@@ -53,8 +53,49 @@ A stitch request with in/out on each clip produces a master whose total length i
 
 ## Test steps
 
-—
+Everything below runs against this service; nothing needs the Node side.
+
+1. **The suite.** From video-processing-backend:
+   `docker run --rm -v "$PWD":/src -w /src video-processing-backend-video-api sh -c "pip install -q pytest pymongo; python -m pytest tests/test_clip_trim.py -q"`
+   15 tests. They build their own clip with lavfi, so there is no fixture to fetch.
+
+2. **Nothing changed for an untrimmed call.** POST your usual
+   `/api/v1/clip-stitching-with-lyrics` body — no inSeconds or outSeconds anywhere —
+   and poll it out. Same output as before, and the job log shows no trim lines.
+
+3. **A trim takes effect.** Same body, but put `"outSeconds": 3.0` on two clips that
+   are longer than that. The finished master is about 6 seconds shorter than the
+   untrimmed one, and the job log has a line per trimmed clip reading
+   `trimmed 0001_clip.mp4 to [0.000, 3.000) of 8.000s`.
+
+4. **A cut lands where you asked.** Trim one clip to a length that is not a whole
+   second — `"outSeconds": 5.217` — and ffprobe the master. The clip occupies 5.217s
+   give or take a frame, not the nearest keyframe.
+
+5. **A bad trim is refused, not clamped.** Send `"inSeconds": 5, "outSeconds": 2` —
+   expect **422** on the request. Then send `"outSeconds": 9999` on a real clip —
+   expect **202**, then the job settles **failed** with a message naming that clip's
+   real duration. The second one is a failed job rather than a 422 on purpose; the
+   reason is on the review note and in contracts/video-stitching.md.
+
+6. **Segments got it too.** Same trims through `/api/v1/segment-stitch` and
+   `/api/v1/segment-concat`. The joined master is the same length as the single-call
+   one, and no frame outside a trim appears at a segment join.
 
 ## Thread
 2026-10-27T13:44:41+05:30 aquib N: created ticket, status: - -> open
 2026-10-27T13:47:36+05:30 aquib N: status: open -> approved
+2026-10-27T15:08:03+05:30 aquib N: status: approved -> in_progress
+2026-10-27T15:08:50+05:30 aquib N: status: in_progress -> review — Shipped. Trim is applied right after download, before analysis: the xfade offsets come from the durations analysis finds on disk, so transitions, captions, the master-audio mux and segment joins all work on the surviving frames with no change to the transition graph. ClipInput gained inSeconds/outSeconds (snake_case accepted too), so all three single-call endpoints and segment-stitch got it from one change. A clip with no trim is not decoded or re-encoded at all.
+
+TWO DIVERGENCES FROM WHAT YOU ASKED, both worth knowing before you build against it.
+
+1. 'An out beyond the clip duration is refused with 422' is only half possible. A self-inconsistent trim — out <= in, either one negative — is a 422 on the request, as you wanted. An out past the END of the clip cannot be: these endpoints answer with a job id before any clip is fetched, so the duration is not known when the request is accepted. That case fails the JOB instead, with the clip real duration in the error so your planner can recompute. Request-time refusal would mean probing before the 202, which is a different ticket if you want it.
+
+2. There is a 0.05s tolerance on the out point, a little over one frame at 24fps, because you compute the out point from a bar length in floating point. Past that it fails rather than clamps — your reasoning about a wrong number moving the cut is right and it is written into the contract so nobody softens it later.
+
+YOUR OPEN QUESTION about the segment boundary arithmetic: trimming does not change it. A trim is applied before the transition, so the crossfade at a segment INTERNAL boundaries overlaps surviving frames. The join BETWEEN segments is a hard cut and overlaps nothing, so the per-boundary overlap is what it always was and the final mux still trims to the master audio. Written into contracts/video-segments.md rather than left as an answer on a ticket.
+
+One ceiling, marked in the code: a trimmed clip is encoded once here and again by the xfade pass. Folding the trim into that pass input arguments would make it free but means feeding trimmed durations into the xfade offset arithmetic by hand, which desynchs the song against its master audio if it is wrong. Worth doing when it shows up in a measurement; untrimmed clips pay nothing today.
+
+Both contracts updated. Not committed — the dev commits here.

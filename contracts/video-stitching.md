@@ -18,6 +18,51 @@ All three require the `X-Service-Assertion` header (see Notes).
 - `POST /api/v1/clip-stitching-with-audio` — ordered clip URLs + one `audio_url` → transitioned MP4 with master audio.
 - `POST /api/v1/clip-stitching-with-lyrics` — clip URLs + `audio_url` + optional lyrics/caption settings (`caption_style`, `caption_position`, …) → transitioned MP4 with burnt-in captions.
 
+## Per-clip in and out points
+
+Each entry of `clips` is `{ "url": ..., "order": ... }` and may also carry
+`inSeconds` and `outSeconds` (`in_seconds` / `out_seconds` are accepted too).
+They name the part of the clip that is used. JET-207, D-027.
+
+```jsonc
+{ "clips": [ { "url": "https://…/clip7.mp4", "order": 1, "outSeconds": 5.217 },
+             { "url": "https://…/clip8.mp4", "order": 2, "inSeconds": 0.4 } ] }
+```
+
+Why they exist: a cut in a music video lands on the downbeat, and pop is built
+in 4- and 8-bar phrases. At 92 BPM a two-bar hold is 5.217 seconds and no video
+model generates that — they offer a small set of fixed lengths. So generate at
+whatever length the model supports and name the musical length here.
+
+- Seconds from **the clip's own start**, as floats. `outSeconds` is exclusive.
+- Both optional and independent: `inSeconds` alone trims the head, `outSeconds`
+  alone the tail.
+- **Absent means the whole clip, untouched.** A clip with no trim is not
+  decoded or re-encoded, so a request that names no trim produces exactly the
+  output it always has. This is additive; nothing that calls these endpoints
+  today is affected.
+- The trim is applied **before** analysis and before the transition, so an
+  xfade overlaps the frames that survive, captions sit against the trimmed
+  timeline, and a trimmed clip satisfies a seam check at its surviving frames
+  rather than the ones that were cut.
+
+Refused rather than clamped:
+
+| | |
+|---|---|
+| `outSeconds` ≤ `inSeconds`, or either negative | **422** on the request |
+| an in point at or past the end of the clip | the **job fails**, naming the clip's real duration |
+| an out point past the end by more than 0.05s | the **job fails**, naming the clip's real duration |
+
+The last two cannot be a 422: these endpoints answer with a job id before any
+clip is fetched, so the clip's duration is not known when the request is
+accepted. 0.05s is a little over one frame at 24fps, and exists because the
+caller computes its out point from a bar length in floating point.
+
+Clamping was rejected deliberately. A caller passing a bad number is placing a
+cut on a downbeat; quietly giving it a different length moves the cut, which
+is the off-beat video the whole feature exists to remove.
+
 ## Output frame
 
 There is no resolution, orientation or aspect field on any of these requests,
