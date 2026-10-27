@@ -1,13 +1,55 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-211 built and handed back; JET-206/207 also in review
+- **Current task:** JET-212 built and handed back
 - **Status:** waiting on human
-- **Blockers:** none. JET-206/207 are waiting on the requester to verify and close; JET-208/209/210 are out to the Node and mobile repos
-- **Last updated:** 2026-10-27T16:01:12+05:30
+- **Blockers:** none. JET-212 is with the requester; JET-199/200/201/203 are ours to close with `coord ok`
+- **Last updated:** 2026-10-27T16:52:38+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-27T16:52:38+05:30
+
+**JET-212 — a frame at a time, not just at an end.** `atSeconds` on
+`/api/v1/frame-extraction` and `/api/v1/frame-comparison`, replacing
+`position` when present. `position` went required → optional; that is the
+only change to the old shape, so every existing call returns the same bytes.
+
+This is the other half of JET-207. Once a clip is generated at the model's
+length and used at the music's length, `last` is a frame in the 2.8 seconds
+nobody watches — the seam check was scoring a cut frame against an anchor the
+next clip opens on, so a clip could be re-rendered for a mismatch no viewer
+would see while a real one at 5.217s went unmeasured.
+
+Both fields together is a 422, as the requester asked, rather than a
+precedence rule nobody remembers. A time past the end falls through the same
+`-sseof` cascade `last` uses, so a clip that came back a frame short costs a
+different measurement and never the render.
+
+Two properties worth keeping pinned, both tested rather than asserted in
+prose: `-ss` goes before `-i`, so the same time gives byte-identical bytes
+(without that a re-measurement after a re-render means nothing); and the
+score scale is untouched, so the 9.0 threshold and the 132-clip band behind
+it (D-018) still mean what they meant. The second was the requester's stated
+main worry and a moved scale would have cost another five renders to
+re-derive.
+
+Flagged on the ticket, not fixed here because it is theirs: their plan
+measures the tail at `musicalSeconds` minus a frame, which needs the clip's
+real fps — 41.7ms at 24fps against 33.3ms at 30. Subtract the wrong one on a
+clip whose last frame sits near the boundary and you measure the frame after
+the cut, which is the exact defect the ticket exists to remove. Offered to
+return fps on the extraction response if that is awkward to get there; it is
+one ffprobe field already read.
+
+440 tests pass. Nothing committed.
+
+Next: four tickets this repo FILED are back from review and are ours to close
+once verified — `coord ok 199`, `200`, `201`, `203`. JET-202 is still
+correctly `go`: segments are posted all at once at the end, so its win is
+unclaimed. Still unticketed: `contracts/video-segments.md` should say
+segments do not encode in parallel here (`MAX_CONCURRENT_JOBS=1`).
 
 ### 2026-10-27T16:01:12+05:30
 
