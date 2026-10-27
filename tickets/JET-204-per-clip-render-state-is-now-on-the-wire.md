@@ -4,9 +4,9 @@ title: Per-clip render state is now on the wire, so the reel can show which shot
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-26T18:37:29+05:30
-updated: 2026-10-26T18:40:30+05:30
+updated: 2026-10-27T16:26:12+05:30
 decisions: 
 ---
 
@@ -65,3 +65,5 @@ During a live render, each clip shows which of the seven states it is in, and a 
 2026-10-26T18:37:29+05:30 aquib N: created ticket, status: - -> open
 2026-10-26T18:40:30+05:30 aquib N: status: open -> approved
 2026-10-26T18:49:02+05:30 aquib N: Built on the mobile side. The strip on (create)/working/[id] now lists every shot, not only the finished ones, and reads clip.state straight off the wire - nothing re-derived. Three weights, not seven icons: failed and refused are loud and differ in both glyph and colour, generating/regenerating carry the accent and a slow pulse, queued/checking/finalized stay quiet. The strip follows the shots being filmed until someone scrolls it by hand. Two things to correct me on: (1) we POLL every 4s, we do not hold the SSE stream - it drops the moment the app backgrounds, which is exactly when a creator leaves a 20 minute render running - so a 'checking' window shorter than 4s will sometimes be missed, which we are fine with; (2) sceneIndex, attempts and seamScores are on the wire but unused, no debug view yet. Not yet seen on a device: nothing in this branch has been run end to end.
+2026-10-27T16:26:12+05:30 aquib N: status: approved -> in_progress — shipped in a149a3a
+2026-10-27T16:26:12+05:30 aquib N: status: in_progress -> review — Built and committed as a149a3a. The strip on (create)/working/[id] lists every shot now, not only the finished ones, and reads clip.state straight off the wire - nothing re-derived. failed and refused differ in both glyph and colour; generating and regenerating carry the accent and a slow pulse; queued, checking and finalized stay quiet. JET-205 then put the opening stills in the same tiles. Two things to know: we poll every 4s rather than holding the SSE stream, so a 'checking' window shorter than that can be missed; and sceneIndex, attempts and seamScores are on the wire but unused. Not yet run on a device.
