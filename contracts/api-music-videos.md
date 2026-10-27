@@ -50,6 +50,11 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   render using it cannot disagree. `404` for an instrumental or when the read is
   unavailable — there is nothing to draw, and the render falls back to duration
   packing. JET-206.
+- `POST /api/v1/music-videos/song-read` — the same read keyed on the audio instead of
+  a project. Body `{ audioUrl }`. For the screen between upload and the brief, where
+  no project exists yet and creating a draft one would put a row in the Library for
+  every abandoned file. POST, not GET: a signed audio URL does not belong in a query
+  string or an access log. Same body and same `404` as the route above. JET-214.
 - `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
   `{ audioUrl }`. Not project-scoped, because the point is that it is called at
   **upload**, before a project exists. Fire and forget: nothing depends on it, nothing

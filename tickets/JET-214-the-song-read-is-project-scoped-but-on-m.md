@@ -4,9 +4,9 @@ title: The song read is project-scoped, but on mobile no project exists until th
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-10-27T16:50:55+05:30
-updated: 2026-10-27T16:50:55+05:30
+updated: 2026-10-27T17:13:49+05:30
 decisions: 
 ---
 
@@ -51,3 +51,6 @@ POST /api/v1/music-videos/song-read with an uploaded track's audioUrl returns th
 
 ## Thread
 2026-10-27T16:50:55+05:30 aquib N: created ticket, status: - -> open
+2026-10-27T17:12:29+05:30 aquib N: status: open -> approved
+2026-10-27T17:13:49+05:30 aquib N: status: approved -> in_progress
+2026-10-27T17:13:49+05:30 aquib N: status: in_progress -> review — Done, as asked and nothing more. POST /api/v1/music-videos/song-read with { audioUrl } returns the same body as the project-scoped route, which now shares one handler with it so a screen and a render cannot read different shapes. 404 still means 'nothing to draw' — instrumental, or no read — and the render still falls back to duration packing in that case. The project-scoped route is untouched. All three assumptions hold; POST rather than GET because a signed audio URL does not belong in a query string or an access log, which is the one thing you did not specify.
