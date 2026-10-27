@@ -4,9 +4,9 @@ title: Show the song read before the brief, so the app has visibly listened
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-27T16:46:11+05:30
-updated: 2026-10-27T16:48:28+05:30
+updated: 2026-10-27T17:18:30+05:30
 decisions: 
 ---
 
@@ -51,7 +51,11 @@ Picking a track and continuing shows tempo and the song's sections before the br
 
 ## Test steps
 
-—
+1. Pick a track with lyrics. Under the track card, the parts of the song should appear as blocks: as wide as they last, as tall as they are loud, with the loudest one in the accent colour and `112 BPM · 3:28 · 7 parts` under it.
+2. Confirm the chorus blocks are visibly taller than the verses, and that narrow parts keep their shape but carry no word.
+3. Pick an instrumental. Nothing should appear, no error and no empty space, and Continue should still work.
+4. Replace the track with a different song. The old song's shape must not stay on screen while the new read is fetched.
+5. Start a render and check the shot strip names the section where each one begins.
 
 ## Thread
 2026-10-27T16:46:11+05:30 aquib N: created ticket, status: - -> open
@@ -61,3 +65,9 @@ Picking a track and continuing shows tempo and the song's sections before the br
 Blocked: the screen. GET /api/v1/music-videos/:id/song-read takes a project id, and on mobile there is no project between upload and the brief - saveProject() posts the storyboard with the project, so the record is not created until the working screen, after the planner runs. The alternative is creating a draft project at every upload, which puts a row in the Library for every abandoned file. JET-214 asks for an audioUrl-scoped variant instead, the way transcript/warm is scoped; songReadV1(audioUrl, userId) is already exported on your side, so it is a route and nothing else.
 
 Built: the third clause of DONE WHEN. clips[].sectionLabel is read and the shot strip marks where a section begins - the word sits above the first tile of each section, not on every tile, because you are right that the boundary is measured and the label is a guess. Every tile's accessibility label carries its section. startSeconds and musicalSeconds are on the wire and not used yet; 'Chorus - 5.2s' as a shot's title is exactly the place a person would argue with the label, so it is waiting for the screen that gives the labels context.
+2026-10-27T17:18:30+05:30 aquib N: status: approved -> in_progress — the read draws inline on the audio screen, not as a fourth step
+2026-10-27T17:18:30+05:30 aquib N: status: in_progress -> review — Built, with one deliberate departure from the plan: it is not a new route. GET-wise we use POST /api/v1/music-videos/song-read from JET-214, called on the audio screen once the upload lands, and the read draws under the track card rather than as a screen between audio and the brief. Reasons, in order of weight: the 404 case - a route that is sometimes not there makes the flow change shape between songs, where inline it simply renders nothing; the read is feedback about the thing already on screen, not a destination; and the committed Nav Read says three steps is already the modal push limit. Same tap count either way. The Nav Read in MOBILE-DESIGN.md records the call.
+
+What it draws: each part as a block, as wide as it lasts and as tall as it is loud, the loudest one in the accent colour, with '112 BPM, 3:28, 7 parts' under it. A chorus looks like a chorus without anyone being told that is what it is. Labels only where a block is wide enough to hold one - you were right that the boundary is measured and the word is a guess, so a narrow block keeps its shape and loses its word. The full list goes to a screen reader regardless. No spinner, no error state, nothing in flight.
+
+The strip half was already in from the earlier note: sectionLabel marks where a section begins. startSeconds and musicalSeconds are still on the wire and unused. Not run on a device.
