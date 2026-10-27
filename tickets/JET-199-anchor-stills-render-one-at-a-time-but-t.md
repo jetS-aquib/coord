@@ -4,10 +4,11 @@ title: Anchor stills render one at a time, but the star topology no longer requi
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-26T13:03:20+05:30
-updated: 2026-10-27T16:25:21+05:30
+updated: 2026-10-27T16:29:18+05:30
 decisions: 
+closed: 2026-10-27
 ---
 
 ## Request
@@ -64,3 +65,4 @@ One thing your plan did not cover and the code now does: if the first still FAIL
 Note that the plate itself is no longer the first anchor when JET-203 is on (default): it is the drawn sprite. Your assumption 2 — 'each anchor sees exactly the same plate it sees today' — holds for JET-199 alone, and is deliberately broken by JET-203. Render with RENDER_PLATE_SPRITE=0 to time this one in isolation.
 2026-10-27T16:25:20+05:30 aquib N: status: approved -> in_progress
 2026-10-27T16:25:21+05:30 aquib N: status: in_progress -> review — Anchors render through runCappedV1 at IMAGE_CONCURRENCY_V1 instead of one at a time; the star topology means each is conditioned on the plate, not on its predecessor, so there was nothing left to serialise. Shipped in e7494ab.
+2026-10-27T16:29:18+05:30 aquib N: status: review -> done

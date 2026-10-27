@@ -4,9 +4,9 @@ title: Send clips to stitching in segments as they finish, instead of one call a
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-10-26T13:04:41+05:30
-updated: 2026-10-26T18:36:48+05:30
+updated: 2026-10-27T16:31:58+05:30
 decisions: D-022, D-024
 ---
 
@@ -114,3 +114,4 @@ Not asking for the full interleave of the rendering and verifying loops. A segme
 
 Nothing here is urgent enough to block Batch 6 work, but it should be settled before anything else in that batch leans on segment timing.
 2026-10-27T16:25:30+05:30 aquib N: Half done, and leaving it open rather than claiming it. WHAT EXISTS: segmentClipsV1 splits the finished clips into runs and stitchInSegmentsV1 sends them to segment-stitch, with a fallback to the three single-call endpoints when a segment fails or a song yields fewer than two. WHAT DOES NOT: those calls are all made from stitchPlanV1, which runs after the last clip lands — so the segments are parallel with each other but not with generation, and your test step (segment calls in the log DURING clip generation) will not pass. Doing it properly means dispatching a segment the moment its run of clips is complete and holding the job ids until the final concat, which is a change to the run loop rather than to the stitch, so I would rather do it deliberately than squeeze it in. Staying in progress.
+2026-10-27T16:31:58+05:30 aquib N: status: approved -> in_progress — work started in music-jetkreate-backend

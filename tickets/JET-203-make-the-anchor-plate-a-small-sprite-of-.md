@@ -4,10 +4,11 @@ title: Make the anchor plate a small sprite of the cast and environment instead 
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-26T13:05:05+05:30
-updated: 2026-10-27T16:25:21+05:30
+updated: 2026-10-27T16:28:55+05:30
 decisions: D-019, D-023
+closed: 2026-10-27
 ---
 
 ## Request
@@ -69,3 +70,4 @@ Your assumption 4 is the acceptance test and it is yours to run: same storyboard
 2026-10-26T18:36:29+05:30 aquib N: linked decision D-023 (Anchors stay on the lite image model; the tier is a known ceiling on continuity)
 2026-10-27T16:25:21+05:30 aquib N: status: approved -> in_progress
 2026-10-27T16:25:21+05:30 aquib N: status: in_progress -> review — platePromptV1 draws one six-panel sheet — cast head-and-shoulders plus full length on the top row, the location from three positions on the bottom — and every anchor is conditioned on it. It deliberately avoids the '## SCENE DESCRIPTION' marker, because that marker sends generateSceneImage down a branch that forbids grids, and that branch is shared with v0: the prompt bends rather than the shared file. Shipped in e7494ab.
+2026-10-27T16:28:55+05:30 aquib N: status: review -> done

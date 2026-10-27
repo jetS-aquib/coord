@@ -4,10 +4,11 @@ title: Kick off lyric transcription when the job starts, not when the clips are 
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-10-26T13:04:15+05:30
-updated: 2026-10-27T16:25:21+05:30
+updated: 2026-10-27T16:29:47+05:30
 decisions: D-020, D-021
+closed: 2026-10-27
 ---
 
 ## Request
@@ -88,3 +89,4 @@ One thing your contract made me fix that the agreement would have let through: l
 Not verified against a running service — nothing here has been rendered yet. showLyrics is false on our recent renders, so this path also needs a song with lyrics switched on to exercise it at all.
 2026-10-27T16:25:21+05:30 aquib N: status: approved -> in_progress
 2026-10-27T16:25:21+05:30 aquib N: status: in_progress -> review — prefetchTranscriptV1 fires unawaited at startRenderV1 and stitchPlanV1 awaits whatever is left of it behind a catch. Since then JET-208 moved the same call one step earlier again, to upload, and JET-211 keeps the text — so this one's 99s cold load is now hidden twice over.
+2026-10-27T16:29:47+05:30 aquib N: status: review -> done
