@@ -4,9 +4,9 @@ title: Tell the server the song exists as soon as it has uploaded, so transcript
 from: video-processing-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-27T13:55:26+05:30
-updated: 2026-10-27T14:00:07+05:30
+updated: 2026-10-27T15:33:03+05:30
 decisions: 
 ---
 
@@ -50,8 +50,12 @@ Picking a track and waiting on the brief screen for a few seconds, then starting
 
 ## Test steps
 
-—
+1. Pick a track on the create flow and stay on the brief screen. The server should log a lyric transcription starting before any render exists.
+2. Start the render on that song. The transcript should report as cached, and the stitch should do no transcription of its own.
+3. Turn on airplane mode the moment the upload finishes. Nothing appears on screen, the only trace is a `[transcript]` warning in the dev console, and the render still works once the network is back.
 
 ## Thread
 2026-10-27T13:55:26+05:30 aquib N: created ticket, status: - -> open
 2026-10-27T14:00:07+05:30 aquib N: status: open -> approved
+2026-10-27T15:32:24+05:30 aquib N: status: approved -> in_progress — one helper in lib/generation.ts, one unawaited call at the upload site
+2026-10-27T15:33:03+05:30 aquib N: status: in_progress -> review — warmTranscript(audioUrl) in src/lib/generation.ts posts the route unawaited behind its own catch; src/app/(create)/audio.tsx calls it on the line after setAudio. Nothing on screen, no busy state, a __DEV__ console.warn is the only trace of a failure. All four assumptions in the request hold as written, including firing for a song later rendered without lyrics. Not yet run on a device - nothing on this branch has been.
