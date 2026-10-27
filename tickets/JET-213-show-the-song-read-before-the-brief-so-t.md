@@ -4,9 +4,9 @@ title: Show the song read before the brief, so the app has visibly listened
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-27T16:46:11+05:30
-updated: 2026-10-27T16:46:11+05:30
+updated: 2026-10-27T16:48:28+05:30
 decisions: 
 ---
 
@@ -55,3 +55,4 @@ Picking a track and continuing shows tempo and the song's sections before the br
 
 ## Thread
 2026-10-27T16:46:11+05:30 aquib N: created ticket, status: - -> open
+2026-10-27T16:48:28+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Frame extraction and comparison at a given second, so a trimmed clip is c
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-27T16:45:51+05:30
-updated: 2026-10-27T16:46:30+05:30
+updated: 2026-10-27T16:48:23+05:30
 decisions: D-031
 ---
 
@@ -55,3 +55,4 @@ Extraction with atSeconds returns the frame at that second, byte-identical acros
 ## Thread
 2026-10-27T16:45:51+05:30 aquib N: created ticket, status: - -> open
 2026-10-27T16:46:30+05:30 aquib N: linked decision D-031 (Scenes and clip lengths derive from the song's structure, not from the model's maximum duration)
+2026-10-27T16:48:23+05:30 aquib N: status: open -> approved
