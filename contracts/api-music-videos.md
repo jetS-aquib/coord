@@ -63,6 +63,12 @@ same audio runs Whisper once: the transcript is cached on the audio's bytes (D-0
 It warms unconditionally, since `showLyrics` is not known at upload time — one
 Whisper run against a 24h cache is the better side of that trade.
 
+The words themselves are kept when the transcription answers, in `TranscriptV1` keyed
+on the audio URL, and copied onto `MusicVideo.lyrics` when a render is planned for a
+project that has none of its own (D-030). video-processing-backend's copy is a cache —
+24 hours, 64 entries — so this is the durable one. Anything the user typed wins; this
+only fills a gap.
+
 ### The state payload
 
 Identical from start, project lookup, poll and every SSE event, so a client needs one

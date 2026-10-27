@@ -31,3 +31,4 @@
 | D-027 | Clips are generated at the model's length and trimmed to the music's length | 2026-10-27 | active | music-jetkreate-backend video-processing-backend |  |
 | D-028 | Beat tracking is numpy and ffmpeg, not librosa | 2026-10-27 | active | video-processing-backend music-jetkreate-backend | JET-206 |
 | D-029 | Scene changes are cuts: no end pin, no seam score, measure the break and do not enforce it | 2026-10-27 | active | music-jetkreate-backend video-processing-backend | JET-210 |
+| D-030 | The lyrics are stored here, keyed on the audio URL, and fill MusicVideo.lyrics when a project exists | 2026-10-27 | active | music-jetkreate-backend video-processing-backend | JET-211 JET-208 |
