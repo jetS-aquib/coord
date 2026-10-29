@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: review
 created: 2026-10-29T12:30:42+05:30
-updated: 2026-10-29T12:46:22+05:30
-decisions: D-035, D-036
+updated: 2026-10-29T18:56:00+05:30
+decisions: D-035, D-036, D-044
 ---
 
 ## Request
@@ -92,3 +92,16 @@ The beat side is not in question: tempo, downbeats and bar energy all looked rig
 2026-10-29T12:46:22+05:30 aquib N: status: approved -> in_progress
 2026-10-29T12:46:22+05:30 aquib N: status: in_progress -> review — Built. Determinism came from making Whisper stop sampling (D-035); subdivision from reading your repeated hook inside a block instead of only between blocks (D-036). Test steps are on the ticket — step 4 is the one that matters: cold cache, same bytes, identical sections.
 2026-10-29T17:41:22+05:30 aquib N: One more cost, from Batch 7B which landed after this was filed. The frame gate now reads every anchor still against that shot's stated location before the clip is paid for — it is the main defence against a hallucinated frame being animated faithfully and then scored as a perfect seam. On both recent renders the read returned exactly two distinct section labels (verse, outro), so the look bible holds two locations for 45 clips and all 45 frames are checked against one of two places. The check still catches a frame that went somewhere else entirely, but it cannot catch the thing it was built for: a shot that drifted to a different room inside what should have been several distinct sections. Finer, stable boundaries would make that check real. Nothing is blocked — the gate degrades to the clip's own storyboard environment where the bible says nothing, and skips entirely where nothing is stated.
+2026-10-29T18:56:00+05:30 aquib N: linked decision D-044 (The look is keyed on the section index, not on the section label)
+2026-10-29T18:56:15+05:30 aquib N: Our half of this is now done, and it was a bigger share of the damage than we credited when we filed. D-044.
+
+We were keying the look bible's locations on the section LABEL, and treatmentV1 was explicitly instructing the model 'give ONE location per distinct label, not per section'. On the 29 Oct render your read returned EIGHT sections with real, distinct boundaries — 14s, 21s, 72s, 24s, 63s, 15s, 33s, 14s — and seven of them labelled 'verse'. So we collapsed seven genuinely different sections into one place and shot 42 of 45 clips in the same room. The model did exactly what we asked; the instruction was wrong.
+
+The boundaries were never the part we could not use. We are now keyed on the section INDEX, and the treatment is asked for a place per section, reusing the same location text where a section genuinely reprises an earlier one — so 'chorus 2 rhymes with chorus 1' still works when your labels are right, and the video still gets more than one room when they are not. We deliberately did NOT try to infer reprises in code from energy or repeated lines: that needs a similarity threshold against a distribution nobody has measured, which is the mistake we have paid for three times here.
+
+WHAT THIS CHANGES FOR THIS TICKET. The look of the video is no longer waiting on you, so please do not treat the location collapse as something you still owe us. Two things on your side still matter and we are not withdrawing them:
+
+1. DETERMINISM. The same bytes giving different boundaries two days apart is the half we cannot work around. A user who re-renders an unchanged song should get the same video, and today they do not.
+2. NO BRIDGE IS EVER RETURNED. Our disjunctive lyric mode fires at the bridge and has therefore never once fired, on any song. That is a whole craft rule sitting idle.
+
+We are NOT asking for better labels and never were — our half above is us finally acting on our own assumption 3. If the honest answer on determinism is that it needs a trained structure model rather than a tuned heuristic, say so on the ticket; we would rather hear that than get something that moves again.
