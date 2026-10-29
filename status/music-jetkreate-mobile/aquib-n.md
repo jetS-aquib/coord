@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 7A is committed and in review. NEXT SESSION STARTS BATCH 7B — and starts it by scoping, not by coding. See the handoff note below.
+- **Current task:** 7B is scoped and closed out for now — D-041, no mobile work, no ticket. Session is on the live end-to-end render, which needs a person with the phone.
 - **Status:** waiting on human
-- **Blockers:** nothing in code, and 7B is not blocked on anyone. Two questions want a device run: the `[reel]` lines that say WHY the reel stalls, and whether the on-device MP4 decode times out or errors.
-- **Last updated:** 2026-10-29T18:05:00+05:30
+- **Blockers:** the render itself. Both backends, Metro and the tree are ready; it needs a tap on the device and a short track. Still unanswered until then: the `[reel]` lines that say WHY the reel stalls, and whether the black strip tiles are a decode failure or a genuinely black frame at SAMPLE_AT = 1.
+- **Last updated:** 2026-10-29T17:58:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -12,6 +12,71 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-29T17:58:00+05:30 — 7B scoped, answered and closed. D-041. Nothing built.
+
+**7B needs nothing from this repo yet, and that is the finding, not a punt.**
+The 18:05 note's scoping question was asked and answered: show nothing. No
+ticket was filed to music-jetkreate-backend and no gate field was asked for.
+The reasoning is **D-041**; read that rather than re-deriving it.
+
+Three things settled it, two of which the earlier note had not checked:
+
+1. **The gate has never run live.** `music-jetkreate-backend/aquib-n.md` at
+   17:50 today: built, unit-tested, uncommitted, never run on a render. So the
+   distribution D-040 and JET-222 step 2 both wait on does not exist, and the
+   18:05 note's own test — "if it fires on two anchors in forty-six, (1) is
+   right" — has no reading yet.
+2. **The wire claim holds.** `api-music-videos.md` lines 88-110 carry
+   `anchorsTotal/anchorsDone` and per clip `state`, `openingFrameUrl`,
+   `seamScore`, `sectionLabel`, `error`. No gate field in any contract.
+3. **Option 2 was framed against the wrong phase.** 7B.1 runs inside
+   `renderAnchorsV1`, during status `anchoring`, before any clip renders. So a
+   redraw is not "a shot quietly takes three times as long" — the strip is fed
+   by `state.clips` from the first poll, every tile sits on the `clock` glyph
+   through that whole phase anyway, and a redrawn anchor is just a tile whose
+   still arrives late under "Setting the look. N of 46 key frames." That is a
+   far quieter symptom than assumed, which is what made option 1 cheap.
+
+D-041 also records the part worth carrying forward: **7B.2/7B.3 may need no new
+field at all.** They act on clips during `rendering`/`verifying`, where
+`checking` and `regenerating` already exist on the wire and the strip already
+draws both. What would be missing there is a reason, not a state.
+
+**Revisit trigger, named so nobody re-asks:** the first render with
+`RENDER_FRAME_GATE` on. Whoever runs it brings the fire rate back to D-041.
+
+#### Where the session went after that: the live render
+
+Everything that can be ready without a phone is ready. Verified, not assumed:
+
+- **music-jetkreate-backend up on :5006**, running natively (not Docker —
+  `docker ps` is empty). `/api/health` ok, mongo connected;
+  `/api/health/providers` has google and magicroll configured, byteplus not.
+- **video-processing-backend up on :5005**, also native. `/api/v1/health` 200.
+  Note this re-opens **JET-196** differently: its blocker was "the container on
+  :5005 is a pre-fix image", and there is no container — it is running from
+  source. ffprobe a new master for 1080x1920 and it can probably be closed.
+- **Metro already running on 8081** (pid 17200, not started by this session, so
+  its `[reel]` output goes to whoever owns that terminal — watch it there). I
+  started a second one by mistake, it took 8082, and I killed it. One Metro.
+- **Tree clean, `npx tsc --noEmit` silent, 12 commits ahead of `main`,
+  nothing pushed.** `.env.local` points the device at `192.168.2.173:5006`,
+  which still matches this Mac's en0 — no stale-IP problem.
+- `coord devsetup --hooks` is **still not run** — the sandbox refuses to
+  install git hooks. One command, yours to run; commits keep landing without
+  the ticket prefix until it is.
+
+**What the render has to answer, in the order it answers them** — the 18:05
+note's items 1-3 all fall out of one good run:
+planning -> stills -> strip -> collage -> finished video autoplaying; then
+whether `[reel]` shows a clip finishing with no `playToEnd` (an expo-video
+platform bug worth a decision record); then whether shots 9/10 come back black
+with no `[thumbnail]` warning, which would make `SAMPLE_AT = 1` in
+`lib/thumbnails.ts` too early. Do not move that constant on a hunch.
+
+Use a short track. A full song is ~31 shots and ~$24.80; the backend's own
+estimate for a 30s trim across a section boundary is $2-3.
 
 ### 2026-10-29T18:05:00+05:30 — START HERE FOR BATCH 7B
 
