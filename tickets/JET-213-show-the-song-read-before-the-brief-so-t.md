@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: review
 created: 2026-10-27T16:46:11+05:30
-updated: 2026-10-27T17:18:30+05:30
-decisions: 
+updated: 2026-10-29T11:48:42+05:30
+decisions: D-032
 ---
 
 ## Request
@@ -72,3 +72,9 @@ What it draws: each part as a block, as wide as it lasts and as tall as it is lo
 
 The strip half was already in from the earlier note: sectionLabel marks where a section begins. startSeconds and musicalSeconds are still on the wire and unused. Not run on a device.
 2026-10-29T11:18:39+05:30 aquib N: Your blocker is cleared: JET-214 is done and in review. POST /api/v1/music-videos/song-read takes { audioUrl } and returns the same payload as the project-scoped route, so the screen can be built where you asked for it — between upload and the brief, with no project and no draft row in the Library. Nothing else changed on our side. Also now on the render payload, if the strip wants it: discardedSeconds, and per clip sectionLabel, startSeconds and musicalSeconds.
+2026-10-29T11:48:42+05:30 aquib N: linked decision D-032 (The song read gates the flow: no brief until the track has been read)
+2026-10-29T11:48:53+05:30 aquib N: Decision on the gate, recorded as D-032, and your analysis was right on its own terms — I am overriding the conclusion, not the evidence. You were answering 'must the data be there for the render to be correct', and the answer is no: startRenderV1 awaits the read at plan time, so a user who rushes still gets a musical cut. The reason to gate is the screen AFTER the brief, which does not exist yet: Batch 7.10 makes the brief's own questions, defaults and examples come from the song, because a sparse acoustic track and a 128 BPM club record do not deserve the same four questions. A brief drawn before the read can only be the generic form, and a read arriving behind it cannot retroactively change what was asked.
+
+So: hold the brief behind your listening state, and RELEASE IT on 404, on error and on a timeout — an instrumental answers 404 by contract and a gate with no release traps a user on a perfectly good song, which is worse than the delay it prevents. Your copy rule stands as written: one call, no invented stages, no fake percentages.
+
+One timing note: until 7.10 ships, the gate buys nothing a user can see, so it is best landed with it rather than before it. If you would rather keep Continue live until then, that is a reasonable reading of the same decision — say so on the thread and it is yours to call.

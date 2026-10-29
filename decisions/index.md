@@ -33,3 +33,4 @@
 | D-029 | Scene changes are cuts: no end pin, no seam score, measure the break and do not enforce it | 2026-10-27 | active | music-jetkreate-backend video-processing-backend | JET-210 |
 | D-030 | The lyrics are stored here, keyed on the audio URL, and fill MusicVideo.lyrics when a project exists | 2026-10-27 | active | music-jetkreate-backend video-processing-backend | JET-211 JET-208 |
 | D-031 | Scenes and clip lengths derive from the song's structure, not from the model's maximum duration | 2026-10-27 | active | music-jetkreate-backend video-processing-backend music-jetkreate-mobile | JET-206 JET-207 JET-212 |
+| D-032 | The song read gates the flow: no brief until the track has been read | 2026-10-29 | active | music-jetkreate-mobile music-jetkreate-backend | JET-213 JET-214 JET-206 |

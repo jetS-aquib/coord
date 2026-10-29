@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: done
 created: 2026-10-27T13:44:14+05:30
-updated: 2026-10-27T16:46:30+05:30
-decisions: D-028, D-031
+updated: 2026-10-29T11:48:42+05:30
+decisions: D-028, D-031, D-032
 closed: 2026-10-27
 ---
 
@@ -121,3 +121,4 @@ Not committed — the dev commits here.
 2026-10-27T16:21:05+05:30 aquib N: status: review -> done
 2026-10-27T16:46:30+05:30 aquib N: linked decision D-031 (Scenes and clip lengths derive from the song's structure, not from the model's maximum duration)
 2026-10-27T17:41:20+05:30 aquib N: Measured on a real track with your endpoint, in case it is useful to you: The Weeknd - Timeless, 256s at 80.0 BPM, 5 sections (intro/chorus/verse/chorus/outro), 85 bars. 51 of those 85 bars read >= 0.90 energy. That is not a complaint about the scaling — it is a compressed master and the 95th-percentile normalisation is doing what it says — but it did break our first cut-rate rule, which used an absolute threshold to mean 'this is a chorus'. We now rank bars within the song instead (top quartile cuts fast) and take the bar count from the tempo against the model's limits. Same lesson as the 4.0 seam threshold: a constant chosen against a distribution that moves.
+2026-10-29T11:48:42+05:30 aquib N: linked decision D-032 (The song read gates the flow: no brief until the track has been read)
