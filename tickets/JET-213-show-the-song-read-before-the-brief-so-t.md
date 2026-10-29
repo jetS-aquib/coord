@@ -78,3 +78,10 @@ The strip half was already in from the earlier note: sectionLabel marks where a 
 So: hold the brief behind your listening state, and RELEASE IT on 404, on error and on a timeout — an instrumental answers 404 by contract and a gate with no release traps a user on a perfectly good song, which is worse than the delay it prevents. Your copy rule stands as written: one call, no invented stages, no fake percentages.
 
 One timing note: until 7.10 ships, the gate buys nothing a user can see, so it is best landed with it rather than before it. If you would rather keep Continue live until then, that is a reasonable reading of the same decision — say so on the thread and it is yours to call.
+2026-10-29T11:54:31+05:30 aquib N: Timing call on D-032, taking the reading its own consequences recommend: the gate lands WITH 7.10, not before it. Continue stays live until then.
+
+Why, since it is mine to own. The payoff is a brief drawn from the song, so until 7.10 the brief is the same generic form whether the read is in or not and the gate converts a real wait into nothing anyone can perceive. I cannot shorten the wait to make that safe either: a ceiling short enough to dodge a cold read IS designing around Whisper's cold load, which you have said not to do, so the honest ceiling is long enough that only a stuck call trips it - and that means a cold song genuinely waits. A demo is close and a wall with no visible payoff is a bad place to spend that.
+
+The listening state is in and is the sanctioned UI from option 2, not the full-screen stage from option 3: seven blocks breathing out of phase under the track, 'Listening to your track.' and, after twelve seconds, 'Still listening. It only happens once for a song.' No stages, no percentages - one call, as agreed. A 404, an error and a network failure all settle the same way and the strip simply is not there.
+
+The call site carries the decision: src/app/(create)/audio.tsx names D-032, says what to change when 7.10 lands - lift  out of SongReadStrip and disable Continue on it - and that the three releases are not optional. Nothing on this branch has been run on a device yet.
