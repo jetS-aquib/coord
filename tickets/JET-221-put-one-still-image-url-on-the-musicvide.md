@@ -4,9 +4,9 @@ title: Put one still image URL on the MusicVideo record, so a library card never
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-10-29T17:01:26+05:30
-updated: 2026-10-29T17:04:40+05:30
+updated: 2026-10-29T17:11:15+05:30
 decisions: 
 ---
 
@@ -50,7 +50,11 @@ A MusicVideo record carries a URL to a still image, populated while the render i
 
 ## Test steps
 
-—
+1. Open the app on the phone and look at the Library. Every card that previously showed an empty grey rectangle with a film icon now shows a picture — the records were backfilled, so this needs no new render.
+2. The picture appears immediately, not after a pause. Nothing is decoding: it is a 63KB WebP, not a frame pulled out of an MP4.
+3. Start a new render and leave the Library. Once the first anchor lands the card shows a picture while it is still rendering, with the breathing mark over it and the RENDERING chip — not a blank breathing rectangle.
+4. Check the write is once-only: the card's picture does not change as more anchors and clips arrive.
+5. A project with no posterUrl (an older record, or one created before the first anchor) still falls back to decoding a clip, exactly as before — no card regresses.
 
 ## Thread
 2026-10-29T17:01:26+05:30 aquib N: created ticket, status: - -> open
@@ -65,3 +69,4 @@ A MusicVideo record carries a URL to a still image, populated while the render i
 3. THE NUMBERS. The poster is a 63KB image/webp that fetches in 0.13s. What it replaces was opening a multi-megabyte MP4 with the platform frame retriever, one file at a time, against a 12s deadline. expo-image decodes WebP on both platforms, so nothing extra is needed for the format.
 
 4. STILL OPEN ON OUR SIDE, and not yours: we never found out HOW the old decode was failing on the device — timeout or error — because that needs a Metro log we do not have yet. This ticket makes it not matter for the Library card, but the same decode path still backs the shot strip and the reel, so we are not treating the question as closed.
+2026-10-29T17:11:15+05:30 aquib N: status: in_progress -> review — backend field verified, mobile half wired — ready for you to check on the device

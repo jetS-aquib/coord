@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-216 committed; JET-217 and JET-218 built and handed back (review), uncommitted. All on branch `v1-render-and-design-pass`. Still waiting on one live render to verify the whole v1 path.
+- **Current task:** JET-216/217/218 done; JET-220 and the three device bugs built; JET-221's mobile half wired. All in review, all uncommitted past `ee2b027` on `v1-render-and-design-pass`.
 - **Status:** waiting on human
-- **Blockers:** nothing in code. The v1 path is still UNRUN — one live render verifies JET-213, JET-216, JET-217, JET-218 and the render integration together. The instrumental path needs a second render to be worth anything.
-- **Last updated:** 2026-10-29T14:05:00+05:30
+- **Blockers:** nothing in code. One open question needs a device: we never learned HOW the on-device MP4 frame decode fails (timeout or error) — it needs the `[thumbnail] ...` line out of Metro. JET-221 removes it from the Library's path; the strip and the reel still ride on it.
+- **Last updated:** 2026-10-29T17:30:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -12,6 +12,35 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-29T17:30:00+05:30
+
+First real device run (iPhone 15 Pro, dev build) found three bugs, all fixed,
+none of them where the symptom pointed.
+
+- REEL FROZE AT 2/28. `replaceAsync` has no deadline and the "already loaded"
+  mark is set before the await, so the documented stall-instead-of-fail of this
+  media host retired the reel permanently. Now raced against
+  PLAYBACK_TIMEOUT_MS, which turns a hang back into a retry.
+- NO SOUND. The app never called `setAudioModeAsync`, so iOS used its own
+  default `soloAmbient` — silenced by the ring switch, which on a 15 Pro is the
+  Action Button. One call at the root with `playsInSilentMode: true`.
+- EMPTY ASSEMBLY COLLAGE. It only used decoded video frames; the shot strip has
+  always had a `thumb ?? openingFrameUrl` fallback and was full of pictures in
+  the same screenshot. The collage now takes `shots` and does the same.
+
+JET-220: device locale on the brief and project calls, from
+`Intl.DateTimeFormat().resolvedOptions().locale` — no new dependency, guarded,
+sent as the full tag since the backend reduces it.
+
+JET-221 (ours, filed and already done by the backend): `MusicVideo.posterUrl`,
+a 63KB WebP written from the first anchor. Read in music-videos.ts, passed to
+MediaSlot as `stillUrl`; when set, nothing decodes at all. Existing records were
+backfilled, so the Library has pictures without a new render. MediaSlot also no
+longer gates the thumbnail on `completed`, so a rendering card shows its own
+footage.
+
+Next: commit this lot, then the live render that still has not happened.
 
 ### 2026-10-29T14:05:00+05:30
 
