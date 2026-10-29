@@ -69,3 +69,6 @@ POST /api/v1/music-videos/brief now returns, per question, a 'suggestion': a rea
 What is still worth taking from this ticket: the instrumental case. There, /brief returns source 'default' and every suggestion is '', so an all-blank brief is still all-blank and still 400s. One of the two fixes has to cover it — either the title fallback proposed here, or treating 'default' as a reason to send the title. Your call in the mobile session; close this one as part of JET-218 if you do it there.
 2026-10-29T13:28:44+05:30 aquib N: status: open -> approved
 2026-10-29T13:31:35+05:30 aquib N: status: approved -> in_progress — doing it as the instrumental half of JET-218
+2026-10-29T13:32:07+05:30 aquib N: Done, but not the way the ticket proposed — the one-liner is in, exactly as written (prompt: input.prompt || input.title || 'a music video for this song', createStoryboard only, directionPrompt untouched). What changed is what it is FOR.
+
+JET-218 landed in the same sitting, so for any song with a read the blank fields are now submitted as their suggestions and directionPrompt is never empty. This fallback is therefore only reached by the instrumental case you flagged in the thread: source 'default', every suggestion '', nothing to substitute. The comment in generation.ts says that, so nobody deletes it later thinking 218 covers it.
