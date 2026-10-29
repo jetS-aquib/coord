@@ -1,13 +1,50 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-219 built and handed back
+- **Current task:** JET-222 built and handed back
 - **Status:** waiting on human
-- **Blockers:** none. JET-219, JET-215 and JET-212 are all with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-10-29T15:54:47+05:30
+- **Blockers:** none. JET-222, JET-219, JET-215 and JET-212 are all with the requester; JET-199/200/201/203 are ours to close with `coord ok`
+- **Last updated:** 2026-10-29T18:02:01+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-29T18:02:01+05:30
+
+**JET-222 — several frames in one call, and an optional size.**
+
+`atSeconds` on `/api/v1/frame-extraction` now takes a list as well as a float,
+and `maxWidth` shrinks the returned frame. Both optional, both additive, both
+on extraction only.
+
+Measured their estimate before building, because they asked to be corrected
+and said they would drop the size half if a real frame were small: on this
+encoder at 1280x720 a detailed frame is 1.63 MB PNG / 2.24 MB base64, a flat
+one 0.14–1.0 MB. So 135 frames is ~100–300 MB a song, not the 200–350 they
+guessed — right order, a little high at the top. At `maxWidth: 768` the
+detailed frame is 0.57 MB. Both halves earned their place.
+
+Two things worth remembering:
+
+- **`scale='min(iw,N)':-1`** is what makes "only ever shrinks" true without a
+  branch. A width at or above the real one makes the filter a no-op, so the
+  output is byte-identical to sending no `maxWidth` at all. No upscale path,
+  no "already small enough" path.
+- **Nothing on `frame-comparison`**, and D-042 records why so nobody adds it
+  later as an obvious symmetry: both sides are forced to 320x180 there, so a
+  width would add a resampling step to one side of the metric whose threshold
+  was measured over 132 clips (D-018).
+
+The list extracts sequentially — sub-second work on a box that is also
+encoding, so three ffmpeg processes at once would finish no sooner and would
+be felt by the job next door. A parallel map in one place if a caller ever
+sends a list long enough to matter.
+
+OpenAPI note for whoever regenerates a client: the 200 is now `anyOf`
+object-or-array.
+
+Next: nothing of ours. JET-222, JET-219, JET-215 and JET-212 are all with the
+requester; JET-199/200/201/203 are ours to close with `coord ok`.
 
 ### 2026-10-29T15:54:47+05:30
 

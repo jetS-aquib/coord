@@ -10,8 +10,8 @@ ffmpeg and image code. These are the shapes — you should not have to read the
 Python to call them.
 
 Both are **synchronous**: they answer with the result, not a job id. The work
-is sub-second and the caller makes roughly sixty-six of these per song, so a
-job and a poll would cost more than the answer. Nothing is stored; there is
+is sub-second and the caller makes a couple of hundred of these per song, so
+a job and a poll would cost more than the answer. Nothing is stored; there is
 no retention policy to care about.
 
 Both require `X-Service-Assertion`, minted exactly as for stitching
@@ -26,11 +26,18 @@ ignored.
 
 ```jsonc
 // request
-{ "video_url": "https://…/clip.mp4", "position": "first" }   // or "last"
-{ "video_url": "https://…/clip.mp4", "atSeconds": 5.217 }    // or a time
+{ "video_url": "https://…/clip.mp4", "position": "first" }        // or "last"
+{ "video_url": "https://…/clip.mp4", "atSeconds": 5.217 }         // or a time
+{ "video_url": "https://…/clip.mp4", "atSeconds": [1.0, 3.5, 6.0],
+  "maxWidth": 768 }                                               // or several, shrunk
 
-// 200
+// 200 — one time, or a position
 { "image_base64": "iVBORw0KGgo…", "mime_type": "image/png" }
+
+// 200 — a list of times, one entry per time, in the order asked
+[ { "image_base64": "…", "mime_type": "image/png" },
+  { "image_base64": "…", "mime_type": "image/png" },
+  { "image_base64": "…", "mime_type": "image/png" } ]
 ```
 
 PNG, so lossless by construction — the frame is both the still handed to the
@@ -48,6 +55,46 @@ The same clip and position return **byte-identical** bytes every time.
 first available frame, which is the same cascade `extractLastFrameOfVideo`
 used: a clip whose audio outruns its video has no frame at 0.1s, and a render
 should not fail over that.
+
+## Several frames in one call, and an optional size
+
+Both are JET-222, both optional, both on **extraction only**, and neither
+changes anything you send today.
+
+**`atSeconds` also takes a list.** One entry per time, in the order asked,
+each byte-identical to what that time returns on its own — batching is a
+transport change and nothing else. The clip is downloaded once, which is the
+saving: the extraction itself is milliseconds and the clip is not. A single
+float still answers with a single object; **only a list changes the response
+shape**, so a caller sending one time never has to unwrap a list of one.
+
+An **empty list is a 422**. So is a list alongside `position` — the
+exactly-one-of rule is unchanged, a list is still one selector.
+
+**One time past the end of the clip does not cost the other frames.** Each
+entry falls back on its own through the same `-sseof` cascade, so a clip that
+came back short costs one slightly different frame, not the request.
+
+**`maxWidth` shrinks the frame, aspect preserved.** It only ever shrinks: the
+filter is `min(iw, maxWidth)`, so a value at or above the real width returns
+the real width and does so **byte-identically to sending nothing** — there is
+no upscaling branch to get wrong. Byte-identity holds per
+`(clip, frame, maxWidth)`.
+
+**Absent `maxWidth` returns exactly the bytes it returned before JET-222.**
+That is the guarantee that matters: the seam check sends no `maxWidth`, so
+the band measured over 132 clips and the threshold sitting on it (D-018) are
+untouched. Only a caller that asks for a size gets a different picture.
+
+Measured on this encoder, 1280x720, so you can size the saving: a detailed
+frame is **1.6 MB** of PNG (2.2 MB base64), a flat one 0.15–1.0 MB. At
+`maxWidth: 768` the detailed frame is 0.57 MB (0.78 MB base64) — roughly a
+65% cut, and about 100 MB a song at 135 frames rather than 300.
+
+**Comparison takes neither**, deliberately. It is one frame against one still
+by nature, and a width there would be worse than useless: both sides are
+forced to 320x180 anyway, so pre-shrinking would only add a resampling step
+to one of them. A list or a `maxWidth` sent to comparison is a 422.
 
 ## `POST /api/v1/frame-comparison`
 
@@ -129,7 +176,7 @@ threshold measured against it, mean what they meant.
 | status | when |
 |---|---|
 | 401 | no assertion, or an invalid, expired or replayed one |
-| 422 | a field that is not defined here, an unknown `position`, `position` and `atSeconds` together or neither, a negative `atSeconds`, a file that is not a readable video or image |
+| 422 | a field that is not defined here, an unknown `position`, `position` and `atSeconds` together or neither, a negative `atSeconds` (including inside a list), an empty `atSeconds` list, a `maxWidth` of zero or less, a list or `maxWidth` sent to comparison, a file that is not a readable video or image |
 | 502 | the `video_url` or `image_url` could not be fetched |
 
 An image is capped at 64 MB; a video uses the same cap as stitching.

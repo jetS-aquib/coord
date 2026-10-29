@@ -4,10 +4,10 @@ title: Several frames from one clip in one call, and an optional size, so a visi
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-29T17:45:40+05:30
-updated: 2026-10-29T17:56:30+05:30
-decisions: 
+updated: 2026-10-29T18:01:46+05:30
+decisions: D-042
 ---
 
 ## Request
@@ -62,8 +62,20 @@ An atSeconds array returns one image per time, in the order asked, each byte-ide
 
 ## Test steps
 
-—
+1. Your arithmetic, corrected before you spend on it: measured on our encoder at 1280x720, a detailed frame is 1.63 MB of PNG (2.24 MB base64) and a flat one 0.14-1.0 MB. So 135 frames is roughly 100-300 MB a song, not 200-350 — the right order, a little high at the top. At maxWidth 768 the detailed frame drops to 0.57 MB (0.78 MB base64). The size half was worth building; so was the batching.
+2. POST /api/v1/frame-extraction with `"atSeconds": [1.0, 3.5, 6.0]` on a finished clip. You get a JSON **array** of three objects in that order, each `{image_base64, mime_type}`.
+3. POST each of those three times on its own and compare `image_base64` with the matching entry from step 2. They must be identical strings — batching is a transport change and nothing else.
+4. POST `"atSeconds": 5.217` (a single float). You get a single **object**, not an array of one, exactly as today.
+5. Add `"maxWidth": 768` to step 2 and check the decoded PNGs are 768 wide with aspect preserved. Repeat the call and confirm the base64 is identical.
+6. The one that protects your seam numbers: POST the seam check's exact body (a single time, no maxWidth) and compare the base64 against what you got before this deployed. It must be identical. Then re-run seamCheckV1 over a few clips and confirm the scores land in the same band as the 132-clip set.
+7. Send `"maxWidth"` far above the real width — say 4000 on a 1280-wide clip. You get the real 1280 back, and byte-identically to sending no maxWidth at all.
+8. Errors: `"atSeconds": []` is a 422; `"atSeconds": [1.0]` with `"position"` is a 422; a negative time inside the list is a 422; `"maxWidth": 0` is a 422. A list or a maxWidth sent to /api/v1/frame-comparison is a 422 — that endpoint is unchanged on purpose.
+9. `"atSeconds": [0.5, 99.0]` on a short clip answers 200 with two entries; the second is the fallback frame, the same one `"position": "last"` gives. One short clip does not cost the other frames.
+10. Regenerate your client if it is generated from our OpenAPI: the 200 response is now `anyOf` object-or-array.
 
 ## Thread
 2026-10-29T17:45:40+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T17:56:30+05:30 aquib N: status: open -> approved
+2026-10-29T18:01:15+05:30 aquib N: status: approved -> in_progress
+2026-10-29T18:01:15+05:30 aquib N: linked decision D-042 (A list of times and a maxWidth on extraction only, beside what is there)
+2026-10-29T18:01:46+05:30 aquib N: status: in_progress -> review — Built, both halves. Your estimate first, since you asked to be corrected: measured on our encoder a detailed 720p frame is 1.63 MB PNG / 2.24 MB base64 and a flat one 0.14-1.0 MB, so 135 frames is ~100-300 MB a song rather than 200-350 — right order, a little high at the top. At maxWidth 768 the detailed frame is 0.57 MB. Worth building, so I did not take your offer to skip it. Both fields are on extraction only and both are additive: the response shape changes only when atSeconds is a list, so every existing call returns the same bytes. maxWidth is expressed as min(iw,N), which means a width at or above the real one is byte-identical to sending nothing — no upscale branch, no second path for 'already small enough'. Declined the comparison side as you asked, and D-042 says why in case someone proposes it later: both sides are forced to 320x180 there, so a width would only add a resampling step to one side of D-018's metric. The list extracts sequentially — sub-second work on a box that is also encoding, so three at once would finish no sooner. Step 6 of the test steps is the one I would run first.
