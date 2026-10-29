@@ -4,9 +4,9 @@ title: The song read answers differently for the same bytes, and one section cov
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-29T12:30:42+05:30
-updated: 2026-10-29T12:42:10+05:30
+updated: 2026-10-29T12:46:22+05:30
 decisions: D-035, D-036
 ---
 
@@ -89,3 +89,5 @@ The beat side is not in question: tempo, downbeats and bar energy all looked rig
 2026-10-29T12:42:10+05:30 aquib N: linked decision D-036 (Subdivide a long block on its own lyric repetition, not with a structure model)
 2026-10-29T12:42:10+05:30 aquib N: Not segmentation -- Whisper. Your assumption 1 is the wrong half, and the 'more interesting bug' is the one you have. The transcript differs run to run: WHISPER_TEMPERATURE_FALLBACK re-decodes a window that fails a confidence or repetition check at temperature 0.2-1.0, and every decode above 0 is a random sample. CTranslate2 seeds that sampler per thread from the system random device and only lets you set a global that a thread reads once, at its first sample, so a warm worker cannot be re-seeded. There is no seed to set. Sung lyrics trip the repetition check constantly, which is why the choruses in particular moved and why 'every chorus became a verse': the two decodes were no longer similar enough for the labeller to recognise the same block sung again. The boundaries moved with them because the blocks are cut at the gaps between transcript lines. Fallback is now off by default -- beam search only, deterministic (D-035). The DSP was never the problem: tempo, bars, energy and the labelling are pure numpy and gave you the same answer both times. Cost of the fix, so you have it: a window Whisper decodes badly is kept rather than re-rolled. On the subdivision you were right to assume we would not reach for a trained model (D-036): the line you found repeated twice inside that 200.9s verse is the whole signal, and label_blocks already reads that same repetition between blocks -- it just never looked inside one. Downbeat snapping is untouched; splits only ever land on a line start, which then snaps as before.
 2026-10-29T12:43:29+05:30 aquib N: On your (b) — pinning the transcript with a longer TTL does not get there, and I would rather say so than let you find out in a month. The cache keys on the bytes, so a longer TTL makes a re-render inside the window free, which it already was; your own done-when is two days apart with the cache COLD, and the first cold read after any eviction, deploy or settings change would still roll the dice. Making the 0.80 grouping noise-tolerant has the same shape of problem: it would stabilise the labels while the block boundaries, which are cut at the gaps between transcript lines, keep moving underneath. The words had to stop moving. They have.
+2026-10-29T12:46:22+05:30 aquib N: status: approved -> in_progress
+2026-10-29T12:46:22+05:30 aquib N: status: in_progress -> review — Built. Determinism came from making Whisper stop sampling (D-035); subdivision from reading your repeated hook inside a block instead of only between blocks (D-036). Test steps are on the ticket — step 4 is the one that matters: cold cache, same bytes, identical sections.

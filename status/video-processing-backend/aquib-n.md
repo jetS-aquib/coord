@@ -1,13 +1,43 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-212 built and handed back
+- **Current task:** JET-215 built and handed back
 - **Status:** waiting on human
-- **Blockers:** none. JET-212 is with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-10-27T16:52:38+05:30
+- **Blockers:** none. JET-215 and JET-212 are both with the requester; JET-199/200/201/203 are ours to close with `coord ok`
+- **Last updated:** 2026-10-29T12:46:53+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-29T12:46:53+05:30
+
+**JET-215 — the same bytes now give the same read, and no section swallows the song.**
+
+Two halves, two causes, and the first was not where the ticket guessed.
+
+*Reproducibility.* Not segmentation — Whisper. `WHISPER_TEMPERATURE_FALLBACK`
+re-decodes a window that fails a confidence or repetition check at temperature
+0.2–1.0, and every decode above 0 samples. CTranslate2 seeds that sampler per
+thread from `std::random_device`, and `set_random_seed` only writes a global a
+thread reads once at its first sample, so a warm worker cannot be re-seeded and
+there is no seed to set. Sung lyrics trip the repetition check constantly, which
+is why the choruses moved most. Default is now off — beam search only, and
+deterministic. D-035 has the alternatives and the quality cost.
+
+*The 200.9s section.* `_blocks` only ever split on a 3.5s instrumental gap, and a
+continuously sung track has none. `_subdivide` now cuts a block longer than a
+third of the song: first at every line sung twice inside it, then at the longest
+breath inside whichever piece is still too long. Only line boundaries are used,
+so everything still snaps to a downbeat. READ_VERSION is 2 so old cached reads
+miss. D-036.
+
+Simulated both reported shapes: Timeless-shaped goes from one 200.9s section to
+a worst case of 81s (32%), akcent-shaped to 38s (15%); boundaries on the grid,
+instrumental unchanged.
+
+Next: nothing of ours. JET-215 is in review with Test steps — the requester
+re-reads both tracks against their stored 27/29 Oct documents. JET-212 is still
+waiting on them. JET-199/200/201/203 are ours to close with `coord ok`.
 
 ### 2026-10-27T16:52:38+05:30
 
