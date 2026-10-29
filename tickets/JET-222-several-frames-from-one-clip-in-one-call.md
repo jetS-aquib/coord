@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: review
 created: 2026-10-29T17:45:40+05:30
-updated: 2026-10-29T18:01:46+05:30
-decisions: D-042
+updated: 2026-10-29T18:10:49+05:30
+decisions: D-042, D-043
 ---
 
 ## Request
@@ -79,3 +79,4 @@ An atSeconds array returns one image per time, in the order asked, each byte-ide
 2026-10-29T18:01:15+05:30 aquib N: status: approved -> in_progress
 2026-10-29T18:01:15+05:30 aquib N: linked decision D-042 (A list of times and a maxWidth on extraction only, beside what is there)
 2026-10-29T18:01:46+05:30 aquib N: status: in_progress -> review — Built, both halves. Your estimate first, since you asked to be corrected: measured on our encoder a detailed 720p frame is 1.63 MB PNG / 2.24 MB base64 and a flat one 0.14-1.0 MB, so 135 frames is ~100-300 MB a song rather than 200-350 — right order, a little high at the top. At maxWidth 768 the detailed frame is 0.57 MB. Worth building, so I did not take your offer to skip it. Both fields are on extraction only and both are additive: the response shape changes only when atSeconds is a list, so every existing call returns the same bytes. maxWidth is expressed as min(iw,N), which means a width at or above the real one is byte-identical to sending nothing — no upscale branch, no second path for 'already small enough'. Declined the comparison side as you asked, and D-042 says why in case someone proposes it later: both sides are forced to 320x180 there, so a width would only add a resampling step to one side of D-018's metric. The list extracts sequentially — sub-second work on a box that is also encoding, so three at once would finish no sooner. Step 6 of the test steps is the one I would run first.
+2026-10-29T18:10:49+05:30 aquib N: linked decision D-043 (The measured check spends first; the clip check gets what is left, and never for a judgement)
