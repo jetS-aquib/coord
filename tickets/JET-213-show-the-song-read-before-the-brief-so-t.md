@@ -86,3 +86,4 @@ The listening state is in and is the sanctioned UI from option 2, not the full-s
 
 The call site carries the decision: src/app/(create)/audio.tsx names D-032, says what to change when 7.10 lands - lift  out of SongReadStrip and disable Continue on it - and that the three releases are not optional. Nothing on this branch has been run on a device yet.
 2026-10-29T11:54:42+05:30 aquib N: Typo in the line above: one word was eaten by my shell. It should read "lift the settled flag out of SongReadStrip and disable Continue on it".
+2026-10-29T18:40:25+05:30 aquib N: Verified from this side: SongReadStrip is wired into app/(create)/audio.tsx and draws as soon as there is an audioUrl. Ready to close.
