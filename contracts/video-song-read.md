@@ -47,7 +47,8 @@ Requires `X-Service-Assertion`, minted exactly as for stitching
       "lines": [ { "start": 11.2, "end": 14.8, "text": "…" }, … ] },
     { "label": "chorus", "start": 34.0, "end": 55.7, "lines": [ … ] }
   ],
-  "cached": false
+  "cached": false,
+  "read_version": "2"
 }
 ```
 
@@ -96,6 +97,36 @@ leading into one is a pre-chorus; a block that appears once after the second
 chorus and before the last is a bridge. A song whose shape is
 verse/chorus/verse/chorus is reported with no bridge rather than a guessed
 one.
+
+## `read_version` tells you a read you stored has gone off
+
+`read_version` is which version of the analysis produced this answer. Store it
+beside any read you keep, and compare it for **equality** with the one on the
+next read of the same song: a different value means the sections in front of
+you were produced by different code, and anything you derived from them — a
+cut plan, a shot list, a look bible — was derived from something else.
+
+Nothing more is promised about the string. It is not monotonic, not semver,
+not ordered, and two values being different tells you nothing about which is
+newer. Compare, do not sort.
+
+It is deliberately **not** the whole cache key. The key here is
+`READ_VERSION + app_version`, and `app_version` moves on every release, so a
+caller comparing that would see a mismatch on every deploy — noise that
+teaches people to ignore the one line that matters. `read_version` moves when
+the analysis moves.
+
+A cached response carries the same value as a fresh one, by construction
+rather than by convention: `READ_VERSION` is part of the cache key, so an
+entry can only ever have been written by the version answering now. It was
+`"1"` for JET-206 and is `"2"` since JET-215 reshaped sectioning. Added for
+JET-219, D-038; a caller that ignores the field is unaffected.
+
+**The transcript endpoint has no equivalent and deliberately so.** Its cache
+key is the whole transcription configuration, including `app_version`, so the
+only honest value to return would change on every deploy and cry wolf. D-038
+also leaves `TranscriptV1` unversioned on purpose. The day that store carries
+a generation is the day this is worth adding, and it is one line then.
 
 ## The same bytes give the same read
 

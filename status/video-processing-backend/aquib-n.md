@@ -1,13 +1,43 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-215 built and handed back
+- **Current task:** JET-219 built and handed back
 - **Status:** waiting on human
-- **Blockers:** none. JET-215 and JET-212 are both with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-10-29T12:46:53+05:30
+- **Blockers:** none. JET-219, JET-215 and JET-212 are all with the requester; JET-199/200/201/203 are ours to close with `coord ok`
+- **Last updated:** 2026-10-29T15:54:47+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-29T15:54:47+05:30
+
+**JET-219 — the song read now says which version of the analysis made it.**
+
+`read_version` on `SongReadResponse`, set from `song_read.READ_VERSION` where
+the route builds the response. Three decisions worth knowing:
+
+- **Not stored in the cached payload.** `READ_VERSION` is part of the cache
+  key, so an entry can only ever have been written by the version answering
+  now. Reading it from the constant makes a cached answer and a fresh one
+  agree by construction instead of by somebody remembering to write the field
+  — which is the exact class of bug JET-219 was filed about.
+- **`READ_VERSION` alone, not the whole key.** The key is
+  `READ_VERSION + app_version`; app_version moves every release, so returning
+  it would fire the caller's mismatch warning on every deploy. Noise that
+  trains people to ignore the line.
+- **Declined the transcript half**, with the reason on the contract: its key
+  is the whole transcription config including app_version, so the only honest
+  value cries wolf, and D-038 leaves TranscriptV1 unversioned on purpose. One
+  line the day that changes.
+
+No new decision record — D-038 already covers this and the ticket is linked to
+it. Contract `video-song-read.md` has the field and the "compare, do not sort"
+rule. Three tests stub the download and the analysis and exercise the route
+itself: value matches the constant, cached equals fresh, and it moves when the
+constant moves.
+
+Next: nothing of ours. JET-219, JET-215 and JET-212 are all with the
+requester; JET-199/200/201/203 are ours to close with `coord ok`.
 
 ### 2026-10-29T12:46:53+05:30
 

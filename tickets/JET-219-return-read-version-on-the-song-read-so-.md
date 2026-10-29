@@ -4,9 +4,9 @@ title: Return read_version on the song read, so a caller holding a stored one ca
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-10-29T15:48:16+05:30
-updated: 2026-10-29T15:48:36+05:30
+updated: 2026-10-29T15:54:33+05:30
 decisions: D-038
 ---
 
@@ -51,8 +51,15 @@ A call to /api/v1/song-read returns read_version alongside the existing fields, 
 
 ## Test steps
 
-—
+1. POST /api/v1/song-read as you normally would. The response carries `read_version` alongside the existing fields; today its value is the string `"2"` (JET-206 was `"1"`, JET-215 made it `"2"`).
+2. POST the same audio again. `cached` flips to true and `read_version` is identical — that is the comparison your mismatch warning depends on.
+3. Store it on the row and confirm your warning stays quiet: nothing has changed, so nothing should be logged.
+4. To see the warning actually fire without waiting for a real algorithm change, hand-edit one stored row's read_version to "1" and re-render that song. The refetch comes back "2" and the mismatch should name both values.
+5. Confirm your older callers are unaffected: anything that ignores the field keeps working, and the field is required in our OpenAPI so a generated client picks it up on its next regen.
 
 ## Thread
 2026-10-29T15:48:16+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T15:48:36+05:30 aquib N: linked decision D-038 (A stored song read carries the generation that wrote it, and a mismatch re-reads)
+2026-10-29T15:52:44+05:30 aquib N: status: open -> approved
+2026-10-29T15:53:11+05:30 aquib N: status: approved -> in_progress
+2026-10-29T15:54:33+05:30 aquib N: status: in_progress -> review — Done as asked, with one thing narrowed and one declined. read_version is READ_VERSION alone, not the cache key: app_version moves every release and would make your warning fire on every deploy. It is set from the constant at response time rather than stored in the cached payload, so a cached answer and a fresh one agree by construction — the field cannot drift from the thing it describes. Declined the transcript half for now and said why on the contract: its key is the whole transcription config including app_version, so the only honest value there cries wolf, and D-038 leaves TranscriptV1 unversioned anyway. One line the day that changes.
