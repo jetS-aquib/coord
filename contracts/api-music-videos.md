@@ -96,6 +96,7 @@ parser.
   "anchorsTotal": 34, "anchorsDone": 34,
   "worstSeamScore": 5.4, "seamThreshold": 9.0,   // null until verifying
   "estimatedCostUsd": 24.80,
+  "discardedSeconds": 4.0,       // generated, then cut off at assembly (D-027)
   "finalVideoUrl": "", "error": "", "resumable": false,
   "plateUrl": "https://…",      // the reference sheet the stills were drawn against
   "clips": [{ "index": 0, "sceneIndex": 0, "status": "done", "state": "finalized",
@@ -143,6 +144,12 @@ the difference is trimmed at assembly (D-031, D-027). `sectionLabel` is a guess 
 Both are `null`, and `sectionLabel` `""`, on a render cut the old way: an instrumental,
 a song whose read was unavailable, or a plan made before this existed. That fallback
 is deliberate — the musical cutting can fail without the render failing.
+
+`discardedSeconds` is video that is generated and then trimmed away, because the
+music asks for lengths no model offers. It is part of what the render costs, so it is
+reported rather than hidden — that was the condition D-027 was taken under. Measured
+on a real 4:16 track at 80 BPM: 259s generated for 255s of music, so 4s. `0` on a
+render cut by duration.
 
 `seamScore` is a continuity measurement and only exists where continuity is wanted.
 A clip whose next clip starts a new **scene** is not pinned to that scene's opening
