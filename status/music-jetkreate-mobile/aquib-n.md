@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** v1 render integration is committed on branch `v1-render-and-design-pass` (4 commits, not merged, not pushed). Next is one live render to verify it.
+- **Current task:** JET-216 built and handed back (review). Uncommitted on branch `v1-render-and-design-pass`. Still waiting on one live render to verify the whole v1 path, JET-216 included.
 - **Status:** waiting on human
-- **Blockers:** nothing in code. The whole v1 path is UNRUN — that is the next job, not a blocker on writing more.
-- **Last updated:** 2026-10-23T11:00:00+05:30
+- **Blockers:** nothing in code. The v1 path is still UNRUN — one live render verifies JET-213, JET-216 and the render integration together.
+- **Last updated:** 2026-10-29T12:40:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -12,6 +12,21 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-29T12:40:00+05:30
+
+JET-216: the Direction box on `(create)/brief.tsx` is now four plain questions —
+Who's in it / Where / What happens / Look — with an optional Note behind "Add a
+note". The draft holds them as `answers` and the context derives `prompt` from
+them, so `working/[id].tsx` and `saveProject` are untouched: the same
+`directionPrompt` field goes out, now as labelled lines with blanks omitted.
+Nothing is required any more — `isReady` is the track alone. The style chip row
+was also called "Look"; it is `visualStyle.prompt`, a different field, so it is
+labelled "Style" now.
+
+Next: still the one live render. It verifies JET-213 and JET-216 at once — check
+the logline names what was typed in Who and What happens. Backend's 7.10 will
+later fill these fields' placeholders from the song read with no UI change.
 
 ### 2026-10-26T17:22:28+05:30
 

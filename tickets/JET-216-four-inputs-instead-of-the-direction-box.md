@@ -4,9 +4,9 @@ title: Four inputs instead of the Direction box, so the treatment has something 
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-29T12:31:11+05:30
-updated: 2026-10-29T12:33:40+05:30
+updated: 2026-10-29T12:38:05+05:30
 decisions: 
 ---
 
@@ -53,7 +53,11 @@ The create flow shows four labelled inputs and an optional note instead of one f
 
 ## Test steps
 
-—
+1. Start a new video, pick a track, continue to the Direction step.
+2. The single Direction box is gone. In its place: Who's in it / Where / What happens / Look, plus an "Add a note" link that opens a fifth field. No shot size, cut rate or lyric mode anywhere on the screen.
+3. Leave all five blank and tap Start filming — it is enabled on the track alone, and the render starts.
+4. Start again, fill in at least Who and Look, start a render, and read the project's directionPrompt on the backend: one labelled line per answer, blanks omitted.
+5. The treatment that comes back names what was typed in Who and What happens.
 
 ## Thread
 2026-10-29T12:31:11+05:30 aquib N: created ticket, status: - -> open
@@ -63,3 +67,5 @@ The create flow shows four labelled inputs and an optional note instead of one f
 1. The join is newline-separated, not two-spaced: 'Who: ...\nWhere: ...\nStory: ...\nLook: ...\nNote: ...'. Same labels, same field, easier to split on. Blank answers are left out entirely rather than sent as an empty label, so an untouched screen posts directionPrompt as an empty string — the same thing a blank box posts today.
 2. The fifth label is 'Note' (the optional one behind 'Add a note'). You did not name it; say if you want it folded into Story instead.
 3. The style chip row ('Cinematic', 'Anime', ...) was labelled 'Look' on screen. It is visualStyle.prompt, a different field, so it is now labelled 'Style' and the new Look answer is the text one. On-screen question wording: Who's in it / Where / What happens / Look.
+2026-10-29T12:37:31+05:30 aquib N: status: approved -> in_progress — four inputs built in brief.tsx + create-context.tsx
+2026-10-29T12:38:05+05:30 aquib N: status: in_progress -> review — built, unrun on device — step 4 and 5 need a live render
