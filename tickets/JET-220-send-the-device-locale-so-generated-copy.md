@@ -4,9 +4,9 @@ title: Send the device locale, so generated copy is in the reader's language ins
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-29T16:54:21+05:30
-updated: 2026-10-29T16:54:21+05:30
+updated: 2026-10-29T17:02:01+05:30
 decisions: 
 ---
 
@@ -54,3 +54,4 @@ A brief fetched from a device set to a non-English language comes back with its 
 
 ## Thread
 2026-10-29T16:54:21+05:30 aquib N: created ticket, status: - -> open
+2026-10-29T17:02:01+05:30 aquib N: status: open -> approved
