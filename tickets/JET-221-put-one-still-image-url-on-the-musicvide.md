@@ -70,3 +70,4 @@ A MusicVideo record carries a URL to a still image, populated while the render i
 
 4. STILL OPEN ON OUR SIDE, and not yours: we never found out HOW the old decode was failing on the device — timeout or error — because that needs a Metro log we do not have yet. This ticket makes it not matter for the Library card, but the same decode path still backs the shot strip and the reel, so we are not treating the question as closed.
 2026-10-29T17:11:15+05:30 aquib N: status: in_progress -> review — backend field verified, mobile half wired — ready for you to check on the device
+2026-10-29T18:40:26+05:30 aquib N: Verified on a full live render (mvr_1793277832749_3e886f1a): MusicVideo.posterUrl is set to a scene-image URL, written the moment the first anchor lands and again on resume if a run stopped between the two writes. Ready to close.
