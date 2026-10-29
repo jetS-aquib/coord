@@ -1,13 +1,72 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batch 7B — the continuity supervisor. All six rows built (7B.1-7B.6), none yet run on a render.
+- **Current task:** Batches 7 and 7B done and verified on a full render. Committed at 84f120b. Batch 8 (the call sheet) is next.
 - **Status:** waiting on human
-- **Blockers:** 7B unverified — needs one render (a 30s trim across a section boundary, ~$2-3, exercises every phase). Nothing committed. JET-222 needs `coord ok 222`.
-- **Last updated:** 2026-10-29T18:15:00+05:30
+- **Blockers:** Nine tickets need a person's `coord done` — see the handoff note. JET-215 is now the biggest constraint on output quality and is not ours.
+- **Last updated:** 2026-10-29T18:50:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-29T18:50
+
+**Batches 7 and 7B verified on a full 45-clip render** (`mvr_1793277832749_3e886f1a`,
+completed, stitched) and **committed at 84f120b**. Delivery plan artifact updated to
+Version 9: both batches marked done, the crew chart's script-supervisor chair filled,
+D7 and D11 settled.
+
+**The render worked. It also found a cost leak, which is what a first run is for.**
+`renderOneClipV1` clears `seamScore` on every successful render ("a new take needs a
+new measurement"), so a re-render path that reverts `videoUrl` without reverting
+`seamScore` leaves a measured clip looking *un*measured — the `verifySeamsV1` sweep
+then re-measures it and is entitled to re-render it again, off-budget. **17
+re-renders against a budget of 9**, where the pre-7B baseline on the same song length
+did exactly 9. Both paths (the seam one, which had the same latent bug, and my new
+clip one) now revert through a single `revertTakeV1`, so the two fields cannot move
+apart again. Three tests pin it. **Unverified on a render — the next one confirms it.**
+
+**What the distributions say — this is the part worth reading before touching the
+gate.** 46 stills: 10 pass, 35 fail, 1 unchecked (budget fuse fired, as designed).
+45 clips: 17 pass, 28 fail. A **76% fail rate is a noisy signal however it is spent.**
+
+The two kinds that dominate are exactly the two D-040 and D-043 refused to pay for:
+**continuity 28, anatomy 23** on the stills. The countable ones are rare — people 2,
+text 3. So the split is vindicated hard: paying for every verdict would have redrawn
+~40 stills on the fuzziest two judgements in the batch, and the budget would have
+been gone before anything real was caught.
+
+**My honest reading: the question is too permissive, not the stills that bad.** Before
+widening `GATE_REDRAW_ON_V1`, narrow what the model is asked. That is D12 on the
+artifact, and it should be decided off the next render, not off a hunch.
+
+**The thing that justifies the batch:** 6 clips failed the clip check whose own
+anchor **passed** the gate. Those are clips that drifted rather than stills that were
+wrong, and nothing before 7B could see them at all — the seam check scores both ends
+and both ends were fine. That is the gap, and it is real and measurable.
+
+**Tickets.** `coord ok` is refused to agents — it reads a tty — so these need a person:
+
+- `coord done JET-212` · `JET-219` · `JET-222` (video-processing; all three verified)
+- `coord done JET-213` · `JET-216` · `JET-218` · `JET-220` · `JET-221` (mobile; all
+  five verified from this side, evidence on each thread)
+- `coord done JET-202` (handed back with `coord review`; 45 clips stitched as 32
+  scene-aligned segments on this render)
+
+**Left open deliberately:**
+- **JET-215** — still two distinct section labels on every track. The look bible gives
+  2 locations for 45 clips, so the gate's location check is near-vacuous, `disjunctive`
+  has never fired, and "chorus 2 rhymes with chorus 1" cannot be shown. **More of
+  Batch 7 is limited by this than by anything we could build.**
+- **JET-217** — mobile's `isReady` is `Boolean(draft.audioUrl)`, so an all-blank brief
+  can still be submitted. The suggestions cover songs with a read; the instrumental
+  title-fallback case is not evidenced. Not closing it on a guess.
+- **JET-194** — `posterUrl` is still a `storage.googleapis.com` URL. Not done.
+
+**Next:** Batch 8, the call sheet. And one more render to confirm the budget fix and
+to decide D12.
+
+143 tests (was 107), typecheck clean, four do-not-touch files untouched.
+
 ### 2026-10-29T18:15
 
 **Batch 7B is now built end to end.** 7B.1 earlier this session (see the 17:50 note);
