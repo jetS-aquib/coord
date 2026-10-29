@@ -103,6 +103,23 @@ sent, so the work survives the answer being lost.
 Two callers asking for the same audio at once is also safe: the second one
 waits for the first and takes its result rather than running Whisper twice.
 
+## The same bytes give the same words
+
+Byte-identical audio transcribes to an identical transcript, cache or no cache
+(JET-215, D-035). It did not before. `WHISPER_TEMPERATURE_FALLBACK` used to
+default on, which re-decodes a window that fails a confidence or repetition
+check at temperature 0.2-1.0 — and every decode above temperature 0 is a
+random sample, from a CTranslate2 sampler that is seeded per thread from the
+system random device and cannot be re-seeded afterwards. Sung lyrics trip the
+repetition check constantly, so the same line came back as different words
+between runs. It is off now: beam search only.
+
+Nothing in the response shape changes, and nothing you send changes. What
+changes is that a window Whisper decodes badly is kept as decoded rather than
+re-rolled, and that a re-render of unchanged audio is the same render. This is
+also what makes `/api/v1/song-read`'s sections stable, since they are read
+from these words.
+
 ## Notes
 
 The endpoint runs the stitch's own transcription phase, not a second copy of
