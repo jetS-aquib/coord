@@ -4,9 +4,9 @@ title: The brief's examples and defaults now come from the song — POST /api/v1
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-10-29T13:26:21+05:30
-updated: 2026-10-29T13:31:35+05:30
+updated: 2026-10-29T13:32:12+05:30
 decisions: D-037
 ---
 
@@ -95,3 +95,4 @@ Opening the Direction screen for a track with a song read shows examples that ma
 2. SUGGESTIONS STAY PLACEHOLDERS, not pre-filled text, as you assumed. The substitution happens at submit: withSuggestions() in create-context fills any blank answer from its suggestion before buildDirection() runs, so what goes out is what the person saw greyed out and left standing.
 
 3. ASKED ONCE PER TRACK, at mount on the Direction screen, with the title as it stands then. Editing the title afterwards does not re-ask. Changing the TRACK clears the brief, so one song's suggestions can never be submitted against another. A failure or a slow call shows the generic form and is never surfaced — the screen has a complete form of its own.
+2026-10-29T13:32:12+05:30 aquib N: status: in_progress -> review — built, unrun on device — needs a real track with a read to verify

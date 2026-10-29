@@ -4,9 +4,9 @@ title: A brief with every field left blank cannot start a render — the storybo
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-10-29T13:20:54+05:30
-updated: 2026-10-29T13:31:35+05:30
+updated: 2026-10-29T13:32:12+05:30
 decisions: 
 ---
 
@@ -72,3 +72,4 @@ What is still worth taking from this ticket: the instrumental case. There, /brie
 2026-10-29T13:32:07+05:30 aquib N: Done, but not the way the ticket proposed — the one-liner is in, exactly as written (prompt: input.prompt || input.title || 'a music video for this song', createStoryboard only, directionPrompt untouched). What changed is what it is FOR.
 
 JET-218 landed in the same sitting, so for any song with a read the blank fields are now submitted as their suggestions and directionPrompt is never empty. This fallback is therefore only reached by the instrumental case you flagged in the thread: source 'default', every suggestion '', nothing to substitute. The comment in generation.ts says that, so nobody deletes it later thinking 218 covers it.
+2026-10-29T13:32:12+05:30 aquib N: status: in_progress -> review — built as the instrumental half of JET-218 — unrun

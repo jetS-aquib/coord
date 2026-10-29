@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-216 built and handed back (review). Uncommitted on branch `v1-render-and-design-pass`. Still waiting on one live render to verify the whole v1 path, JET-216 included.
+- **Current task:** JET-216 committed; JET-217 and JET-218 built and handed back (review), uncommitted. All on branch `v1-render-and-design-pass`. Still waiting on one live render to verify the whole v1 path.
 - **Status:** waiting on human
-- **Blockers:** nothing in code. The v1 path is still UNRUN — one live render verifies JET-213, JET-216 and the render integration together.
-- **Last updated:** 2026-10-29T12:40:00+05:30
+- **Blockers:** nothing in code. The v1 path is still UNRUN — one live render verifies JET-213, JET-216, JET-217, JET-218 and the render integration together. The instrumental path needs a second render to be worth anything.
+- **Last updated:** 2026-10-29T14:05:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -12,6 +12,28 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-29T14:05:00+05:30
+
+JET-218 (7.10) and JET-217 together, since 218 is most of 217's fix.
+
+`brief()` in generation.ts calls POST /api/v1/music-videos/brief at mount on the
+Direction screen — once per track, with the title as it stands then. The four
+Fields are now a `QUESTIONS` constant in brief.tsx: the screen keeps its own
+labels, order and which one is multiline (D-037 fixes the same four keys on the
+backend), and takes only placeholder and hint from the response. Suggestions
+stay greyed out rather than pre-filling; `withSuggestions()` in create-context
+substitutes a blank field's suggestion at submit, just before buildDirection().
+Changing the track clears the brief so one song's suggestions can never be sent
+against another.
+
+JET-217's one-liner is in `createStoryboard` unchanged, but it is now only
+reached by an instrumental: no read means no suggestions, so directionPrompt
+really is empty and the v0 storyboard route would 400. `directionPrompt` on the
+project is still left empty either way.
+
+Next: still the one live render — and a second on an instrumental, which is the
+only path the title fallback covers. Nothing in 216/217/218 has run on a device.
 
 ### 2026-10-29T12:40:00+05:30
 
