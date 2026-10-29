@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-29T12:10:51+05:30
+
+Session ended while on JET-214. Touched: src/services/render/lookBibleV1.ts, src/services/render/treatmentV1.ts, src/services/render/cutPlanV1.ts, src/services/render/shotListV1.ts, src/models/RenderPlanV1.ts, src/services/render/renderOrchestratorV1.ts, src/services/render/shotListV1.test.ts. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-10-29T11:53:49+05:30
 
 Session ended while on JET-214. Touched: artifact-832053e4-1793088363-0546.html. Nothing committed. (written automatically — no one said what is next)
