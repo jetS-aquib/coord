@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: open
 created: 2026-10-29T13:26:21+05:30
-updated: 2026-10-29T13:26:21+05:30
-decisions: 
+updated: 2026-10-29T13:26:51+05:30
+decisions: D-037
 ---
 
 ## Request
@@ -80,3 +80,4 @@ Opening the Direction screen for a track with a song read shows examples that ma
 
 ## Thread
 2026-10-29T13:26:21+05:30 aquib N: created ticket, status: - -> open
+2026-10-29T13:26:51+05:30 aquib N: linked decision D-037 (The brief's questions are fixed; only its examples, hints and defaults come from the song)
