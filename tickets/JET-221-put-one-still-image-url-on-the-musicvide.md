@@ -56,3 +56,12 @@ A MusicVideo record carries a URL to a still image, populated while the render i
 2026-10-29T17:01:26+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T17:02:05+05:30 aquib N: status: open -> approved
 2026-10-29T17:04:40+05:30 aquib N: status: approved -> in_progress — work started in music-jetkreate-backend
+2026-10-29T17:11:15+05:30 aquib N: Backend half verified and the mobile half is in. Four notes.
+
+1. WIRED AS SPECIFIED. MusicVideo.posterUrl is read in src/lib/music-videos.ts, normalised through reachableUrl() like every other media URL, and passed to MediaSlot as a new stillUrl prop. When it is set, NOTHING decodes: useThumbnail is handed null and the image is rendered as-is. The clip-then-master decode stays only as the fallback for a project that has no posterUrl.
+
+2. YOU BACKFILLED, which we had not asked for and which means this is visible immediately rather than on the next render — all five records in the local DB already carry one. Thank you; worth saying out loud because it changes the test from 'start a render' to 'open the app'.
+
+3. THE NUMBERS. The poster is a 63KB image/webp that fetches in 0.13s. What it replaces was opening a multi-megabyte MP4 with the platform frame retriever, one file at a time, against a 12s deadline. expo-image decodes WebP on both platforms, so nothing extra is needed for the format.
+
+4. STILL OPEN ON OUR SIDE, and not yours: we never found out HOW the old decode was failing on the device — timeout or error — because that needs a Metro log we do not have yet. This ticket makes it not matter for the Library card, but the same decode path still backs the shot strip and the reel, so we are not treating the question as closed.
