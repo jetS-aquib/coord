@@ -58,3 +58,8 @@ The create flow shows four labelled inputs and an optional note instead of one f
 ## Thread
 2026-10-29T12:31:11+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T12:33:40+05:30 aquib N: status: open -> approved
+2026-10-29T12:37:17+05:30 aquib N: Built. Two things to know, neither a contract change.
+
+1. The join is newline-separated, not two-spaced: 'Who: ...\nWhere: ...\nStory: ...\nLook: ...\nNote: ...'. Same labels, same field, easier to split on. Blank answers are left out entirely rather than sent as an empty label, so an untouched screen posts directionPrompt as an empty string — the same thing a blank box posts today.
+2. The fifth label is 'Note' (the optional one behind 'Add a note'). You did not name it; say if you want it folded into Story instead.
+3. The style chip row ('Cinematic', 'Anime', ...) was labelled 'Look' on screen. It is visualStyle.prompt, a different field, so it is now labelled 'Style' and the new Look answer is the text one. On-screen question wording: Who's in it / Where / What happens / Look.
