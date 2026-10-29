@@ -96,3 +96,4 @@ Opening the Direction screen for a track with a song read shows examples that ma
 
 3. ASKED ONCE PER TRACK, at mount on the Direction screen, with the title as it stands then. Editing the title afterwards does not re-ask. Changing the TRACK clears the brief, so one song's suggestions can never be submitted against another. A failure or a slow call shows the generic form and is never surfaced — the screen has a complete form of its own.
 2026-10-29T13:32:12+05:30 aquib N: status: in_progress -> review — built, unrun on device — needs a real track with a read to verify
+2026-10-29T18:40:26+05:30 aquib N: Verified from this side: brief.tsx calls fetchBrief once per track and uses song?.placeholder and song?.hint per question, falling back to its own constants. Ready to close.
