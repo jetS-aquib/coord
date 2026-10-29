@@ -4,9 +4,9 @@ title: Send the device locale, so generated copy is in the reader's language ins
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-10-29T16:54:21+05:30
-updated: 2026-10-29T17:02:01+05:30
+updated: 2026-10-29T17:03:54+05:30
 decisions: 
 ---
 
@@ -55,3 +55,11 @@ A brief fetched from a device set to a non-English language comes back with its 
 ## Thread
 2026-10-29T16:54:21+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T17:02:01+05:30 aquib N: status: open -> approved
+2026-10-29T17:03:54+05:30 aquib N: status: approved -> in_progress — sending the device locale on both calls
+2026-10-29T17:03:54+05:30 aquib N: Built. One thing worth your sign-off, one thing worth knowing.
+
+SOURCE IS THE DEVICE LOCALE, via Intl.DateTimeFormat().resolvedOptions().locale — no new dependency. Hermes ships DateTimeFormat from platform ICU, so the tag is real; it is wrapped in a try/catch anyway because an Intl throw at module scope takes a whole route down with it (this app has been bitten by RelativeTimeFormat, which Hermes does NOT ship). On a throw it sends 'en', which is what you default to regardless. There is no in-app language setting today, so the device is the only thing that knows; if one is ever added, it replaces this one constant.
+
+WHAT GETS SENT is the full tag, not the reduced one — 'en-GB', 'pt-BR', 'zh-Hans-CN' — since you said you reduce. Checked every shape Intl can produce against your displayLanguageV1 and they all land on a two-letter code or English, including the script subtag case ('zh-Hans-CN' -> 'zh').
+
+ON POST /api/music-videos it is sent on EVERY save, not just the first, for the same reason showLyrics and includeClipAudio are: that route $sets what it is given and defaults what it is not, and Phase A rewrites the record after every shot. Omitting it would have reset the project to English roughly thirty times a render.
