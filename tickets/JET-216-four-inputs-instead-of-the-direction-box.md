@@ -4,9 +4,9 @@ title: Four inputs instead of the Direction box, so the treatment has something 
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-29T12:31:11+05:30
-updated: 2026-10-29T12:31:11+05:30
+updated: 2026-10-29T12:33:40+05:30
 decisions: 
 ---
 
@@ -57,3 +57,4 @@ The create flow shows four labelled inputs and an optional note instead of one f
 
 ## Thread
 2026-10-29T12:31:11+05:30 aquib N: created ticket, status: - -> open
+2026-10-29T12:33:40+05:30 aquib N: status: open -> approved
