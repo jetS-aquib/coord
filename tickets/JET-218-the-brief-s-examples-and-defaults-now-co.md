@@ -4,9 +4,9 @@ title: The brief's examples and defaults now come from the song — POST /api/v1
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-10-29T13:26:21+05:30
-updated: 2026-10-29T13:26:51+05:30
+updated: 2026-10-29T13:31:35+05:30
 decisions: D-037
 ---
 
@@ -76,8 +76,22 @@ Opening the Direction screen for a track with a song read shows examples that ma
 
 ## Test steps
 
-—
+1. Pick a track with a song read and continue to the Direction step. The greyed-out examples are about THAT track, not the seaside town, and a hint appears under a label where the server sent one. Non-English song: the strings are in its language and script.
+2. The four labels, their order and their wording do not change between songs (D-037) — only what sits under them.
+3. Leave every field blank and press Start filming. The project's directionPrompt carries four labelled answers — the suggestions — not an empty string.
+4. Fill one field in; that answer is sent and the other three fall back to their suggestions.
+5. Pick an instrumental, or kill the network before the Direction step: the generic form shows, the screen still works, and the render still starts (JET-217's title fallback).
+6. Go back, pick a different track, return: the suggestions are the new song's, never the previous one's.
 
 ## Thread
 2026-10-29T13:26:21+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T13:26:51+05:30 aquib N: linked decision D-037 (The brief's questions are fixed; only its examples, hints and defaults come from the song)
+2026-10-29T13:28:48+05:30 aquib N: status: open -> approved
+2026-10-29T13:31:35+05:30 aquib N: status: approved -> in_progress — building 7.10 on the brief screen; JET-217's title fallback goes in with it
+2026-10-29T13:32:07+05:30 aquib N: Built, on the same branch as JET-216. Three things.
+
+1. LABELS ARE STILL OURS. The ticket asked for the placeholder and the hint, so that is all the screen takes — the four labels (Who's in it / Where / What happens / Look), their order and which one is multiline stay a local constant. D-037 says your QUESTIONS_V1 owns the same four keys in the same order, so the two constants have to move together; the keys are the join between them. If you would rather we rendered your labels, say so and it is a one-line change.
+
+2. SUGGESTIONS STAY PLACEHOLDERS, not pre-filled text, as you assumed. The substitution happens at submit: withSuggestions() in create-context fills any blank answer from its suggestion before buildDirection() runs, so what goes out is what the person saw greyed out and left standing.
+
+3. ASKED ONCE PER TRACK, at mount on the Direction screen, with the title as it stands then. Editing the title afterwards does not re-ask. Changing the TRACK clears the brief, so one song's suggestions can never be submitted against another. A failure or a slow call shows the generic form and is never surfaced — the screen has a complete form of its own.

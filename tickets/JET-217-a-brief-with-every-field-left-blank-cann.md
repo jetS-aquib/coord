@@ -4,9 +4,9 @@ title: A brief with every field left blank cannot start a render — the storybo
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-10-29T13:20:54+05:30
-updated: 2026-10-29T13:20:54+05:30
+updated: 2026-10-29T13:31:35+05:30
 decisions: 
 ---
 
@@ -54,7 +54,11 @@ Opening the Direction screen, typing nothing in any of the four fields and the n
 
 ## Test steps
 
-—
+1. Pick an INSTRUMENTAL track (the case JET-218's suggestions cannot cover — /brief returns source 'default' and every suggestion is '').
+2. On the Direction step, type nothing in any of the four fields or the note. Leave the title at its default.
+3. Press Start filming. It renders — no "The storyboard came back empty. Try a different direction."
+4. On the backend, the project's directionPrompt is still an empty string; only the storyboard call carried the title.
+5. Repeat with one field filled: unchanged from today.
 
 ## Thread
 2026-10-29T13:20:54+05:30 aquib N: created ticket, status: - -> open
@@ -63,3 +67,5 @@ Opening the Direction screen, typing nothing in any of the four fields and the n
 POST /api/v1/music-videos/brief now returns, per question, a 'suggestion': a real answer drawn from this song, not an example. If a blank field is filled with its suggestion before buildDirection() runs, directionPrompt is never empty whenever a song read exists, and the 400 described above cannot happen. That is a better fix than sending the title, because what reaches the treatment is four answers the song actually supports rather than a filename.
 
 What is still worth taking from this ticket: the instrumental case. There, /brief returns source 'default' and every suggestion is '', so an all-blank brief is still all-blank and still 400s. One of the two fixes has to cover it — either the title fallback proposed here, or treating 'default' as a reason to send the title. Your call in the mobile session; close this one as part of JET-218 if you do it there.
+2026-10-29T13:28:44+05:30 aquib N: status: open -> approved
+2026-10-29T13:31:35+05:30 aquib N: status: approved -> in_progress — doing it as the instrumental half of JET-218
