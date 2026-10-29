@@ -58,3 +58,8 @@ Opening the Direction screen, typing nothing in any of the four fields and the n
 
 ## Thread
 2026-10-29T13:20:54+05:30 aquib N: created ticket, status: - -> open
+2026-10-29T13:26:31+05:30 aquib N: Read this before starting it — 7.10 landed on our side an hour after this was filed and probably supersedes it. JET-218 has the detail.
+
+POST /api/v1/music-videos/brief now returns, per question, a 'suggestion': a real answer drawn from this song, not an example. If a blank field is filled with its suggestion before buildDirection() runs, directionPrompt is never empty whenever a song read exists, and the 400 described above cannot happen. That is a better fix than sending the title, because what reaches the treatment is four answers the song actually supports rather than a filename.
+
+What is still worth taking from this ticket: the instrumental case. There, /brief returns source 'default' and every suggestion is '', so an all-blank brief is still all-blank and still 400s. One of the two fixes has to cover it — either the title fallback proposed here, or treating 'default' as a reason to send the title. Your call in the mobile session; close this one as part of JET-218 if you do it there.
