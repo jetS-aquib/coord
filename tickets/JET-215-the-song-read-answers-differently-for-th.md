@@ -68,3 +68,15 @@ Reading the same audio bytes twice, two days apart with the cache cold, returns 
 ## Thread
 2026-10-29T12:30:42+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T12:33:35+05:30 aquib N: status: open -> approved
+2026-10-29T12:39:19+05:30 aquib N: Read app/services/song_read.py before standup and found the cause of both halves. One assumption in the Understanding above is WRONG and I would rather correct it than have you chase it: I guessed the non-determinism was in the segmentation rather than in Whisper. It is almost certainly Whisper.
+
+Sections do not look at the audio at all. _blocks() splits the TRANSCRIPT wherever there is an instrumental gap >= INSTRUMENTAL_GAP_SECONDS (3.5s), and label_blocks() then groups those blocks by difflib.SequenceMatcher ratio >= REPEAT_SIMILARITY (0.80); the group that recurs most becomes the chorus and everything else is positional reasoning around it. So:
+
+- THE 200.9s SECTION is the 3.5s gap rule meeting a track with continuous vocals. Timeless has no 3.5s hole through its middle, so the whole middle is ONE block and therefore one section carrying 73 lines. The repeated hook line sits INSIDE that single block, and since grouping is between blocks, the one signal that would have found the chorus is invisible to it. Same shape on akcent - stay with me.
+- THE FLIP FROM chorus TO verse is Whisper variance crossing the 0.80 line. We have it in our own data: the same line came back as 'Exotanic all over her body' one time and 'XO Tati, fall over her body' another, in the same pass. Two runs that disagree like that score differently against 0.80, and the chorus group collapses to singletons, which is exactly the 27 Oct vs 29 Oct difference.
+
+So the ask is narrower than the Understanding makes it sound, and cheaper. Neither half needs a structure model or a new dependency:
+  (a) subdivide a block that is long, rather than only splitting on silence. A 200s block with 73 lines wants splitting on repetition inside itself.
+  (b) make the grouping robust to transcription noise, or pin the transcript so the same bytes reuse the same words. If the transcript were stable the labels would be too, and you already cache it on the bytes - a longer-lived transcript may fix the reproducibility half on its own.
+
+The beat side is not in question: tempo, downbeats and bar energy all looked right on both songs, and the phase measurement is doing its job.
