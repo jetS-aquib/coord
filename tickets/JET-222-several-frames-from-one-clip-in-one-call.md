@@ -4,9 +4,9 @@ title: Several frames from one clip in one call, and an optional size, so a visi
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-29T17:45:40+05:30
-updated: 2026-10-29T17:45:40+05:30
+updated: 2026-10-29T17:56:30+05:30
 decisions: 
 ---
 
@@ -66,3 +66,4 @@ An atSeconds array returns one image per time, in the order asked, each byte-ide
 
 ## Thread
 2026-10-29T17:45:40+05:30 aquib N: created ticket, status: - -> open
+2026-10-29T17:56:30+05:30 aquib N: status: open -> approved

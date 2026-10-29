@@ -42,3 +42,4 @@
 | D-038 | A stored song read carries the generation that wrote it, and a mismatch re-reads | 2026-10-29 | active | music-jetkreate-backend video-processing-backend | JET-219 |
 | D-039 | Generated copy is written in the reader's language, which the song does not get to choose | 2026-10-29 | active | music-jetkreate-backend music-jetkreate-mobile |  |
 | D-040 | The frame gate spends on what it can count, and only records what it must judge | 2026-10-29 | active | music-jetkreate-backend |  |
+| D-041 | Mobile shows nothing of the frame gate until a live render says how often it fires | 2026-10-29 | active | music-jetkreate-mobile music-jetkreate-backend |  |
