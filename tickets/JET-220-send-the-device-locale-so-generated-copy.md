@@ -4,9 +4,9 @@ title: Send the device locale, so generated copy is in the reader's language ins
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-10-29T16:54:21+05:30
-updated: 2026-10-29T17:03:54+05:30
+updated: 2026-10-29T17:04:05+05:30
 decisions: 
 ---
 
@@ -50,7 +50,12 @@ A brief fetched from a device set to a non-English language comes back with its 
 
 ## Test steps
 
-—
+1. Set the phone to a non-English language (Settings - General - Language & Region on iOS), then reopen the app and start a new video.
+2. On the Direction step, the examples and hints under the four questions come back in that language and in its own script. The four LABELS stay English — they are ours, not the model's (D-037).
+3. Start the render. The logline and treatment come back in the same language.
+4. Set the phone back to English and repeat: everything is English, unchanged from today.
+5. Check the request bodies: POST /api/v1/music-videos/brief and POST /api/music-videos both carry `language` as the full device tag, e.g. "en-GB".
+6. A locale the backend cannot reduce to two letters produces an English screen, never an error.
 
 ## Thread
 2026-10-29T16:54:21+05:30 aquib N: created ticket, status: - -> open
@@ -63,3 +68,4 @@ SOURCE IS THE DEVICE LOCALE, via Intl.DateTimeFormat().resolvedOptions().locale 
 WHAT GETS SENT is the full tag, not the reduced one — 'en-GB', 'pt-BR', 'zh-Hans-CN' — since you said you reduce. Checked every shape Intl can produce against your displayLanguageV1 and they all land on a two-letter code or English, including the script subtag case ('zh-Hans-CN' -> 'zh').
 
 ON POST /api/music-videos it is sent on EVERY save, not just the first, for the same reason showLyrics and includeClipAudio are: that route $sets what it is given and defaults what it is not, and Phase A rewrites the record after every shot. Omitting it would have reset the project to English roughly thirty times a render.
+2026-10-29T17:04:05+05:30 aquib N: status: in_progress -> review — built, unrun on device — needs a phone set to a non-English locale
