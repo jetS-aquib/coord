@@ -4,9 +4,9 @@ title: Put one still image URL on the MusicVideo record, so a library card never
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-10-29T17:01:26+05:30
-updated: 2026-10-29T17:02:05+05:30
+updated: 2026-10-29T17:04:40+05:30
 decisions: 
 ---
 
@@ -55,3 +55,4 @@ A MusicVideo record carries a URL to a still image, populated while the render i
 ## Thread
 2026-10-29T17:01:26+05:30 aquib N: created ticket, status: - -> open
 2026-10-29T17:02:05+05:30 aquib N: status: open -> approved
+2026-10-29T17:04:40+05:30 aquib N: status: approved -> in_progress — work started in music-jetkreate-backend
