@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-29T12:30:42+05:30
-updated: 2026-10-29T12:33:35+05:30
-decisions: 
+updated: 2026-10-29T12:42:10+05:30
+decisions: D-035, D-036
 ---
 
 ## Request
@@ -80,3 +80,6 @@ So the ask is narrower than the Understanding makes it sound, and cheaper. Neith
   (b) make the grouping robust to transcription noise, or pin the transcript so the same bytes reuse the same words. If the transcript were stable the labels would be too, and you already cache it on the bytes - a longer-lived transcript may fix the reproducibility half on its own.
 
 The beat side is not in question: tempo, downbeats and bar energy all looked right on both songs, and the phase measurement is doing its job.
+2026-10-29T12:41:37+05:30 aquib N: linked decision D-035 (Beam search only: a reproducible transcript beats a second look at a bad window)
+2026-10-29T12:42:10+05:30 aquib N: linked decision D-036 (Subdivide a long block on its own lyric repetition, not with a structure model)
+2026-10-29T12:42:10+05:30 aquib N: Not segmentation -- Whisper. Your assumption 1 is the wrong half, and the 'more interesting bug' is the one you have. The transcript differs run to run: WHISPER_TEMPERATURE_FALLBACK re-decodes a window that fails a confidence or repetition check at temperature 0.2-1.0, and every decode above 0 is a random sample. CTranslate2 seeds that sampler per thread from the system random device and only lets you set a global that a thread reads once, at its first sample, so a warm worker cannot be re-seeded. There is no seed to set. Sung lyrics trip the repetition check constantly, which is why the choruses in particular moved and why 'every chorus became a verse': the two decodes were no longer similar enough for the labeller to recognise the same block sung again. The boundaries moved with them because the blocks are cut at the gaps between transcript lines. Fallback is now off by default -- beam search only, deterministic (D-035). The DSP was never the problem: tempo, bars, energy and the labelling are pure numpy and gave you the same answer both times. Cost of the fix, so you have it: a window Whisper decodes badly is kept rather than re-rolled. On the subdivision you were right to assume we would not reach for a trained model (D-036): the line you found repeated twice inside that 200.9s verse is the whole signal, and label_blocks already reads that same repetition between blocks -- it just never looked inside one. Downbeat snapping is untouched; splits only ever land on a line start, which then snaps as before.

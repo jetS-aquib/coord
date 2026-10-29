@@ -36,3 +36,5 @@
 | D-032 | The song read gates the flow: no brief until the track has been read | 2026-10-29 | active | music-jetkreate-mobile music-jetkreate-backend | JET-213 JET-214 JET-206 |
 | D-033 | Performance and narrative are a ratio, defaulting to a third performance | 2026-10-29 | active | music-jetkreate-backend music-jetkreate-mobile |  |
 | D-034 | The shot grammar is arithmetic in code; only what is in the frame is a model call | 2026-10-29 | active | music-jetkreate-backend |  |
+| D-035 | Beam search only: a reproducible transcript beats a second look at a bad window | 2026-10-29 | active | video-processing-backend | JET-215 |
+| D-036 | Subdivide a long block on its own lyric repetition, not with a structure model | 2026-10-29 | active | video-processing-backend | JET-215 |

@@ -77,6 +77,17 @@ duration. **Every boundary is snapped to a downbeat**, which is the point — a
 section boundary that is not on a downbeat is a scene change you cannot cut
 to.
 
+**No sung section covers more than about a third of the track** (JET-215).
+Instrumental gaps alone do not find every boundary: a chorus that runs
+straight out of the verse before it leaves no silence anywhere, so a
+continuously sung passage used to arrive as one section covering 78% of a
+song. A block that long is now cut at a line that is sung twice inside it —
+the same repetition the labels are read from, read *within* a block — and
+failing that at its longest breath. Pieces are never cut below 8 seconds, so
+"about a third" is a target and not a guarantee: a passage with nowhere left
+to cut stays whole rather than being chopped into unusable slivers. An
+`intro` or `outro` carries no lines and is never subdivided.
+
 `label` is one of `intro`, `verse`, `pre-chorus`, `chorus`, `bridge`, `outro`,
 and **is a guess**. Read the boundaries as much more reliable than the names:
 they come from instrumental gaps and the bar grid, the labels come from lyric
@@ -85,6 +96,23 @@ leading into one is a pre-chorus; a block that appears once after the second
 chorus and before the last is a bridge. A song whose shape is
 verse/chorus/verse/chorus is reported with no bridge rather than a guessed
 one.
+
+## The same bytes give the same read
+
+Byte-identical audio returns byte-identical sections, cache or no cache
+(JET-215). It did not before: the transcript is decoded by Whisper, and
+with `WHISPER_TEMPERATURE_FALLBACK` on a window that failed a confidence or
+repetition check was re-decoded by *sampling*, which CTranslate2 seeds from
+the system random device and will not let you re-seed. So the words came
+back slightly different between runs, and both the block boundaries and the
+labels are read from the words. That is why a chorus became a verse: the two
+decodes of it were no longer similar enough to be recognised as the same
+block sung again.
+
+The fallback is off by default now, so decoding is beam search only and
+reproducible. The analysis itself — tempo, bars, energy, blocking,
+subdivision, labelling — was always deterministic, and is unchanged. See
+D-035.
 
 ## An instrumental still answers
 
