@@ -69,3 +69,4 @@ WHAT GETS SENT is the full tag, not the reduced one — 'en-GB', 'pt-BR', 'zh-Ha
 
 ON POST /api/music-videos it is sent on EVERY save, not just the first, for the same reason showLyrics and includeClipAudio are: that route $sets what it is given and defaults what it is not, and Phase A rewrites the record after every shot. Omitting it would have reset the project to English roughly thirty times a render.
 2026-10-29T17:04:05+05:30 aquib N: status: in_progress -> review — built, unrun on device — needs a phone set to a non-English locale
+2026-10-29T18:40:26+05:30 aquib N: Verified end to end on a live render: mobile sends DEVICE_LANGUAGE on both the brief call and project create, and the MusicVideo record for mvr_1793277832749_3e886f1a carries language 'en-IN'. No more Latin loglines. Ready to close.
