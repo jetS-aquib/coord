@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-216/217/218 done; JET-220 and the three device bugs built; JET-221's mobile half wired. All in review, all uncommitted past `ee2b027` on `v1-render-and-design-pass`.
+- **Current task:** Batch 7A is committed and in review. NEXT SESSION STARTS BATCH 7B — and starts it by scoping, not by coding. See the handoff note below.
 - **Status:** waiting on human
-- **Blockers:** nothing in code. One open question needs a device: we never learned HOW the on-device MP4 frame decode fails (timeout or error) — it needs the `[thumbnail] ...` line out of Metro. JET-221 removes it from the Library's path; the strip and the reel still ride on it.
-- **Last updated:** 2026-10-29T17:30:00+05:30
+- **Blockers:** nothing in code, and 7B is not blocked on anyone. Two questions want a device run: the `[reel]` lines that say WHY the reel stalls, and whether the on-device MP4 decode times out or errors.
+- **Last updated:** 2026-10-29T18:05:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -12,6 +12,106 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-29T18:05:00+05:30 — START HERE FOR BATCH 7B
+
+**Do not write any code in your first hour. 7B has no mobile scope yet — work
+that out, agree it, and file the tickets. The rest of this note is what you
+need to do that and nothing more.**
+
+#### What 7B is
+
+A continuity supervisor in the render pipeline. It is the backend's batch, not
+ours; the question for this repo is what a person on a phone is shown of it.
+The rows, read off the backend source rather than a plan document (there is no
+7B doc on the board — `grep -rn "7B\." music-jetkreate-backend/src` is where
+they live):
+
+| Row | What it does | State |
+|---|---|---|
+| 7B.1 | a vision model reads every anchor STILL against that shot's stated constraints before a clip is pinned to it | **shipped** 2026-10-29, `frameGateV1.ts` |
+| 7B.2 | samples 2-3 frames of each FINISHED clip and judges them the same way | not built; wants JET-222 |
+| 7B.3 | compares the person in shot N against shot N-1 | not built |
+| 7B.4 | one redraw with the failure sentence appended to the prompt | in 7B.1 |
+| 7B.5 | every verdict written to `RenderPlanV1.anchors[].gate` | in 7B.1 |
+| 7B.6 | the redraw spend is capped per render | in 7B.1 |
+
+Read **D-040** before anything else — it is the whole philosophy of the gate
+(spend on what you can count, record what you can only judge) and it tells you
+which verdicts are real decisions and which are just data. Then **JET-222**
+(backend -> video-processing-backend, filed, not yet approved), which is the
+clearest statement of where 7B is going next.
+
+#### The one thing I checked that decides our scope
+
+**Gate verdicts do not reach the client.** 7B.5 records five verdicts per
+anchor on `RenderPlanV1`, and the v1 render state this app polls carries
+`state`, `seamScore`, `error`, `openingFrameUrl` and `sectionLabel` per clip —
+no gate field at all. So today a still can be judged wrong and redrawn and the
+person watching the strip sees nothing: the shot simply takes longer.
+
+That is the scoping question, and it is a product question before it is a
+technical one. **Do not answer it alone — ask.** The honest options:
+
+1. Show nothing. The gate is quality control and silent success is correct.
+2. Show the redraw while it happens, in the strip, the way shot state already
+   is. Needs a field on the wire -> a ticket to music-jetkreate-backend.
+3. Show the verdicts after the fact, somewhere like `blocked-decision.tsx`,
+   which already exists for clips the provider refused and is the closest
+   thing we have to this.
+
+My read, for what it is worth and not as a decision: (2) is the one that fits
+what this screen is for — someone watches the strip for twenty minutes and a
+shot that quietly takes three times as long is the most confusing thing on it.
+But the backend has not run a render with the gate on yet, so nobody knows how
+often it fires. **If it fires on two anchors in forty-six, (1) is right and we
+should not build anything.** Wait for that distribution before filing; D-040
+says it is coming and JET-222's plan step 2 is the render that produces it.
+
+#### How to start, in order
+
+1. `coord show JET-222`, read D-040, D-034, D-037. Skim
+   `music-jetkreate-backend/src/services/render/frameGateV1.ts` — the file
+   header is the best description of 7B that exists.
+2. Ask the dev which of the three options above we are doing, and whether the
+   gate has been run live yet. Do not guess; this is the kind of thing that
+   gets built twice.
+3. **File the tickets then, and only then.** Anything that needs a field on
+   the wire is a ticket to music-jetkreate-backend before any screen work —
+   `coord new --from music-jetkreate-mobile --to music-jetkreate-backend`,
+   with Understanding and Plan filled in. Do not start the screen while the
+   ticket is waiting.
+4. Nothing in 7B blocks us, so if the answer is "wait", pick up the unfinished
+   business below instead. That is the better use of the session.
+
+#### Unfinished business in this repo, in priority order
+
+1. **THE LIVE RENDER HAS STILL NOT HAPPENED END TO END.** Everything in 7A is
+   committed and unverified. Six requests are sitting in review waiting on it:
+   JET-213, JET-216, JET-217, JET-218, JET-220, JET-221. One good render on a
+   device closes most of them. This is the highest-value thing in the repo and
+   it has been next for four days.
+2. **The reel logs.** `shot-reel.tsx` now prints `[reel] ...` in dev. We added
+   a watchdog so it can no longer freeze, but we never learned WHY `playToEnd`
+   stops arriving on iOS when an Android emulator is fine. One render with
+   Metro attached answers it. If the logs say the clip finished and no event
+   came, that is an expo-video platform bug worth writing down as a decision.
+3. **Black strip tiles.** Shots 9 and 10 rendered black while unrendered shots
+   showed their stills. If there is no `[thumbnail]` warning for them, the
+   decode worked and returned a genuinely black frame — `SAMPLE_AT = 1` in
+   `lib/thumbnails.ts` is then too early. One constant, but confirm from the
+   logs rather than moving it on a hunch.
+4. **JET-214 and JET-194** are ours, filed, still waiting on the backend.
+   JET-194 in particular is the root of every media bug this week.
+
+#### What landed today, so you do not re-read the diffs
+
+`v1-render-and-design-pass`, 9 commits ahead of main, nothing pushed:
+`ad12f33` JET-216 (four inputs — note: no ticket prefix, the
+prepare-commit-msg hook is not installed here, run `coord devsetup --hooks`),
+`ee2b027` JET-218+JET-217, `7bb20c9` dev-build config, `4077ed5` JET-220,
+`dfa3233` JET-221, `f320ed4` the three device bugs.
+
 
 ### 2026-10-29T17:30:00+05:30
 
