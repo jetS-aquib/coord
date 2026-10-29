@@ -69,3 +69,4 @@ The create flow shows four labelled inputs and an optional note instead of one f
 3. The style chip row ('Cinematic', 'Anime', ...) was labelled 'Look' on screen. It is visualStyle.prompt, a different field, so it is now labelled 'Style' and the new Look answer is the text one. On-screen question wording: Who's in it / Where / What happens / Look.
 2026-10-29T12:37:31+05:30 aquib N: status: approved -> in_progress — four inputs built in brief.tsx + create-context.tsx
 2026-10-29T12:38:05+05:30 aquib N: status: in_progress -> review — built, unrun on device — step 4 and 5 need a live render
+2026-10-29T18:40:25+05:30 aquib N: Verified from this side: brief.tsx owns the four keys (who / where / story shape / look) plus the collapsed note, and takes only the example and hint from the server — which is the split D-037 asked for. Ready to close.
