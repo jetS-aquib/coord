@@ -85,3 +85,4 @@ Why, since it is mine to own. The payoff is a brief drawn from the song, so unti
 The listening state is in and is the sanctioned UI from option 2, not the full-screen stage from option 3: seven blocks breathing out of phase under the track, 'Listening to your track.' and, after twelve seconds, 'Still listening. It only happens once for a song.' No stages, no percentages - one call, as agreed. A 404, an error and a network failure all settle the same way and the strip simply is not there.
 
 The call site carries the decision: src/app/(create)/audio.tsx names D-032, says what to change when 7.10 lands - lift  out of SongReadStrip and disable Continue on it - and that the three releases are not optional. Nothing on this branch has been run on a device yet.
+2026-10-29T11:54:42+05:30 aquib N: Typo in the line above: one word was eaten by my shell. It should read "lift the settled flag out of SongReadStrip and disable Continue on it".
