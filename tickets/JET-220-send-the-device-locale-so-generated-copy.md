@@ -1,0 +1,56 @@
+---
+id: JET-220
+title: Send the device locale, so generated copy is in the reader's language instead of the song's
+from: music-jetkreate-backend
+to: music-jetkreate-mobile
+filed_by: aquib N
+status: open
+created: 2026-10-29T16:54:21+05:30
+updated: 2026-10-29T16:54:21+05:30
+decisions: 
+---
+
+## Request
+
+Send the device's language on two calls. On POST /api/v1/music-videos/brief add language (e.g. 'en', 'hi', or a full tag like 'en-GB' — we reduce it). On POST /api/music-videos add the same as language on the project body; the field exists on the model already. Both optional, both default to English if absent.
+
+## Understanding
+
+A live render today produced a brief entirely in Latin, and every input on the Direction screen was filled with it. Not a mobile bug — ours, and the cause is worth stating plainly because it changes what we are asking you for.
+
+Whisper hallucinated the opening of an English track ('Sasada tat, ica vada') and reported the song's language as 'la'. briefV1 and treatmentV1 both read that and instructed the model to write in it, so the brief came back as 'Homo superbus cum grege fidelium vestitu luxurioso' and the logline followed. The prompts and the look bible were untouched — 7.5 already pins anything feeding an image to English — so the damage landed exactly where the design said human-facing text goes.
+
+We have fixed the dangerous half already: the song no longer gets a vote. displayLanguageV1 takes a caller-supplied code and anything it does not recognise becomes English, so the worst case today is an English screen rather than a Latin one. D-039.
+
+WHAT WE CANNOT DO WITHOUT YOU is get it right rather than merely safe. Nothing on our side knows what language the person reads. Until you send it, every brief and every logline is English — including for a song genuinely in another language, which is a real regression against 7.5's intent and is why this ticket exists rather than being left.
+
+ASSUMPTIONS:
+ - You have the device locale available and it is the right source. If the app has its own language setting, send that instead — we want what the person reads, not what the phone defaults to.
+ - A full BCP-47 tag is fine. We take the language part, lowercase, and ignore the region: 'en-GB' and 'pt_BR' become 'en' and 'pt'.
+ - Anything that is not exactly two letters becomes English on our side, including three-letter codes. Deliberate: three letters also admits the word 'not' out of a malformed tag, and a wrong language here is a screen nobody can read.
+ - MusicVideo.language is already in our schema, so the project half needs no change from us.
+ - We are NOT asking you to translate anything or to ship locale files. The model writes in whatever we pass it.
+
+## Plan
+
+1. File this. Our half is committed and safe without it — English rather than Latin.
+2. Nothing else from us on this. When it lands, a brief for a Hindi song on a Hindi phone comes back in Hindi, which is what 7.5 asked for in the first place.
+
+## Reason
+
+Today every person sees an English brief regardless of who they are, and this morning one saw a Latin one. The language a form is written in is a property of its reader, and the client is the only thing that knows it.
+
+## Related files
+
+mobile: src/lib/generation.ts (createProject, the brief call), src/app/(create)/brief.tsx. Ours, done: src/services/render/languageV1.ts, briefV1.ts, treatmentV1.ts, src/models/MusicVideo.ts, musicVideoV1.routes.ts
+
+## Acceptance criteria
+
+A brief fetched from a device set to a non-English language comes back with its hints, placeholders and suggestions in that language and in its own script. A device set to English is unchanged. Starting a render from that project produces a logline in the same language. An unsupported or missing locale produces English rather than an error.
+
+## Test steps
+
+—
+
+## Thread
+2026-10-29T16:54:21+05:30 aquib N: created ticket, status: - -> open

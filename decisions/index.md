@@ -40,3 +40,4 @@
 | D-036 | Subdivide a long block on its own lyric repetition, not with a structure model | 2026-10-29 | active | video-processing-backend | JET-215 |
 | D-037 | The brief's questions are fixed; only its examples, hints and defaults come from the song | 2026-10-29 | active | music-jetkreate-backend music-jetkreate-mobile | JET-218 |
 | D-038 | A stored song read carries the generation that wrote it, and a mismatch re-reads | 2026-10-29 | active | music-jetkreate-backend video-processing-backend | JET-219 |
+| D-039 | Generated copy is written in the reader's language, which the song does not get to choose | 2026-10-29 | active | music-jetkreate-backend music-jetkreate-mobile |  |
