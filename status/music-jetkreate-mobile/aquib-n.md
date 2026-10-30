@@ -1,17 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 8 on mobile. The director screen and the song library are in, and the backend half of both landed the same day — JET-225 and JET-226 are built on their side, so the two screens are now talking to real routes.
+- **Current task:** Batch 8's call sheet on mobile. JET-228 and JET-229 are both built: the review gate is routed, `app/(create)/plan.tsx` is the call sheet, and the pro overrides sit one layer below a row. That closes this repo's share of rows 8.1 to 8.11 — 8.9 to 8.11 were always backend-only and are built on their side.
 - **Status:** working
-- **Blockers:** none. First device run found two mapping faults against the live routes, both fixed: the chip row is `{id, name}` and not strings, and the bundled director ids were invented rather than the backend's, so a fallback pick would have rendered as the house style.
-- **Last updated:** 2026-10-30T12:55:00+05:30
-
-> Note: this per-person file had not been written since 2026-10-21 and the
-> entries below it are auto-generated. The substantive handoff notes for
-> 2026-10-21 and 2026-10-22 — durable runs, retry, resume, the design pass,
-> JET-194/196 — went to `.coord/status/music-jetkreate-mobile.md` instead.
-> Read that one too; the two should probably be reconciled.
+- **Blockers:** none on the board. Nothing here has been seen on a device, and no render has reached the gate on this machine — which is the one thing worth doing next, because every session in this repo has found its real bugs on a device and none of them in a typecheck.
+- **Last updated:** 2026-10-30T17:40:00+05:30
 
 ## Handoff notes
+
+### 2026-10-30T17:15:12+05:30
+
+Session ended while on JET-223. Touched: src/app/(create)/plan.tsx, src/features/create/shot-override.tsx, src/features/create/shot-change.ts, scripts/plan-check.mts. Nothing committed. (written automatically — no one said what is next)
 
 ### 2026-10-30T12:17:22+05:30
 
