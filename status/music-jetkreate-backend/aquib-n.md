@@ -1,13 +1,84 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batch 8 rows 8.9-8.14 (the director) are built and tested, uncommitted. Batch 8B is shaped and agreed (D-049) but blocked: there is no Epidemic API key in .env. 8.1-8.8, the call sheet, is untouched.
+- **Current task:** Batch 8 (the director, 8.9-8.14) and Batch 8B (the song library) are both built, tested and verified against the live catalogue. Uncommitted. 8.1-8.8, the call sheet, is untouched.
 - **Status:** waiting on human
-- **Blockers:** No Epidemic API key in .env — 8B cannot be built or verified. JET-194 needs `coord approve` and is cited by JET-225 and JET-226. Nine older tickets need `coord done`. Nothing is committed; waiting on a go.
-- **Last updated:** 2026-10-30T12:35:00+05:30
+- **Blockers:** EPIDEMIC_API_KEY must be in .env on every machine and deployment that serves the library (prototype key, preview-only — 8B.6 is now load-bearing). JET-194 needs `coord approve`. Nine older tickets need `coord done`. Nothing is committed; waiting on a go.
+- **Last updated:** 2026-10-30T13:05:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-30T13:05
+
+**Batch 8B is built and verified against the live catalogue.** The Epidemic key
+arrived, so the blocker in the 12:35 note below is gone. 191 tests, typecheck clean,
+four do-not-touch files untouched. Still nothing committed.
+
+**The reported bug was never the library.** "The library did not answer / Music video
+project not found" was `GET /tracks` having no v1 route and falling through to v0's
+`GET /:id` with `id="tracks"`. Worth remembering as a shape: the v1 and v0 routers are
+mounted on the SAME path, so a missing v1 route does not 404, it gets answered by v0
+with a message about something else entirely.
+
+**New: `src/services/music/epidemicV1.ts`** plus three routes. The whole of D-049 is in:
+one stable `audioUrl` per track, `previewUrl` the same string, both caches keyed on it,
+and `resolveAudioForServiceV1` swapping in a fresh signed Epidemic URL at all five
+places something leaves this service (transcript, song read, two stitch paths, segment
+concat). **A picked track is an upload from the moment it is picked** — nothing
+downstream changed, including the v0 storyboard call, which is what made the originally
+filed "trackId everywhere" impossible.
+
+**Measured against 200 live vocal tracks, and three of these changed the code:**
+- Genre tail is **77 entries, most holding one track**. So the chip row is the measured
+  top six (Beats 41 / Pop 32 / Hip Hop 30 / Rock 9 / Acoustic 6 / House 5), not
+  `/v0/genres`, which is the whole Epidemic taxonomy and would give chips returning
+  nothing.
+- Length: **median 2:58, p25 2:32, shortest 1:58, nothing under a minute.** 8B.5's
+  worry was right in direction and the floor is higher than feared.
+- **There is no way to look one track up.** `GET /v0/tracks/<id>` is 404 even for a real
+  id and `?id=` / `?ids=` / `?trackIds=` are silently ignored — the whole catalogue
+  comes back as if nothing was asked. That is why the cover URL carries its release id.
+- 200 of 200 are `isPreviewOnly` with lqmp3. 8B.6 confirmed, unchanged.
+- 2 of 200 are missing bpm or genres and are dropped, as JET-226 asked.
+
+**TWO MISTAKES I MADE AND CAUGHT, both invisible on a laptop. Worth reading, because
+both are the same mistake.**
+
+1. **The cover art was an in-process Map** populated at list time. It worked here and
+   would have blanked roughly every other card in production, because the instance that
+   serves the list is not the instance that serves the image. Stateless now: the release
+   uuid travels in the URL as `?r=` and is validated as a uuid, so the route cannot be
+   pointed anywhere but the Epidemic CDN. 100 of 100 cover URLs follow one template,
+   measured, which is what makes rebuilding the address sound rather than lucky.
+2. **The URLs were minted from `BACKEND_URL`**, which here is `http://localhost:5006` —
+   three URLs a phone can never load, which is JET-194's grey box arriving from the
+   other end. They are built from the host the DEVICE actually used now, so a LAN
+   address, a tunnel and production are all right with nothing configured. The track id
+   is therefore parsed out of the PATH and never matched on the host.
+
+**The media routes are public** — outside `requireAuth` and `requireSignature`, same
+posture as `/api/video/download` and as an uploaded GCS object. A player cannot sign a
+request and an `<Image>` sends no headers, so this is not a weaker version of the
+decision, it is the difference between a picker that plays and one that does not.
+What is exposed is preview-quality audio from a prototype key to anyone who can guess a
+uuid. **That is 8B.6's entitlement question and it is now load-bearing.** D-050.
+
+**A test caught the suite making a live API call.** vitest loads `.env`, so the fallback
+test I wrote passed by genuinely resolving a real track. Fixed by unsetting the key
+around that assertion. Worth knowing before anyone writes another test here: **this
+suite can spend real API calls if you let it.**
+
+**Verified over real HTTP, not just unit tests:** Range returns 206 with a correct
+content-range; a full fetch is a real 2.8MB 128kbps MP3; the cover is a real 600x600
+JPEG on a cold process; an unknown track is 404 with a code; the list and directors
+routes are still 401 without auth.
+
+**Still not verified:** D-045 and the gate downscale, unchanged. And **no render has
+been done on a library track end to end** — every piece is checked, the whole is not.
+That is the next thing and it is ~$2-3 on a 30-second trim.
+
+**Next:** one render on a picked track. Then 8.1-8.8, the call sheet.
 
 ### 2026-10-30T12:35
 
