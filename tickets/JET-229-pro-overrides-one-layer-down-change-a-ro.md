@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: open
 created: 2026-10-30T16:20:46+05:30
-updated: 2026-10-30T16:20:46+05:30
-decisions: 
+updated: 2026-10-30T16:24:57+05:30
+decisions: D-055
 ---
 
 ## Request
@@ -59,3 +59,4 @@ Somebody who has cut a video can change one row's shot size on the call sheet an
 
 ## Thread
 2026-10-30T16:20:46+05:30 aquib N: created ticket, status: - -> open
+2026-10-30T16:24:57+05:30 aquib N: linked decision D-055 (A human override wins over the director and is recorded as one, so a hand-edited render never pollutes the comparison)

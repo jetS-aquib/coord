@@ -52,3 +52,8 @@
 | D-048 | A director's cut rate is a rank within the song, and it is allowed to be inert | 2026-10-30 | active | music-jetkreate-backend | JET-225 |
 | D-049 | A library track is an upload: one stable backend-hosted audioUrl, not a trackId everywhere | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-226 |
 | D-050 | Library audio, cover art and director avatars are served unauthenticated, from the request's own origin | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-226 |
+| D-051 | The review gate is a state before anchoring, opt-in per render, and the direction pass stays in the worker | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-228 |
+| D-052 | Casting stays before the director and the director's profile steers it, as a range that biases | 2026-10-30 | active | music-jetkreate-backend | JET-228 |
+| D-053 | The pitch is persisted and reaches the treatment as the artist-facing contract | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-228 |
+| D-054 | A section's shot progression is split into even runs, so a re-establish is never one clip long | 2026-10-30 | active | music-jetkreate-backend |  |
+| D-055 | A human override wins over the director and is recorded as one, so a hand-edited render never pollutes the comparison | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-229 |

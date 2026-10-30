@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: open
 created: 2026-10-30T16:20:12+05:30
-updated: 2026-10-30T16:20:12+05:30
-decisions: 
+updated: 2026-10-30T16:23:02+05:30
+decisions: D-051, D-052, D-053
 ---
 
 ## Request
@@ -94,3 +94,6 @@ A person picks a director, taps through the brief, taps Render, and sees the cal
 
 ## Thread
 2026-10-30T16:20:12+05:30 aquib N: created ticket, status: - -> open
+2026-10-30T16:22:07+05:30 aquib N: linked decision D-051 (The review gate is a state before anchoring, opt-in per render, and the direction pass stays in the worker)
+2026-10-30T16:22:36+05:30 aquib N: linked decision D-052 (Casting stays before the director and the director's profile steers it, as a range that biases)
+2026-10-30T16:23:02+05:30 aquib N: linked decision D-053 (The pitch is persisted and reaches the treatment as the artist-facing contract)
