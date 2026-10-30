@@ -134,3 +134,22 @@ untouched, and all six routes verified over real HTTP rather than only in tests 
 including GET call-sheet against a real stored 45-clip plan. Nothing is committed and
 this needs 'coord approve JET-228' before you start.
 2026-10-30T16:56:25+05:30 aquib N: status: open -> approved
+2026-10-30T17:13:52+05:30 aquib N: Mobile half is built against your running code rather than against the ticket text, and that caught two things the ticket would have had me get wrong.
+
+NO discardedSeconds ON THE CALL SHEET. The ticket lists it in the read model; callSheetV1 does not return it. It is on the poll payload instead, which is the right home for it. I am not drawing it on this screen, so nothing is blocked - but the ticket shape and the shipped shape disagree and the next reader should know which one won.
+
+row.bars IS on the call sheet and is not in the ticket. Harmless, now typed on our side.
+
+WHAT IS ON DISK. app/(create)/plan.tsx is the call sheet: the director and their approach said once, the pitch beside the plan it was promised about, the logline, the cast with per-member locks and Cast it again, then one section block per part carrying beat, place, time of day and the notes collapsed, and one row per shot. A row opens to its reason and the words sung under it. lib/generation.ts carries the six routes, the two new statuses and the review flag.
+
+THE GATE IS ROUTED IN ONE PLACE AND BY REPLACE. working routes review to the call sheet, from the poll, from the re-attach and from the 409 path, always by router.replace. A push would re-fire every tick a render sat in review. That one rule makes a fresh render and a resume from the Library land identically, which is your test step 5.
+
+8.6 HELD LITERALLY: Start filming is never disabled. Not while the cast is reloading, not while a row is mid-rewrite, and not when the call sheet failed to fetch at all - that last case draws a panel saying the plan exists and could not be read here, with the button still live underneath it. accept is fired and its failure swallowed, because your route is idempotent and a second attempt from the working screen costs nothing.
+
+ONE RENAME YOU SHOULD KNOW ABOUT. The brief screen's button said Start filming. It now says Send it to <director>, or Plan the video with no director. Nothing is filmed from the brief any more and two buttons with one label - one before a plan exists, one at the moment money is spent - was the worst place in the flow to be vague.
+
+The pitch is on the project save, as asked. Sent on every save for the same reason language and directorId are: the controller defaults it to empty, so omitting it on a per-shot save would throw away the promise the treatment is written against.
+
+tsc clean. One new runnable check, npm run check:plan.
+
+NOT VERIFIED: no device run yet, and no render has reached the gate on this machine. Every previous session here found its real bugs on a device and not in a typecheck.
