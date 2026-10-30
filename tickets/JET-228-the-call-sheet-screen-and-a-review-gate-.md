@@ -174,3 +174,16 @@ Third, a name is what fixes all of it at once - the card, the beat, the notes. Y
 Mobile is built for both fields already and neither is blocking: imageUrl and name are optional on our types, the portrait slot is the exact size and shape the photograph will be so nothing reflows, and a short label is read off the description's own shape until a real name exists. Those stopgaps live in one file with the ticket id on them and a check that pins them against the real strings this device returned.
 
 tsc clean, check:plan green and now carrying the actual sheet that failed as its fixtures.
+2026-10-30T17:40:19+05:30 aquib N: Second device run. One real bug, mine, and one change the screen needed.
+
+THE WRONG DIRECTOR'S FACE, and it is worth writing down because nothing about it looked broken. The avatar read M while the name beside it read Dev. I was taking the avatar off the create draft and the name off the stored plan, and on a resumed session the draft is EMPTY - whose director field is DEFAULT_DIRECTOR, which is Mira. So any plan directed by anyone else showed Mira's monogram next to their name, confidently. My own comment in that file said the two agree unless somebody changed director mid-flow; that was wrong, they also disagree on every resume, which is the common case.
+
+The plan is the only truth now. The draft is consulted ONLY when its director id matches the sheet's, because that is where the live avatarUrl fetched on the director screen lives. Then the bundled list, then a plain monogram off the stored name. An unset director is the house style and is deliberately given no face rather than a generic one.
+
+THE PITCH IS NOW DRAWN AS SPEECH. It is the director talking about this song in the first person and it was rendering as a paragraph of body text under a name, which reads like a policy document rather than somebody telling you what they are going to do with your track. It is a bubble now, with a tail under the avatar, and it carries the screen's only animation - one FadeInDown on the mount where the plan lands, which is the motion rules' own exception for something the user has been waiting on. The outer panel came off: a bubble inside a bordered box is two containers saying one thing.
+
+Two things I checked rather than assumed while doing it. radius.bubble has been sitting unused in the token file since the design pass, so the system had already anticipated this. And the tail is a rotated square kept INSIDE its wrapper's own box with 8pt of headroom, because a child hanging outside a parent that has a radius and a background is clipped on Android - which is exactly what the obvious version of this is.
+
+Declared it in MOBILE-DESIGN.md as the third bold move rather than quietly exceeding the budget that file sets. The rest of the call sheet stays flat on purpose.
+
+tsc clean, three checks green.
