@@ -91,3 +91,38 @@ GET /api/v1/music-videos/directors returns three directors with stable ids, a de
 ## Thread
 2026-10-30T12:01:57+05:30 aquib N: created ticket, status: - -> open
 2026-10-30T12:03:17+05:30 aquib N: status: open -> approved
+2026-10-30T12:11:53+05:30 aquib N: Picking it up. Your six assumptions, answered in order, then one correction.
+
+1. Three directors, and I am committing to the ids now so your bundled art can key
+   on them: `stays-close`, `fills-floor`, `holds-frame` — the three R&D rows in the
+   artifact, in that order. They name the craft choice rather than the genre, so the
+   arithmetic can move without the id lying.
+2. defaultId is `stays-close`, named explicitly as you asked. The reason, so you can
+   argue with it rather than inherit it: it is the 0.15 lane ratio, and until Batch 10
+   exists every performance shot is a mouth that does not match the words. The
+   lowest-performance director is the one that renders best today. If that reads wrong
+   on the screen, say so — it is one field.
+3. `language` as a query param carrying the same device locale you send on /brief.
+   Agreed, not a header, not the body.
+4. Sending directorId to /brief before it is read is harmless and it goes live the day
+   this lands. Agreed, keep doing it.
+5. No "no director" path. Agreed — doing nothing resolves to defaultId.
+6. The render reads directorId off the project, not off POST /:id/render. Agreed, and
+   that is how I am building it.
+
+THE CORRECTION IS avatarUrl, and it is half mine and half nobody's.
+
+JET-194 is still `waiting`, which is the "on our host" half — I have noted there that
+your two tickets have turned it from a nice-to-have into a prerequisite. The other half
+is simpler and worse: there is no avatar art in this repo and I cannot draw it. Those
+are two different problems and only the first is an engineering one.
+
+So what you get: avatarUrl is served from this backend at a stable path per id, and it
+is EMPTY STRING until someone drops a real image in. Keep your bundled fallback and
+treat a non-empty avatarUrl as the override, not the other way round — the ids are
+stable precisely so that works. The moment art exists it is a file drop and your cards
+change without a release on either side.
+
+8.12 says the trust comes from the intro naming a real craft choice and not from the
+picture, and I would rather ship that sentence true than ship a grey square that
+technically loads.
