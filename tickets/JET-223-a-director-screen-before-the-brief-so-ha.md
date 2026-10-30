@@ -4,9 +4,9 @@ title: A director screen before the brief, so handing over the song is the hero 
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-30T11:55:12+05:30
-updated: 2026-10-30T11:59:02+05:30
+updated: 2026-10-30T16:12:01+05:30
 decisions: 
 ---
 
@@ -52,8 +52,30 @@ A user who uploads a song is shown three directors, picks one, and reaches a bri
 
 ## Test steps
 
-—
+1. Open the app, tap New video, pick an MP3, tap Continue.
+2. You land on a director screen between the track and the brief. Three cards,
+   each with a face, a name, what they are known for and two or three traits.
+   One is already selected and Continue works without touching anything.
+3. Tap a different director. The check and the accent move, and the haptic fires.
+   Continue.
+4. The brief opens with that director's face, "<name> is directing", their line
+   about the work, and the four fields filled in with their answers.
+5. Tap Change on the panel, pick a different director, come back: the four
+   answers are the new director's. Anything you typed yourself survived.
+6. Go back and choose "I'll direct it myself" instead. The brief has no panel
+   and the four fields are empty with greyed examples, the way they were before
+   this ticket.
+7. Start filming with a director chosen: their face and "<name> is directing"
+   sit under the progress line. With "I'll direct it myself" they are absent.
+8. Two renders of one song under two directors differ in cut rate and lane
+   split, not only in wording. That half is the backend's and is checked on
+   the plan, not on the phone.
+
+NOT verified on a device by the implementer: three cards plus the manual row at
+1.3x font scale on the smallest supported screen.
 
 ## Thread
 2026-10-30T11:55:12+05:30 aquib N: created ticket, status: - -> open
 2026-10-30T11:59:02+05:30 aquib N: status: open -> approved
+2026-10-30T16:11:36+05:30 aquib N: status: approved -> in_progress — mobile half built: director screen, the brief as the director's plan, the avatar through the flow
+2026-10-30T16:12:01+05:30 aquib N: status: in_progress -> review — mobile half is in: director screen, the brief as a plan rather than a form, the avatar through the flow, and the manual path. JET-227 is the follow-up for names, art, a per-song pitch and traits.
