@@ -4,9 +4,9 @@ title: A song library to pick from, so a user with no MP3 has something to rende
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-30T11:55:48+05:30
-updated: 2026-10-30T11:55:48+05:30
+updated: 2026-10-30T11:59:05+05:30
 decisions: 
 ---
 
@@ -59,3 +59,4 @@ A user with no file of their own opens the app, browses or searches, previews a 
 
 ## Thread
 2026-10-30T11:55:48+05:30 aquib N: created ticket, status: - -> open
+2026-10-30T11:59:05+05:30 aquib N: status: open -> approved

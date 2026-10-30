@@ -4,9 +4,9 @@ title: A director screen before the brief, so handing over the song is the hero 
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-30T11:55:12+05:30
-updated: 2026-10-30T11:55:12+05:30
+updated: 2026-10-30T11:59:02+05:30
 decisions: 
 ---
 
@@ -56,3 +56,4 @@ A user who uploads a song is shown three directors, picks one, and reaches a bri
 
 ## Thread
 2026-10-30T11:55:12+05:30 aquib N: created ticket, status: - -> open
+2026-10-30T11:59:02+05:30 aquib N: status: open -> approved
