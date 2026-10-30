@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** 7B is scoped and closed out for now — D-041, no mobile work, no ticket. Session is on the live end-to-end render, which needs a person with the phone.
-- **Status:** waiting on human
-- **Blockers:** the render itself. Both backends, Metro and the tree are ready; it needs a tap on the device and a short track. Still unanswered until then: the `[reel]` lines that say WHY the reel stalls, and whether the black strip tiles are a decode failure or a genuinely black frame at SAMPLE_AT = 1.
-- **Last updated:** 2026-10-29T17:58:00+05:30
+- **Current task:** Batch 8 on mobile. JET-223 (director screen) and JET-224 (song library) are built against the shapes filed as JET-225 and JET-226; both need the backend half before they do anything on a device.
+- **Status:** working
+- **Blockers:** nothing blocking the code. Three endpoints do not exist yet: GET /api/v1/music-videos/directors, directorId on POST /brief, and GET /api/v1/music-videos/tracks. The director screen falls back to the three bundled directors and works without any of them; the library screen cannot and shows its error state until the tracks route lands.
+- **Last updated:** 2026-10-30T12:40:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -12,6 +12,50 @@
 > Read that one too; the two should probably be reconciled.
 
 ## Handoff notes
+
+### 2026-10-30T12:17:22+05:30
+
+Session ended while on JET-220. Touched: MOBILE-DESIGN.md, src/features/create/directors.ts, src/lib/generation.ts, src/features/create/create-context.tsx, src/app/(create)/director.tsx, src/app/(create)/library.tsx, src/app/(create)/_layout.tsx, src/app/(create)/audio.tsx, +4 more. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-10-30T12:40:00+05:30 — Batch 8's mobile half, built against two tickets I filed first
+
+**What is on disk.** `app/(create)/director.tsx` and `app/(create)/library.tsx`
+are new, the Nav Read in MOBILE-DESIGN.md has both, and the brief is now the
+director's answers rather than four empty optional fields. `npm run
+check:answers` is the one runnable check and it covers the only rule here that
+can be silently wrong: a typed answer survives a director change, the previous
+director's answers do not.
+
+**The two tickets are the point of the sitting, not an aside.** JET-225 is the
+director list endpoint plus `directorId` on the brief and the project. JET-226
+is the library routes. Both were filed before any code, both are approved, and
+the screens are built against the shapes in them. If the backend answers with a
+different shape, the cost is `lib/generation.ts` and nothing else — the screens
+do not know what an endpoint looks like.
+
+**I corrected JET-226 after filing it, in the thread.** I asked for `trackId`
+to be accepted everywhere an `audioUrl` works, then traced it: the storyboard
+call is `POST /api/video/music-storyboard`, which is v0 and on the do-not-touch
+list, so "trackId everywhere" either edits v0 or leaves a library track with no
+storyboard. The ask is now one stable backend-hosted `audioUrl` per track in
+the list response, which makes a picked track indistinguishable from an upload
+from the moment it is picked. Mobile is built that way. If the backend prefers
+the original, the picker needs trackId plumbing through four call sites.
+
+**What I did NOT build, and why.** Rows 8.1 to 8.8 — the call sheet, the cast
+review, the shot list screen on `plan.tsx` — are not in either ticket addressed
+to this repo and they need 8.5's endpoints (regenerate cast, regenerate scene,
+accept plan), none of which exist. Filing a ticket for them is the next
+decision, not mine to take unasked.
+
+**Two things a device will decide.** Whether three director cards fit at 375pt
+without scrolling once the real copy comes back in Hindi (JET-225 offers to cut
+the intro line rather than add a carousel), and whether streaming a preview in
+the library list is smooth enough on Android. Neither is checkable here.
+
+**Pre-existing, found on the way past, not fixed:** `npx expo lint` cannot run
+in this repo. ESLint is not a local dependency, so npx pulls v10, which cannot
+load `eslint.config.js`. `npx tsc --noEmit` is clean.
 
 ### 2026-10-29T17:58:00+05:30 — 7B scoped, answered and closed. D-041. Nothing built.
 
