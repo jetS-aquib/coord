@@ -84,3 +84,64 @@ GET /directors returns three persona names, three non-empty avatarUrls that load
 ## Thread
 2026-10-30T13:03:56+05:30 aquib N: created ticket, status: - -> open
 2026-10-30T13:04:26+05:30 aquib N: status: open -> approved
+2026-10-30T13:25:10+05:30 aquib N: All four are in, and all four of your assumptions hold as written — ids never change,
+the names were mine to set, the pitch follows the reader's locale, and the cards stay
+typographic until art lands (they do not have to any more).
+
+1. NAMES — taking yours exactly: Mira / Dev / Kabir, knownFor unchanged. One flag
+   rather than a change, because it is a judgement call and it is yours: Mira Nair
+   and Kabir Khan are both well-known Indian directors, and a first name alone in a
+   film-making product sits closer to them than it would anywhere else. I do not
+   think a bare first name borrows anybody's credibility and I have shipped them —
+   but you wrote "not a real director's name" in the ticket, so you should get to
+   apply your own rule. Say one word and I will swap either; it is one string and the
+   ids do not move.
+
+2. AVATARS — three files, and they are not placeholders. 512x512 WebP, 14-18KB each
+   (PNG was 240KB for the same flat art). Generated with our own image model through
+   a committed script, scripts/generate-director-avatars.ts, which exists precisely
+   because "one set, visibly one hand" is a constraint somebody has to honour again
+   for a fourth director — the shared style block in it IS the hand.
+   It took two passes. The first set failed your own first requirement: Dev came back
+   with a heavier outline, a patterned shirt and a cut-out silhouette edge, so the
+   three read as two illustrators. The style block now pins line weight, crop,
+   single-colour clothing and shoulders running off the bottom edge, and the second
+   set is one hand. A third pass fixed Mira specifically — her jumper was the same
+   value as her background, so she was a pale blob at 56pt while the other two
+   separated cleanly. Contrast between garment and field is now stated in the prompt
+   rather than hoped for.
+   Checked as a contact sheet at 192pt and 56pt, on white and on #12151a.
+   avatarUrl is now non-empty for all three and is built from the host your DEVICE
+   used, not BACKEND_URL — that is localhost:5006 here, which would have handed you
+   three unloadable URLs.
+
+3. PITCH — on POST /brief, and only when a directorId is sent. With no director the
+   request is byte identical to the one 7.10 was measured on, which is the same
+   promise D-047 makes everywhere else, so your manual path is genuinely untouched.
+   Three real pitches on the same slow 80 BPM track, so you can see they are three
+   plans and not three moods:
+     Mira:  "...I want to follow two people through the quiet streets, letting the
+             music play softly under their moment rather than having them perform to
+             the camera. When the chorus lifts, we let them finally pull each other
+             close."
+     Dev:   "...I want to take that dark refrain and surround you with crowds, setting
+             two distinct night worlds against each other."
+     Kabir: "...I want to hold you completely still in symmetrical, wide spaces while
+             the night surrounds you."
+   That first one is the 0.15 lane ratio said in plain words, which is the thing worth
+   noticing: the voice is reaching the same place the arithmetic already goes.
+   Locale verified on a real call: an English song with hi-IN and ta-IN comes back in
+   Devanagari and Tamil respectively, pitch included.
+
+4. TRAITS — two or three per director, all <= 24 chars, hand-written and each one a
+   restatement of a field on the profile. A test pins that the "to camera" chip
+   belongs to the highest performanceRatio, the "loud bars" chip to the lowest cut
+   percentile and the "close-ups" chip to the biggest ladder shift, so the copy cannot
+   quietly drift off the numbers it is claiming to describe.
+
+Nothing changed about the no-director path, as you said it would not need to.
+
+One thing you should know because it affects your fallback list: avatarUrl is no
+longer ever empty for these three, so the "typographic until art lands" state is dead
+code on your side the moment you deploy against this. Keep the bundled art as the
+offline fallback — the ids still agree — but the card can assume a picture now.
