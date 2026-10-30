@@ -1,13 +1,81 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Part II closed through 7B. Batches 6, 7 and 7B done, verified over four live renders. Committed at 7e08ac2. Batch 8 (the call sheet) is next.
-- **Status:** idle
-- **Blockers:** Nine tickets still need a person's `coord done` — listed below. Nothing is blocking work.
-- **Last updated:** 2026-10-30T11:30:00+05:30
+- **Current task:** Part II closed through 7B. Batch 8 (director + call sheet) and 8B (song source) are planned and ticketed, not started. Fresh sessions start from the artifact.
+- **Status:** waiting on human
+- **Blockers:** JET-223 and JET-224 need `coord approve`. Nine older tickets need `coord done`. No code blocked.
+- **Last updated:** 2026-10-30T12:05:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-30T12:05
+
+**Planned Batch 8 (the director) and Batch 8B (the song source).** Nothing built.
+Artifact at Version 11, decision **D-046**, tickets **JET-223** (director screen) and
+**JET-224** (song library) filed to mobile and awaiting approval.
+
+**Start Batch 8 at row 8.9 and nowhere else.** It is a refactor with no behaviour
+change: everything a director decides already exists and is frozen at one value
+(`DEFAULT_PERFORMANCE_RATIO_V1 = 0.35`, `LADDER_16_9`, the camera-move table, the
+lyric-mode policy, the bars-per-clip choice in `cutPlanV1`). Widen
+`ShotGrammarOptionsV1` into `DirectorProfileV1`, thread it through `shotGrammarV1`,
+`cutPlanV1` and `treatmentV1`, ship today's numbers as one built-in profile.
+**After that the batch is data entry.**
+
+**D-046, and the two rules a fresh session must not break:**
+1. **A director biases, never dictates.** Every value is a weight or a preference
+   order, never an absolute duration or count. The song read decides cuts from real
+   bars and real energy — a dance director on a ballad must shift the distribution,
+   not override it, or Batch 6 is undone.
+2. **If two directors differ only in prompt adjectives, the feature is dead.** What
+   a viewer sees is the arithmetic: cut rate, lane split, shot ladder. Same split as
+   D-034 — arithmetic in code, judgement to the model.
+
+**R&D, and one finding inverted my assumption.** I assumed Indian music video means
+playback performance and therefore a *high* lane ratio. It is the opposite for
+contemporary Hindi: songs increasingly sit under the scene and actors are freed from
+lip-sync. So the Hindi-leaning director is **0.15**, which is both current practice
+and the cheapest thing we can render well while Batch 10 does not exist — every
+performance shot is a mouth that does not match (D-009, D-033). Three directors are
+in the artifact with their full parameter sets.
+
+**Hindi structure is mukhda/antara, not verse/chorus.** The mukhda is a refrain that
+opens the song and returns after every antara. Two consequences: our shot progression
+assumes a section that *builds*, which is an antara not a mukhda; and our hook
+detector looks for a repeated lyric line, which is exactly what a mukhda is — so it
+should work **better** on Hindi than on Western pop. Measure it, don't assume it.
+D-044 already removed the label dependency we would otherwise have tripped on.
+
+**Bhojpuri transcription is the open risk** — low-resource, and Whisper will very
+likely return Hindi for it. D-039 keeps the screen safe, but transcript *quality*
+feeds the hook detector and every shot's lyric lines. **Measure before promising the
+language.**
+
+**Batch 8B — I argued it should NOT be part of Batch 8** and the artifact reflects
+that: it sits upstream of everything and is independent of 6–10. Two measured facts
+drive it:
+- **96 of 100 Epidemic tracks have no vocals.** Everything 6 and 7 bought is
+  lyric-driven, so the library is `vocalType=LEAD` only — verified working, median
+  3:02, 40% Beats / 31% Pop / 28% Hip Hop / 17% Trap. **Not a user-facing toggle.**
+- **The download URL is signed and expires** (file path stable, full URL changes
+  every call). `TranscriptV1` and `SongReadV1` are both keyed on `audioUrl`, so every
+  render of the same track would miss both caches and re-pay Whisper at 169s cold.
+  **8B.1 — key on a stable `audioKey` — should land whether or not the library
+  ships.** It is also a win: two users picking the same track share one read.
+
+Also worth knowing: Spotify and YouTube cannot do this (no audio files / ToS), and
+the library serves **one of the three target languages** — Hindi and Bhojpuri still
+come from upload. Every track on the current key is `isPreviewOnly` + `lqmp3`, which
+is an entitlement question before it is a product. The prototype key belongs in
+`.env` (gitignored, untracked), never in code.
+
+**Next:** approve JET-223/224, then a fresh session per repo. Backend starts at 8.9;
+8B.1 can go in parallel and is independent.
+
+**Still unverified from the last session:** D-045 (text verdicts should fall) and the
+gate downscale (`gate.vision` should roughly halve). One render settles both, and it
+is worth doing before Batch 8 so the baseline is clean.
+
 ### 2026-10-30T11:30
 
 **Batch 7 and 7B are closed.** Committed `7e08ac2`. Delivery plan artifact at
