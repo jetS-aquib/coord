@@ -4,9 +4,9 @@ title: The call sheet screen, and a review gate that starts closed and never blo
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-30T16:20:12+05:30
-updated: 2026-10-30T16:42:09+05:30
+updated: 2026-10-30T16:56:25+05:30
 decisions: D-051, D-052, D-053, D-056
 ---
 
@@ -133,3 +133,4 @@ Everything else is as filed. 224 tests, typecheck clean, four do-not-touch files
 untouched, and all six routes verified over real HTTP rather than only in tests —
 including GET call-sheet against a real stored 45-clip plan. Nothing is committed and
 this needs 'coord approve JET-228' before you start.
+2026-10-30T16:56:25+05:30 aquib N: status: open -> approved

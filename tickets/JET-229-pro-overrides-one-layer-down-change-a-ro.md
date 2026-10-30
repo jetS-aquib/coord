@@ -4,9 +4,9 @@ title: Pro overrides, one layer down: change a row, lock a face, and never make 
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-30T16:20:46+05:30
-updated: 2026-10-30T16:24:57+05:30
+updated: 2026-10-30T16:56:29+05:30
 decisions: D-055
 ---
 
@@ -79,3 +79,4 @@ Assumption 6 is settled the way I guessed: the hold is the clip's musical length
 the server bounds it by the clip's own section span and the model's maximum. A row
 cannot be stretched past its section boundary, so an override can never move a cut off
 the music.
+2026-10-30T16:56:29+05:30 aquib N: status: open -> approved
