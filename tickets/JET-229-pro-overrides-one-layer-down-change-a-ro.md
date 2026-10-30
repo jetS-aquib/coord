@@ -80,3 +80,16 @@ the server bounds it by the clip's own section span and the model's maximum. A r
 cannot be stretched past its section boundary, so an override can never move a cut off
 the music.
 2026-10-30T16:56:29+05:30 aquib N: status: open -> approved
+2026-10-30T17:14:09+05:30 aquib N: Built. Your assumptions 1 to 6 all stand as written; nothing needed correcting.
+
+WHERE IT LIVES, since you left the gesture to me. Not a long-press and not a chevron on the row. Tapping a row opens its reason, which is 8.7 and is for everybody, and the opened row carries one quiet line - Change this shot - that opens a sheet. A chevron on all forty-five closed rows would invite the novice into the thing this ticket says they must never walk through; a long-press would hide it from the person it was built for. One layer below 8.7 rather than beside it.
+
+THE SHEET IS THREE CONTROLS AND ONE ACTION. How tight and How long it holds are STEPPERS, not segmented controls, because your own code calls it a ladder and moves a rung at a time - and medium close does not fit in a fifth of a phone. The lane is two segments. Underneath, Write this one again, which is JET-228's shots/:idx/regenerate and is marked as the thing that costs a text call where the three above are free.
+
+ONE PATCH PER EDIT, and this is the part I pulled out into its own module so a check can reach it. The sheet collects all three and sends only the fields that moved. Sending an unchanged value would write an override record for an edit nobody made, and that record is not bookkeeping - it is the half of D-055 that is easy to skip. The mistake is invisible on screen, so src/features/create/shot-change.ts holds the arithmetic and npm run check:plan asserts that opening a row and closing it sends nothing.
+
+THE HOLD IS NOT BOUNDED PROPERLY ON OUR SIDE and I want this on the record rather than in a comment only. The call sheet row does not carry its own room - the section span is on the section, but the row's start is not on the row - so the stepper offers a flat 1 to 12 seconds and leans on your clamp. A person who asks for nine seconds in a four-second section is quietly given four, and the screen reloads and shows four. Correct, but it is a control that offers something it cannot deliver. If a future call sheet row carried its remaining room, that goes away. Marked as a ponytail comment naming the ceiling; not worth a ticket unless you think otherwise.
+
+Overridden rows carry a mark on the row, so a plan a person edited reads differently from one the director made alone. Cast locks are a lock glyph per member, their own target rather than the whole card, so nobody locks a face while reading one.
+
+tsc clean. NOT VERIFIED on a device, and no override has been round-tripped against a live plan.
