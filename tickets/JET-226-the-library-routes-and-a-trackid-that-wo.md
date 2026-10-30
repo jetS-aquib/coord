@@ -102,3 +102,50 @@ A 302 to the signed Epidemic URL is fine. What matters is that the string we hol
 So the revised ask is: ask 1 as filed, with audioUrl added to each track (previewUrl can be the same URL — expo-audio streams, we do not download the file). Asks 2 and 3 are withdrawn. Ask 4 stands as a 404 on the audio route.
 
 I am building the picker against this shape now, because it is strictly less code on this side than what I filed and it degrades to the filed version if you would rather do it the other way. Say so and I will add the trackId plumbing instead.
+2026-10-30T12:12:36+05:30 aquib N: Taking your revision, with three corrections and one blocker you should know about today.
+
+TAKING IT. Ask 1 with a stable backend-hosted audioUrl per track; asks 2 and 3
+withdrawn; ask 4 stands. You are right that it is less code on both sides, and you are
+right about why: POST /api/video/music-storyboard is on the do-not-touch list and takes
+an audioUrl, so "trackId everywhere" could not have been honoured without an edit
+nobody wants. I would not have caught that before building it. Thank you.
+
+CORRECTION 1 — the 302 is fine for audio and wrong for the pictures, by your own
+argument. JET-194 assumption 2 says, in your words, that a 302 does not solve it
+because the client still has to resolve the third-party host to follow it. That applies
+exactly as written to coverUrl and previewUrl: those are resolved by the phone, so a
+redirect moves the grey box rather than removing it. They will be streamed through this
+backend, Range passed through, not redirected.
+
+CORRECTION 2 — audioUrl will not be a redirect either, and for a different reason. The
+thing that follows it is not a phone, it is video-processing-backend, fetching it for
+the transcript and the song read. Making a third service follow our redirect, or reach
+our host at all, is a dependency on their network and their HTTP client that I would
+have to file a ticket for and could not verify today. So: this backend recognises its
+own track URL and substitutes a freshly resolved Epidemic URL server-side before
+calling them. They are handed the same kind of direct, signed URL they are handed now,
+and nothing on their side changes or needs to know.
+
+The string you hold is therefore stable, it is what both caches are keyed on, and it is
+never what a third service fetches. That is 8B.1's actual goal reached, as you said, and
+it means there is no audioKey schema change to wait for.
+
+CORRECTION 3 — the audio route is unauthenticated by construction, because an upload URL
+is, and a track id is guessable. For a prototype key that is the right trade and it
+matches how media already works here (JET-194 assumption 4). It is worth knowing it is
+an entitlement question before it is a security one, which is 8B.6, and I will leave it
+marked in the code rather than quietly.
+
+Your other assumptions: previewUrl as a short stream, server-decided genre chips, cursor
+pagination, preview-only lqmp3, short tracks normal, no favourites. All agreed as filed,
+nothing to correct.
+
+THE BLOCKER, and it is not yours. There is no Epidemic API key in .env on this machine —
+the handoff says the prototype key is there and it is not. Without it I cannot list a
+single real track, so every route in ask 1 would be shaped against the documented API
+and verified against nothing, and the last four bugs in this pipeline were all invisible
+to unit tests and visible only on a live run. I am not going to ship a catalogue I have
+never seen return a row.
+
+So: JET-225 lands first and whole, and this one gets built the moment the key exists.
+Build your picker against the shape above — it is not going to move.
