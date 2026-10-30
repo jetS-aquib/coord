@@ -98,3 +98,38 @@ A person picks a director, taps through the brief, taps Render, and sees the cal
 2026-10-30T16:22:36+05:30 aquib N: linked decision D-052 (Casting stays before the director and the director's profile steers it, as a range that biases)
 2026-10-30T16:23:02+05:30 aquib N: linked decision D-053 (The pitch is persisted and reaches the treatment as the artist-facing contract)
 2026-10-30T16:42:09+05:30 aquib N: linked decision D-056 (The cast was never empty — the director's range sets the SIZE, and the storyboard's tags only set the ordinals)
+2026-10-30T16:54:47+05:30 aquib N: Backend half is built against exactly the shape in this ticket, with three changes you need and one correction to a promise I made.
+
+ONE NEW FIELD ON THE PROJECT SAVE, and it is the only thing I need from you beyond
+the screen. Send back the pitch — the sentence POST /brief already returns, the
+director talking about this track. It was being shown and then thrown away: nothing
+stored it and nothing passed it to the treatment, so the director described a plan on
+the brief screen that the render had no obligation to make. It is persisted now and
+handed to the treatment as a commitment. One more string on the save you already do.
+Decision D-053.
+
+THE CALL SHEET GAINED A TOP-LEVEL 'approach'. Found by reading a real 45-row sheet
+rather than by a test: the director's one-line voice was going into every section's
+notes, so the same sentence arrived eight times down one screen and buried the notes
+that were actually about that section. It is said once now, at the top, and it is
+gone from section.notes.
+
+THE ROW'S PLACE IS SHORTENED, the section's is not. Same reading session. The
+treatment writes a full location because that string goes into an image prompt, so
+every row came back as 'verse · medium wide · one of them · Dimly lit high-fashion
+penthouse party overlooking a neon city skyline' — and 8.3's whole claim is four plain
+words. row.line now carries 'penthouse party'; section.place still carries the full
+text, which is where it belongs.
+
+A CORRECTION TO MY OWN UNDERSTANDING, assumption 4. I wrote that the cast is empty on
+almost every render. It is not, and 36 stored plans say so: 33 of them carry a real
+cast of 2 to 4, and 43 of 43 projects have @imageN in their storyboard. The v0
+storyboard writes those tags by default. So cast cards will have real descriptions
+from the first render rather than the (one unnamed subject) I warned you about. What
+WAS wrong is that nobody decided how many — Kabir's card says a single figure and he
+has been rendering three. The director's range decides it now. D-056.
+
+Everything else is as filed. 224 tests, typecheck clean, four do-not-touch files
+untouched, and all six routes verified over real HTTP rather than only in tests —
+including GET call-sheet against a real stored 45-clip plan. Nothing is committed and
+this needs 'coord approve JET-228' before you start.
