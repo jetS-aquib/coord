@@ -46,3 +46,4 @@
 | D-042 | A list of times and a maxWidth on extraction only, beside what is there | 2026-10-29 | active | video-processing-backend music-jetkreate-backend | JET-222 |
 | D-043 | The measured check spends first; the clip check gets what is left, and never for a judgement | 2026-10-29 | active | music-jetkreate-backend | JET-222 |
 | D-044 | The look is keyed on the section index, not on the section label | 2026-10-29 | active | music-jetkreate-backend | JET-215 |
+| D-045 | The gate asks for lettering that does not belong, not for lettering | 2026-10-30 | active | music-jetkreate-backend |  |

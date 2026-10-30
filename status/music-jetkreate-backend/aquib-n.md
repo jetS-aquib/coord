@@ -1,13 +1,87 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batches 7 and 7B done and verified on a full render. Committed at 84f120b. Batch 8 (the call sheet) is next.
-- **Status:** waiting on human
-- **Blockers:** Nine tickets need a person's `coord done` — see the handoff note. JET-215 is now the biggest constraint on output quality and is not ours.
-- **Last updated:** 2026-10-29T18:50:00+05:30
+- **Current task:** Part II closed through 7B. Batches 6, 7 and 7B done, verified over four live renders. Committed at 7e08ac2. Batch 8 (the call sheet) is next.
+- **Status:** idle
+- **Blockers:** Nine tickets still need a person's `coord done` — listed below. Nothing is blocking work.
+- **Last updated:** 2026-10-30T11:30:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-10-30T11:30
+
+**Batch 7 and 7B are closed.** Committed `7e08ac2`. Delivery plan artifact at
+Version 10, Part II marked closed through 7B. Four live 45-clip renders behind it.
+
+**Four things this session fixed, all found by running the thing rather than reading
+it.** Worth keeping together, because they are one lesson:
+
+1. **Re-render budget leak.** `renderOneClipV1` clears `seamScore` on every
+   successful render. A re-render path that reverted `videoUrl` without reverting
+   `seamScore` left a measured clip looking *un*measured, so the verifying sweep
+   re-measured it and was entitled to re-render it again, off-budget. 17 against a
+   budget of 9. Both paths now revert through one `revertTakeV1`. **54 against a cap
+   of 54** on the last render, down from 62.
+2. **The plate stalled a whole render for 5 minutes.** Optional, with a working
+   fallback, but drawn serially with 46 anchors queued behind it — and `shared.ts`
+   retries 4 times with exponential backoff. Fail-soft is not fail-fast. 90s deadline
+   (`RENDER_PLATE_DEADLINE_MS`), and the last render drew it in 3.7s.
+3. **D-044 — the look was keyed on the section label.** The read returns eight
+   sections with real boundaries and labels seven of them "verse"; `treatmentV1`
+   asked for "ONE location per distinct label", so a four-minute video got two rooms
+   and 42 of 45 clips were shot in the same one. Keyed on the index now, with the
+   treatment deciding which sections genuinely reprise. **2 locations became 8**, and
+   the clip check's location verdict fired for the first time.
+4. **D-045 — the gate's loudest verdict was measuring the wrong thing.** `hasText`
+   fired on 38 of 45 clips on a treatment whose own look bible said "glowing neon
+   skyline". A neon cityscape has signage by definition: the gate was rejecting
+   exactly what the treatment ordered, spending 22 redraws and starving 12 anchors of
+   any check at all. **The question was wrong, not the list.** Narrowed to lettering
+   that does not belong, naming the stated location so a shop sign can be told from
+   one hallucinated into a bedroom.
+
+**The lesson under all four:** none was visible in a unit test and all four were
+visible in the stored plan. That is the argument for 7B.5 and for `renderTimingV1`
+in one sentence.
+
+**`renderTimingV1` — where a render's minutes go, on the plan, not in a terminal.**
+Two clocks: wall per phase, and time inside each kind of call summed over every lane.
+**The ratio is the diagnostic** — near the lane cap (6) means saturated and only less
+work helps; near 1 means one slow serial call and more concurrency buys nothing. It
+paid for itself on its first run by showing `gate.vision` at 10.4s a call against
+`anchor.image` at 5.7s: the gate was sending full-resolution PNGs to a vision model
+while the clip check used 768px frames. Both shrink now.
+
+Read it with the script in the session scratchpad, or
+`db.renderplanv1.findOne({jobId}).timings`.
+
+**Where the 14 minutes go** (`mvr_1793338408189_d864708f`, 45 clips):
+rendering 543s (64%), anchoring 168s (20%), stitching 66s, planning ~63s. Both big
+phases run at **5.7x against a cap of 6 — saturated**. 7B itself is ~4 of the 14
+minutes; 9.9 was the pre-7B baseline. **Whether that trade is worth it is a product
+call and should be made on the video, not on the clock.**
+
+**Still needs a person** (`coord ok` is refused to agents — it reads a tty):
+`coord done` for JET-212, JET-219, JET-222 (video-processing), JET-213, JET-216,
+JET-218, JET-220, JET-221 (mobile), and JET-202 (handed back via `coord review`).
+
+**Open, and genuinely theirs — JET-215.** Our half is done (D-044) and I have said so
+on the thread so they do not think they still owe us the location collapse. What
+remains is real: the same bytes give different boundaries two days apart, so a
+re-render of an unchanged song is not reproducible; and no track has ever returned a
+bridge, so `disjunctive` has never once fired.
+
+**Not closing:** JET-217 (mobile's `isReady` is `Boolean(draft.audioUrl)`, so an
+all-blank brief can still be submitted; the instrumental title-fallback case is not
+evidenced) and JET-194 (`posterUrl` is still a `storage.googleapis.com` URL).
+
+**Next:** Batch 8, the call sheet. Before building it, one render on the current code
+to confirm D-045 brought the text verdicts down and that `gate.vision` roughly halved
+— both are unverified.
+
+161 tests (was 107 at session start), typecheck clean, four do-not-touch files
+untouched across the whole batch.
+
 ### 2026-10-29T18:50
 
 **Batches 7 and 7B verified on a full 45-clip render** (`mvr_1793277832749_3e886f1a`,
