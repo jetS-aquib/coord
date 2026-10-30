@@ -58,3 +58,4 @@
 | D-054 | A section's shot progression is split into even runs, so a re-establish is never one clip long | 2026-10-30 | active | music-jetkreate-backend |  |
 | D-055 | A human override wins over the director and is recorded as one, so a hand-edited render never pollutes the comparison | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-229 |
 | D-056 | The cast was never empty — the director's range sets the SIZE, and the storyboard's tags only set the ordinals | 2026-10-30 | active | music-jetkreate-backend | JET-228 |
+| D-057 | The cast gets portraits, but only on a render that asked for the gate | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-231 |

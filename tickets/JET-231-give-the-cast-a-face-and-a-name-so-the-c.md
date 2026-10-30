@@ -4,10 +4,10 @@ title: Give the cast a face and a name, so the call sheet shows people instead o
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-10-30T17:27:51+05:30
-updated: 2026-10-30T17:27:51+05:30
-decisions: 
+updated: 2026-10-30T17:35:52+05:30
+decisions: D-057
 ---
 
 ## Request
@@ -58,3 +58,5 @@ A call sheet at review carries a picture of the cast — a portrait per member, 
 
 ## Thread
 2026-10-30T17:27:51+05:30 aquib N: created ticket, status: - -> open
+2026-10-30T17:31:53+05:30 aquib N: status: open -> approved
+2026-10-30T17:35:52+05:30 aquib N: linked decision D-057 (The cast gets portraits, but only on a render that asked for the gate)
