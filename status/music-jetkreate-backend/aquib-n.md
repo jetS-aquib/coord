@@ -1,13 +1,92 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Part II closed through 7B. Batch 8 (director + call sheet) and 8B (song source) are planned and ticketed, not started. Fresh sessions start from the artifact.
+- **Current task:** Batch 8 rows 8.9-8.14 (the director) are built and tested, uncommitted. Batch 8B is shaped and agreed (D-049) but blocked: there is no Epidemic API key in .env. 8.1-8.8, the call sheet, is untouched.
 - **Status:** waiting on human
-- **Blockers:** JET-223 and JET-224 need `coord approve`. Nine older tickets need `coord done`. No code blocked.
-- **Last updated:** 2026-10-30T12:05:00+05:30
+- **Blockers:** No Epidemic API key in .env — 8B cannot be built or verified. JET-194 needs `coord approve` and is cited by JET-225 and JET-226. Nine older tickets need `coord done`. Nothing is committed; waiting on a go.
+- **Last updated:** 2026-10-30T12:35:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-30T12:35
+
+**Batch 8 rows 8.9 to 8.14 are built. Batch 8B is not, and the reason is a missing
+key rather than a missing decision.** 180 tests (was 161), typecheck clean, the four
+do-not-touch files untouched. Nothing committed — waiting on a go.
+
+**8.9 is a refactor and it is provably one.** `DirectorProfileV1` in the new
+`directorsV1.ts` widens `ShotGrammarOptionsV1` and is threaded through `shotGrammarV1`,
+`cutPlanV1`, `treatmentV1` and `briefV1`. The 161 tests that were already here pass
+UNTOUCHED, and both text prompts come back byte identical for the house profile —
+`${note}` is empty and `${placesText}` spells out "two or three", which is why the
+numbers in the prompt are words and not digits.
+
+**Three directors, and they differ in the arithmetic.** On the 4:16 track Batch 6 was
+measured on: `stays-close` 4/39 performance and a ladder that never opens wider than
+medium, `fills-floor` 24/19 on the full ladder, `holds-frame` 17/26 biased one step
+tight. `directorsV1.test.ts` requires any PAIR to differ on at least two of cut count,
+lane split and shot sizes, which is D-046 rule 2 as a failing build rather than a
+sentence in a decision record.
+
+**THE FINDING, and it is the one to read: the cut-rate lever is inert on a ballad.**
+`cutRateV1` derives the range from the bar length and the model's 4-8s window, so at
+80 BPM a bar is 3.0s and the widest clip is 2 bars and so is the narrowest — all three
+directors cut the identical 43 clips. The dead band is roughly **68-88 BPM**, which is
+where a ballad sits, which is the song `stays-close` exists for. Measured, logged at
+plan time so it is never a mystery, pinned by a test, and **deliberately not fixed**:
+fixing it means letting a fast director take 1-bar clips and trim the surplus, which is
+more clips and more spend on every slow song. That is a cost call for a person. D-048.
+
+**D-047** — an unset `directorId` is the HOUSE style, not the default director. Two
+different facts: every project saved before today and every web render has no director,
+and if those resolved to `stays-close` the baseline render stops being comparable with
+anything after it. `HOUSE_DIRECTOR_V1` is today's frozen numbers and is deliberately
+not in the catalogue, so nobody can pick it. That one branch is what makes "changes no
+rendered frame" provable.
+
+**D-049 — 8B's shape is agreed and 8B.1 has evaporated.** Mobile revised JET-226 on the
+thread and was right to: a library track carries a STABLE backend-hosted `audioUrl`
+instead of a trackId, so a picked track IS an upload from the moment it is picked and
+nothing downstream changes — including `POST /api/video/music-storyboard`, which is on
+the do-not-touch list and would have made "trackId everywhere" impossible. Both caches
+are keyed on that stable string, so **8B.1 needs no audioKey field and no migration**.
+Three corrections went back on the thread: cover and preview art must be STREAMED not
+302'd (JET-194 assumption 2 is mobile's own argument and it applies to anything a phone
+fetches), the audio is resolved to a fresh Epidemic URL SERVER-SIDE so video-processing
+never follows our redirect or has to reach our host, and the audio route is
+unauthenticated by construction, which is 8B.6's entitlement question early.
+
+**8B is blocked on a key, not on a decision. There is no Epidemic key in `.env` on this
+machine** — the previous note says the prototype key is there and it is not. So not one
+real track has been listed, and every route would be shaped against the documented API
+and verified against nothing. All four bugs found in Batch 7 and 7B were invisible to
+unit tests and visible only on a live run. Put the key in `.env` and 8B is a session.
+
+**8B.5 is done and cutPlanV1 is fine on a short track** — a 2:00 track at 100 BPM is 19
+clips over three sections, every boundary on a downbeat, nothing generated unused, and
+a test pins it. But the shot progression has a wrinkle short tracks make common: a
+section of exactly 7 clips re-establishes for ONE clip and renders `close -> wide ->
+close` at the end of the song, which reads as a mistake rather than a re-establish. Not
+fixed here, on purpose — this commit's whole claim is that it changes no rendered frame.
+**That is the first thing to fix next and it is a two-line change in `shotSizeV1`.**
+
+**No cross-repo ticket was needed, and I looked.** JET-194 is noted and narrowed: every
+media URL Batch 8 introduces is on our host by construction, so nothing here waits on
+it, but `posterUrl` is still a GCS URL — which means JET-221 and JET-194 cancel each
+other out and that Library card is still a grey box on a device. The Bhojpuri ticket
+could not be written: it needs a real Bhojpuri track to measure against and there is
+none, and a speculative ask about Whisper's confidence would not improve transcript
+quality anyway. Say so rather than file a guess.
+
+**Not verified, and still worth a render before anything else:** D-045 and the gate
+downscale, unchanged from the last note. Separately, **the three new routes have never
+served an HTTP request** — the handlers are straight-line and tsc-clean and the data is
+under 180 unit tests, but booting the app to curl them needs a signed request I did not
+mint. The curl is in the report.
+
+**Next:** approve JET-194. Put the Epidemic key in `.env`. One render to settle D-045.
+Then 8.1-8.8, the call sheet, which is the other half of Batch 8 and is untouched.
 ### 2026-10-30T12:05
 
 **Planned Batch 8 (the director) and Batch 8B (the song source).** Nothing built.

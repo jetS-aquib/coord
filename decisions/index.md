@@ -48,3 +48,6 @@
 | D-044 | The look is keyed on the section index, not on the section label | 2026-10-29 | active | music-jetkreate-backend | JET-215 |
 | D-045 | The gate asks for lettering that does not belong, not for lettering | 2026-10-30 | active | music-jetkreate-backend |  |
 | D-046 | A director is a parameter set that biases the grammar, not a prompt that describes a style | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile |  |
+| D-047 | An unset director is the house style, not the default director | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-225 |
+| D-048 | A director's cut rate is a rank within the song, and it is allowed to be inert | 2026-10-30 | active | music-jetkreate-backend | JET-225 |
+| D-049 | A library track is an upload: one stable backend-hosted audioUrl, not a trackId everywhere | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-226 |

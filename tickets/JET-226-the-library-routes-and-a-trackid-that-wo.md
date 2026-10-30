@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-30T12:02:31+05:30
-updated: 2026-10-30T12:03:21+05:30
-decisions: 
+updated: 2026-10-30T12:27:48+05:30
+decisions: D-049
 ---
 
 ## Request
@@ -149,3 +149,4 @@ never seen return a row.
 
 So: JET-225 lands first and whole, and this one gets built the moment the key exists.
 Build your picker against the shape above — it is not going to move.
+2026-10-30T12:27:48+05:30 aquib N: linked decision D-049 (A library track is an upload: one stable backend-hosted audioUrl, not a trackId everywhere)

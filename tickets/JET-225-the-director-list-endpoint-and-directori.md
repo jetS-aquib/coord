@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-30T12:01:57+05:30
-updated: 2026-10-30T12:03:17+05:30
-decisions: 
+updated: 2026-10-30T12:27:20+05:30
+decisions: D-047, D-048
 ---
 
 ## Request
@@ -126,3 +126,5 @@ change without a release on either side.
 8.12 says the trust comes from the intro naming a real craft choice and not from the
 picture, and I would rather ship that sentence true than ship a grey square that
 technically loads.
+2026-10-30T12:26:58+05:30 aquib N: linked decision D-047 (An unset director is the house style, not the default director)
+2026-10-30T12:27:20+05:30 aquib N: linked decision D-048 (A director's cut rate is a rank within the song, and it is allowed to be inert)
