@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-10-30T12:02:31+05:30
-updated: 2026-10-30T12:27:48+05:30
-decisions: D-049
+updated: 2026-10-30T12:53:25+05:30
+decisions: D-049, D-050
 ---
 
 ## Request
@@ -150,3 +150,64 @@ never seen return a row.
 So: JET-225 lands first and whole, and this one gets built the moment the key exists.
 Build your picker against the shape above — it is not going to move.
 2026-10-30T12:27:48+05:30 aquib N: linked decision D-049 (A library track is an upload: one stable backend-hosted audioUrl, not a trackId everywhere)
+2026-10-30T12:53:25+05:30 aquib N: linked decision D-050 (Library audio, cover art and director avatars are served unauthenticated, from the request's own origin)
+2026-10-30T12:54:09+05:30 aquib N: BUILT AND VERIFIED AGAINST THE LIVE CATALOGUE. The key turned up, so this is no
+longer waiting. Everything below was measured, not read off the docs.
+
+Your "library did not answer / Music video project not found" was not the library at
+all: GET /tracks had no v1 route, so it fell through to v0's GET /:id with id="tracks".
+That route now exists and the message goes away.
+
+THE SHAPE, exactly as you filed ask 1 plus the revision:
+  GET /api/v1/music-videos/tracks?term=&genre=&cursor=
+  -> { tracks: [ { id, title, artists[], durationSeconds, bpm, genres[], moods[],
+                   coverUrl, previewUrl, audioUrl, isExplicit } ],
+       nextCursor, genres }
+
+Six things worth knowing before you wire it:
+
+1. previewUrl AND audioUrl are the same string, as you suggested. One route serves the
+   player, both of our caches and the render, so there is only one thing that can go
+   stale. Pass audioUrl through everywhere you pass an upload URL — /song-read, /brief,
+   transcript/warm, the project upsert and the v0 storyboard call — all unchanged.
+
+2. THE MEDIA ROUTES ARE PUBLIC. /tracks/<id>/audio and /tracks/<id>/cover sit outside
+   requireAuth and requireSignature, because expo-audio cannot sign a request and an
+   <Image> sends no headers. Do not route them through your authed api() wrapper;
+   hand the raw URL to the player and the image. The list route itself still needs
+   auth as normal. D-050. Range is passed through — verified 206 with a correct
+   content-range, so seeking works.
+
+3. USE coverUrl VERBATIM, do not rebuild it. It carries a ?r= release id, because the
+   Epidemic API has no way to look a single track up by id (verified: GET /v0/tracks/
+   <id> is 404 even for a real id, and ?id=/?ids=/?trackIds= are silently ignored).
+   Stripping the query turns every cover into a 404.
+
+4. nextCursor carries an offset, as you guessed it might — the upstream is offset
+   paged, not cursor paged. Treat it as opaque and send it back; page 2 of a browse
+   has zero overlap with page 1, checked.
+
+5. I added isExplicit, which you did not ask for. 25 of 200 vocal tracks are explicit.
+   I am not filtering on it and I am not asking you to show it — it is there so the
+   decision is yours without another round trip. Ignore it if you would rather.
+
+6. The genre chips are the measured top six: Beats 41%, Pop 32%, Hip Hop 30%, Rock 9%,
+   Acoustic 6%, House 5%, over 200 vocal tracks. Not the API's genre list, which is the
+   whole Epidemic taxonomy — the vocal catalogue's real tail is 77 genres with most
+   holding one track, so most of those chips would return nothing. Server-decided as
+   you asked, so you keep no list.
+
+Ask 4 is in: an unknown track id is 404 with {code:"track_not_found"}, a server with no
+key configured is 503 {code:"library_unconfigured"}, and an upstream failure is 502
+{code:"library_unavailable"}. None of them is a 500.
+
+TWO MEASUREMENTS THAT AFFECT YOUR SCREEN:
+- Length: median 2:58, p25 2:32, shortest in 200 is 1:58, nothing under a minute. Your
+  "short tracks are normal" assumption is right and the floor is higher than feared.
+- A track missing its duration, tempo or genres is left out, as you asked. That is 2 in
+  200, so a page of 30 occasionally returns 29. Page on nextCursor, not on tracks.length.
+
+One thing I changed that touches you invisibly: these URLs are now built from the host
+your device actually used, not from BACKEND_URL. BACKEND_URL here is localhost:5006,
+which a phone cannot reach — minting from it would have handed you three unloadable
+URLs and reinvented JET-194 from the other end.

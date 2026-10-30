@@ -51,3 +51,4 @@
 | D-047 | An unset director is the house style, not the default director | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-225 |
 | D-048 | A director's cut rate is a rank within the song, and it is allowed to be inert | 2026-10-30 | active | music-jetkreate-backend | JET-225 |
 | D-049 | A library track is an upload: one stable backend-hosted audioUrl, not a trackId everywhere | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-226 |
+| D-050 | Library audio, cover art and director avatars are served unauthenticated, from the request's own origin | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-226 |
