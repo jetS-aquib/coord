@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 8 on mobile. JET-223 (director screen) and JET-224 (song library) are built against the shapes filed as JET-225 and JET-226; both need the backend half before they do anything on a device.
+- **Current task:** Batch 8 on mobile. The director screen and the song library are in, and the backend half of both landed the same day — JET-225 and JET-226 are built on their side, so the two screens are now talking to real routes.
 - **Status:** working
-- **Blockers:** nothing blocking the code. Three endpoints do not exist yet: GET /api/v1/music-videos/directors, directorId on POST /brief, and GET /api/v1/music-videos/tracks. The director screen falls back to the three bundled directors and works without any of them; the library screen cannot and shows its error state until the tracks route lands.
-- **Last updated:** 2026-10-30T12:40:00+05:30
+- **Blockers:** none. First device run found two mapping faults against the live routes, both fixed: the chip row is `{id, name}` and not strings, and the bundled director ids were invented rather than the backend's, so a fallback pick would have rendered as the house style.
+- **Last updated:** 2026-10-30T12:55:00+05:30
 
 > Note: this per-person file had not been written since 2026-10-21 and the
 > entries below it are auto-generated. The substantive handoff notes for
@@ -16,6 +16,23 @@
 ### 2026-10-30T12:17:22+05:30
 
 Session ended while on JET-220. Touched: MOBILE-DESIGN.md, src/features/create/directors.ts, src/lib/generation.ts, src/features/create/create-context.tsx, src/app/(create)/director.tsx, src/app/(create)/library.tsx, src/app/(create)/_layout.tsx, src/app/(create)/audio.tsx, +4 more. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-10-30T12:55:00+05:30 — what the first device run found, both mapping faults
+
+The library screen crashed on open: `page.genres` is `Array<{id, name}>`, not
+`string[]`, so the chip rendered an object. The useful half of that bug is the
+second one it exposed — **the bundled director ids were mine, not theirs**.
+`features/create/directors.ts` shipped `close` / `floor` / `frame`;
+`render/directorsV1.ts` ships `stays-close` / `fills-floor` / `holds-frame`,
+and `resolveDirectorV1` answers an unknown id with the house style. So the
+fallback path would have shown three cards, taken a tap, and rendered as
+though nobody had chosen. It never fired on this device because the list call
+succeeded, which is exactly why it was worth finding now. The ids and the copy
+are transcribed from their file and the comment says the ids are the contract.
+
+Also mapped properly while in there: `previewUrl` for the player and
+`audioUrl` for the pick, which are the same string today and are two fields on
+purpose.
 
 ### 2026-10-30T12:40:00+05:30 — Batch 8's mobile half, built against two tickets I filed first
 
