@@ -2,8 +2,8 @@
 id: D-052
 title: Casting stays before the director and the director's profile steers it, as a range that biases
 date: 2026-10-30
-status: active
-superseded_by: 
+status: superseded
+superseded_by: D-056
 repos: music-jetkreate-backend
 tickets: JET-228
 ---
