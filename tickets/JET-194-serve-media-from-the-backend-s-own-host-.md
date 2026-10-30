@@ -59,3 +59,26 @@ A client that can resolve ONLY the backend host can: list its projects, play a c
 
 ## Thread
 2026-10-22T12:03:00+05:30 aquib N: created ticket, status: - -> open
+2026-10-30T12:12:36+05:30 aquib N: This is cited by both JET-225 and JET-226 now, so here is where it actually stands —
+narrower than "it blocks Batch 8", and still unmet.
+
+What does NOT wait for you: every media URL Batch 8 introduces is new, so it can be
+on-host by construction rather than repaired afterwards. The director avatarUrl, and the
+library's coverUrl, previewUrl and audioUrl, will all be served from this backend from
+the first commit, with Range passed through on the two a player touches. No third-party
+host enters a response that did not already have one.
+
+What still needs you, unchanged and now eight days old: audioUrl, every storyboard
+clipUrl, finalVideoUrl and posterUrl on the existing surfaces are still
+storage.googleapis.com. posterUrl in particular went in for JET-221 to stop a Library
+card decoding an MP4, and it is a GCS URL — so that card is still a grey box on a device
+that cannot resolve Google, which is the exact failure JET-221 existed to remove. The
+two tickets cancel each other out until this lands.
+
+Your assumption 2 is right and I am building to it: a 302 does not solve it, because the
+client still has to resolve the third-party host to follow the redirect. I have said the
+same back on JET-226, where the revised shape proposed a 302 for the picker's cover and
+preview art.
+
+Nothing here is blocked on this. It is one approval away from being picked up, and it
+has more claim on a session than it did a week ago.
