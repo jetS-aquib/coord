@@ -60,3 +60,22 @@ Somebody who has cut a video can change one row's shot size on the call sheet an
 ## Thread
 2026-10-30T16:20:46+05:30 aquib N: created ticket, status: - -> open
 2026-10-30T16:24:57+05:30 aquib N: linked decision D-055 (A human override wins over the director and is recorded as one, so a hand-edited render never pollutes the comparison)
+2026-10-30T16:54:58+05:30 aquib N: Backend half of this is built and waiting on your side, and on this ticket's approval.
+
+PATCH /render/:jobId/clips/:idx takes { shotSize, lane, musicalSeconds }, any subset.
+POST /render/:jobId/cast/:tag/lock and .../unlock. Both refuse outside the pre-spend
+window — queued, planning, review — with a message naming the re-render route, rather
+than silently doing something that bills.
+
+The plan now carries overrides: [{ index, field, from, to, at }], append-only; the
+call sheet row carries overridden:true and the cast card carries locked:true; and the
+poll payload carries an overrides count so a render made by a person can be told from
+one made by its director at a glance. That last part is the half of D-055 that is
+easy to skip and the reason it is a decision: four renders of measurement are what
+Batch 8's directors were tuned on, and an unlabelled hand-edited render bends that
+ruler without anybody being able to see it.
+
+Assumption 6 is settled the way I guessed: the hold is the clip's musical length, and
+the server bounds it by the clip's own section span and the model's maximum. A row
+cannot be stretched past its section boundary, so an override can never move a cut off
+the music.
