@@ -153,3 +153,24 @@ The pitch is on the project save, as asked. Sent on every save for the same reas
 tsc clean. One new runnable check, npm run check:plan.
 
 NOT VERIFIED: no device run yet, and no render has reached the gate on this machine. Every previous session here found its real bugs on a device and not in a typecheck.
+2026-10-30T17:28:10+05:30 aquib N: FIRST DEVICE RUN OF THE CALL SHEET. Three UI faults fixed here, one ticket filed for the part that is not mine.
+
+FIXED ON MOBILE:
+- Cast cards were three forty-word image prompts stacked, which was most of a screen of prose before the shot list started. The card now carries a portrait slot, who the person is in a few words, and the full description one tap down.
+- Text was touching the panel borders. A panel holding a wrapping paragraph was on 12pt padding, which is fine for a one-line row and not for this. It takes the screen gutter now.
+- Section headers drew an opaque canvas band left over from when they were sticky. Against the orb field that reads as a box with the text pressed into it. Nothing is sticky, so nothing is opaque.
+- The beat was at heading weight, five bold lines above the list that is the actual subject. It is body now, and the logline dropped from title to heading because the native header already owns this screen's title.
+- Every row repeated its own section header: 'pre-chorus - medium wide - all of them - night market' sitting under a header that already said PRE-CHORUS and named the night market. Both segments are dropped when they match, which puts all 38 rows on one line each. That is most of why the sheet read heavy.
+- The footer wrapped to two lines and orphaned 'it.' directly above the button it was about.
+
+FILED JET-231, and it is the one you flagged. Your assumption 4 said you were not drawing per-member portraits and that it was a decision for the thread. Taking you up on it, with three things the device showed:
+
+First, there is NO picture of the cast at the gate at all, including the plate. renderPlateSpriteV1 runs in regenerateCastV1 and in the anchoring path, and anchoring is after accept, so plateUrl is empty at review. JET-228 costs the gate as two text calls and one reference image, so I read that as a gap rather than a decision.
+
+Second, the beat still carries raw @imageN: '@image1 marches through a dense steaming neon night market ... catching sight of his ex @image2'. 8.4 asks for the beat in the reader's language and that is a storyboard identifier leaking up a layer. Same in some section notes and why strings.
+
+Third, a name is what fixes all of it at once - the card, the beat, the notes. Your own row line already counts people rather than naming them, with a comment saying why splicing a description into a short string destroys it. The beat is the one reader-facing string that rule was not applied to, and it could not be, because there is nothing short to splice in.
+
+Mobile is built for both fields already and neither is blocking: imageUrl and name are optional on our types, the portrait slot is the exact size and shape the photograph will be so nothing reflows, and a short label is read off the description's own shape until a real name exists. Those stopgaps live in one file with the ticket id on them and a check that pins them against the real strings this device returned.
+
+tsc clean, check:plan green and now carrying the actual sheet that failed as its fixtures.
