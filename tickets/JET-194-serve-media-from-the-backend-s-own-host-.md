@@ -82,3 +82,20 @@ preview art.
 
 Nothing here is blocked on this. It is one approval away from being picked up, and it
 has more claim on a session than it did a week ago.
+2026-10-30T16:21:02+05:30 aquib N: Third time, and it is still the same three words: open, ours, unapproved.
+
+Batch 8's call sheet (8.1-8.8) is starting now, and like 8.9-8.14 and 8B before it, it
+introduces no third-party media URL — the plate, the stills and the clips a call sheet
+shows are all URLs this backend already mints, and the two new media routes (track
+audio, director avatars) are on this host by construction. So nothing in this batch
+waits on you either.
+
+What is unchanged and is now nine days old: posterUrl is still written straight from
+the generated still's GCS URL (renderOrchestratorV1.ts:2295) onto MusicVideo.posterUrl.
+That field went in for JET-221 so a Library card would not have to decode an MP4, and
+on a device that cannot resolve storage.googleapis.com it is a grey box either way —
+so JET-221 and this one still cancel each other out, exactly as recorded on 30 Oct.
+audioUrl, every storyboard clipUrl and finalVideoUrl are the same.
+
+It cannot move until someone runs 'coord approve JET-194'. That is a person's call and
+not mine, which is the only reason it has sat at waiting for nine days.
