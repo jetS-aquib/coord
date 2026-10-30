@@ -1,13 +1,126 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batch 8 (the director, 8.9-8.14) and Batch 8B (the song library) are both built, tested and verified against the live catalogue. Uncommitted. 8.1-8.8, the call sheet, is untouched.
+- **Current task:** Batch 8's call sheet (8.1-8.8) is built: the review gate, the call sheet read model, crew narration on the plan, the director-steered cast, the pitch as a contract, pro overrides, and the shot-ladder fix. Uncommitted, along with 8.9-8.14 and 8B.
 - **Status:** waiting on human
-- **Blockers:** EPIDEMIC_API_KEY must be in .env on every machine and deployment that serves the library (prototype key, preview-only — 8B.6 is now load-bearing). JET-194 needs `coord approve`. Nine older tickets need `coord done`. Nothing is committed; waiting on a go.
-- **Last updated:** 2026-10-30T13:05:00+05:30
+- **Blockers:** JET-228 and JET-229 need `coord approve` before mobile starts. JET-194 is nine days old, still ours, still unapproved — posterUrl is still a GCS URL. EPIDEMIC_API_KEY must be in .env wherever the library is served. Ten older tickets need `coord done`. Nothing is committed; waiting on a go.
+- **Last updated:** 2026-10-30T16:55:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-30T16:55
+
+**Batch 8's call sheet is built — 8.1 through 8.8.** 224 tests (was 196), typecheck
+clean, four do-not-touch files untouched. Nothing committed. Two tickets filed to
+mobile BEFORE any code (JET-228 the screen and the gate, JET-229 the overrides) and
+both still need `coord approve`.
+
+**TWO THINGS I WAS TOLD WERE TRUE AND MEASURED TO BE FALSE. Both came out of one
+mongosh query over 36 stored plans, and that query should have been the first thing.**
+
+1. **The cast was never empty.** The brief for this session said resolveCastV1's
+   `if (!tags.size) return []` means almost every render runs with "(one unnamed
+   subject)". It does not: **33 of 36 plans carry a real cast of 2 to 4**, the last
+   eight renders all have 2 or 3 described members, 40-45 of 45 clips carry castTags,
+   and **43 of 43 projects have @imageN in their storyboard** because the v0
+   generator writes those tags by default. I had already recorded D-052 on the false
+   premise and built the clamp so it only fired when no tags were stated — which is
+   zero projects. **D-056 supersedes it.** The real defect is the one underneath:
+   nobody decided HOW MANY, so Kabir, whose card says "a single figure", has been
+   rendering three. The director's range now sets the size whatever the storyboard
+   stated; the stated tags only choose which ordinals. The house profile has NO range
+   (absent, not zero) and takes the storyboard's count, which is what keeps D-047
+   provable.
+2. **The shot-ladder stub is 12% of sections, not a rarity.** 13 of 105 sections
+   across those 36 plans are in the family. And the family is not "7 and 33" as
+   D-054's own text says — it is **two more than a multiple of the LADDER**, which is
+   5 in 16:9 and 4 in 9:16. The 9:16 half had never been considered.
+
+**The ladder fix took three attempts and only the third is right.** First try split
+the section into `ceil(count/ladder)` even runs — clean on 16:9, but it created a
+new stub on 9:16 at 5 clips, and it had an off-by-one where the run a clip was
+assigned to and that run's start were computed differently, so a clip could ask for a
+rung off the end of the ladder. **The answer is `floor`, not `ceil`:** a run may be
+longer than the ladder and never shorter, so a remainder is absorbed rather than
+becoming a run that cannot progress. Measured over every section length 1-200 on both
+ladders: no short run, no size repeated more than twice, and the step into a section's
+closing shot never more than two rungs against the four-rung `close -> wide -> close`
+leap. Sections up to the ladder's length are byte-identical. **This changes rendered
+frames, so the next render is the new baseline** for anything compared frame to frame.
+
+**The gate is OPT-IN and there is no timer, and that is the whole of how 8.6 holds.**
+`POST /:id/render` takes `review: true`; without it a render goes queued -> planning
+-> anchoring and never stops, so the web path and every older client are untouched.
+`accept` is idempotent and never 409s. No auto-proceed: what waits costs two text
+calls and one image, what a timer would start costs ~$25, and a fuse should fail
+toward the cheap side. Two places had to learn about `review` or it would not have
+been a gate at all — `resumeRendersOnStartupV1` excludes it like `blocked`, and
+`runPlanV1` returns early on it. A deploy must not be what approves a render. D-051.
+
+**THE THING THAT PAID FOR ITSELF: I fetched a real 45-row call sheet over HTTP and
+read it.** Two defects, both invisible to every test I had written:
+- The director's one-line voice was appended to EVERY section's notes, so the same
+  sentence arrived eight times down one screen and buried the notes that were about
+  that section. It is `approach`, once, at the top.
+- Every row read `verse · medium wide · one of them · Dimly lit high-fashion
+  penthouse party overlooking a neon city skyline`. The treatment writes the full
+  location because that string goes into an image prompt — so 8.3's entire claim, four
+  plain words a novice can read, was gone. The row carries a shortened place now
+  ("penthouse party"); the section header still carries the full text.
+That is the fourth and fifth defect in a row here that was invisible in tests and
+obvious on inspection. **Look at the thing.**
+
+**Crew narration lives ON THE PLAN, not on a stream** (2.6 — SSE drops when the app
+backgrounds). `crew[]` is appended with `$push` only, never also onto the in-memory
+document, because mongoose records a push on a document array as its own atomic
+$push at save time and doing both writes the note twice. Each line carries the
+CONTENT of a handoff — "Heard the track: 92 BPM, 8 sections, the biggest one at 0:41",
+"Cut it to 43 shots, every one landing on a downbeat", "Checked 46 key frames, sent 9
+back" — rather than a phase label. 9.9 should narrate from these rather than invent
+stages.
+
+**The pitch is now a contract, not screen copy.** JET-227 added it to POST /brief and
+nothing stored it or passed it on, so the director described a plan the treatment had
+no obligation to make. Persisted on the project, copied to the plan, and placed in the
+treatment prompt as WHAT THE ARTIST WAS ALREADY PROMISED. Empty adds nothing and the
+prompt stays byte-identical to the one 7.2 and 8.9 were measured on. **Mobile has to
+send it back on the project save** — that is the one new field JET-228 asks of them.
+D-053.
+
+**Casting stays before the director and the profile steers it** rather than inverting
+the order. Inverting is not one extra call: the treatment is the document that
+describes the cast, so writing it first means writing it about people who do not exist
+and then either rewriting it or living with the mismatch — and `directed` exists
+because a treatment's second answer is not its first, so a resume would need new
+semantics for a question a director can already answer.
+
+**Decisions: D-051** (the gate), **D-052 superseded by D-056** (casting), **D-053**
+(the pitch), **D-054** (the ladder), **D-055** (overrides).
+
+**One blemish on the board, and it is mine.** D-056's Decision paragraph is missing
+the words `DirectorProfileV1.cast` — I put them in backticks inside a shell argument
+and the shell ate them, leaving "So  is now OPTIONAL". Decisions cannot be
+hand-edited and `coord note` does not take a decision id, so the corrected sentence
+lives in the code comment on that field instead. Do not use backticks in `coord
+decide` text. D-054 has a factual slip of the same kind — "wrong at 7 clips and at
+33"; 33 re-establishes in threes and was never defective — and the corrected rule is
+in `shotSizeV1`'s comment.
+
+**Verified over real HTTP, not only in tests:** all six new routes answer 401 without
+auth rather than falling through to v0's `GET /:id` (the trap from the 8B session),
+and `GET .../call-sheet` returns a full 45-row sheet for a real stored plan with a
+signed request.
+
+**STILL NOT VERIFIED, and it is the same two as the last three notes.** D-045 and the
+gate downscale. And **no render has been done end to end on a library track** — now
+also none under the new ladder, the new cast sizing or the gate. A 30-second trim
+across a section boundary is ~$2-3 and exercises every phase. **That is the next
+thing**, and nothing in 8.1-8.8 has been seen on a moving picture.
+
+**Next:** approve JET-228 and JET-229. One render on a picked track with `review:
+true`, which settles D-045, the library end-to-end, and whether the cast sizing and
+the ladder actually read better on screen.
 
 ### 2026-10-30T13:05
 
