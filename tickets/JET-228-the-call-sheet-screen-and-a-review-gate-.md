@@ -187,3 +187,16 @@ Two things I checked rather than assumed while doing it. radius.bubble has been 
 Declared it in MOBILE-DESIGN.md as the third bold move rather than quietly exceeding the budget that file sets. The rest of the call sheet stays flat on purpose.
 
 tsc clean, three checks green.
+2026-10-30T17:44:05+05:30 aquib N: The director's photo on the call sheet. The art was never missing - this screen was the one place not asking for it.
+
+The backend has been serving real portraits for all three since JET-227: assets/directors/fills-floor.webp and the other two exist on disk, and GET /directors returns an absolute avatarUrl built from the device's own request origin. I checked the files rather than assuming the route was empty.
+
+What was wrong is on my side. The call sheet resolved the director from two sources, neither of which has artwork in it: the create draft, which is EMPTY on any resumed session, and the BUNDLED directors list, which has no avatarUrl by design - it is the offline fallback and the portraits were never shipped into the app. So the avatar could only ever be a monogram there, whatever the backend served.
+
+The screen fetches directorList() now, the same call the director screen already makes, and resolves the face from the served list first, the draft second, a monogram off the stored name last. directorList() falls back to the bundle itself, so a failed call is a monogram and never an empty space.
+
+ONE THING THAT WOULD DELETE THAT CALL, and it is your call whether it is worth it. The call sheet's director object is {id, name}. If it carried avatarUrl the way the directors list does, this screen would need no second request at all - it already has everything else it draws. Not filing it as a ticket because the fetch works and is one small JSON, but if you are in that read model anyway for JET-231's cast art, it is the same field in the same place.
+
+ALSO FIXED, from the same screenshot: the speech bubble's tail was reading as a floating diamond rather than a tail. signalSoft is a 16 percent tint, so a rotated square drawn on top of the bubble stacked its alpha to 30 percent where the two overlapped and the join was visible as a darker shape. It is clipped now instead of overlapped - an 8pt window showing only the diamond's point - so it is one flat layer and reads as one object.
+
+tsc clean, three checks green.
