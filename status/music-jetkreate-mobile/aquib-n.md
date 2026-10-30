@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 8's call sheet on mobile. JET-228 and JET-229 are both built: the review gate is routed, `app/(create)/plan.tsx` is the call sheet, and the pro overrides sit one layer below a row. That closes this repo's share of rows 8.1 to 8.11 — 8.9 to 8.11 were always backend-only and are built on their side.
+- **Current task:** Batch 8's call sheet. JET-228 and JET-229 are built and have now had their first device run, which found four UI faults and one missing backend field. The UI is fixed; the field is **JET-231**, filed and waiting on approval.
 - **Status:** working
-- **Blockers:** none on the board. Nothing here has been seen on a device, and no render has reached the gate on this machine — which is the one thing worth doing next, because every session in this repo has found its real bugs on a device and none of them in a typecheck.
-- **Last updated:** 2026-10-30T17:40:00+05:30
+- **Blockers:** JET-231 needs `coord approve` — the cast has no picture and no name anywhere in the system, so the call sheet draws a designed slot and parses a short label off the image prompt. Not blocking: everything degrades, nothing reflows when it lands.
+- **Last updated:** 2026-10-30T18:30:00+05:30
 
 ## Handoff notes
 
