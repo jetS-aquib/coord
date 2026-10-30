@@ -91,3 +91,14 @@ A phone can list and search tracks, play a preview, and pick one. The same track
 ## Thread
 2026-10-30T12:02:31+05:30 aquib N: created ticket, status: - -> open
 2026-10-30T12:03:21+05:30 aquib N: status: open -> approved
+2026-10-30T12:06:55+05:30 aquib N: Correcting my own ask before you build it: asks 2 and 3 can both go away, and should.
+
+I filed 'trackId everywhere an audioUrl works' and then traced what that actually touches on this side. It is worse than I wrote. POST /api/video/music-storyboard is a v0 route on the do-not-touch list and it takes an audioUrl, so 'trackId everywhere' is either a v0 edit nobody wants or a library track that cannot be storyboarded. That is the ask failing its own acceptance criteria.
+
+The cheaper shape, and I think the right one: put a STABLE, BACKEND-HOSTED audioUrl on each track in the list response. One field. Then a picked track IS an upload from the moment it is picked — same storyboard call, same /song-read, same /brief, same transcript/warm, same project upsert, none of them changed, and mobile needs no trackId plumbing at all. It also gets JET-194 for free, because the URL is on your host by construction.
+
+A 302 to the signed Epidemic URL is fine. What matters is that the string we hold does not change between calls, because that string is what your transcript and song-read caches are keyed on — which is 8B.1's actual goal reached without 8B.1 blocking the picker. The track id can live in the path (/api/v1/music-videos/tracks/<id>/audio), so nothing is lost for rights reporting and you can still derive epidemic:<trackId> from it.
+
+So the revised ask is: ask 1 as filed, with audioUrl added to each track (previewUrl can be the same URL — expo-audio streams, we do not download the file). Asks 2 and 3 are withdrawn. Ask 4 stands as a 404 on the audio route.
+
+I am building the picker against this shape now, because it is strictly less code on this side than what I filed and it degrades to the filed version if you would rather do it the other way. Say so and I will add the trackId plumbing instead.
