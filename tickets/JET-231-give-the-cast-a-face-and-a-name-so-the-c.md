@@ -4,9 +4,9 @@ title: Give the cast a face and a name, so the call sheet shows people instead o
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-30T17:27:51+05:30
-updated: 2026-10-30T17:35:52+05:30
+updated: 2026-10-30T17:49:04+05:30
 decisions: D-057
 ---
 
@@ -54,9 +54,41 @@ A call sheet at review carries a picture of the cast — a portrait per member, 
 
 ## Test steps
 
-—
+1. Start a render with `review: true`. Poll until the status is `review`. On the plan: every
+   cast member has a `name` and an `imageUrl`, and `plateUrl` is set.
+2. GET the call sheet. Each cast card carries name, description and imageUrl. Open that
+   imageUrl and the plateUrl side by side — it has to be recognisably the same person.
+3. Read `sections[0].beat`. It names the person rather than saying @image1. Same for the
+   logline, the pitch, every section note and every row's `why`.
+4. Read any row that has a cast tag on it: "verse · medium · Cleo · concrete basement".
+5. POST `.../cast/@image1/lock`, then POST `.../cast/regenerate`. The locked member keeps
+   their name, description and portrait; anyone else changes. The plan's `overrides` array
+   records the lock.
+6. POST `.../cast/regenerate` with nobody locked. The person changes everywhere at once —
+   the card, the logline, every beat and every row.
+7. Start a render WITHOUT `review: true`. No portraits are drawn and nothing else differs.
 
 ## Thread
 2026-10-30T17:27:51+05:30 aquib N: created ticket, status: - -> open
 2026-10-30T17:31:53+05:30 aquib N: status: open -> approved
 2026-10-30T17:35:52+05:30 aquib N: linked decision D-057 (The cast gets portraits, but only on a render that asked for the gate)
+2026-10-30T17:47:51+05:30 aquib N: status: approved -> in_progress — Picked up — nothing committed yet, so the board has not moved it by itself.
+2026-10-30T17:49:04+05:30 aquib N: status: in_progress -> review — Built, and verified on a live gated render rather than in tests alone — mvr_1793362298029_891e01ed, sitting in review on mv_1793353541497_q7e2a9 if you want to look at it. Test steps filled in above; the ticket was filed without them and the CLI has no command to add one, so they went into the field by hand.
+
+ITEM 1 WAS ALREADY DONE, and the device run you filed this from proves it rather than contradicts it. The plate IS drawn before the review stop — it moved into applyDirectionV1 with JET-228, which is the one call site that is neither regenerateCastV1 nor the anchoring path. mvr_1793360749640_e97d6b04, the plan behind your screenshot, has a populated plateUrl. So the gap was never the plate; it was that a six-panel sheet of the whole cast plus the location is not a picture a CARD can use — which is the argument you actually made in assumption b. Nothing changed for item 1.
+
+ITEM 3 IS AFFORDABLE AND IS IN, with one constraint that is the whole decision: portraits are drawn ONLY for a render that asked for the gate. A render started from the web has no call sheet to show them on, so it draws none and costs exactly what it costs today. The cost lands where the screen is. Each portrait is drawn AGAINST THE PLATE rather than from the description, which matters more than it sounds — every anchor is drawn against that same plate, so the card shows the person the video will actually contain. I looked at both images side by side on the live run: same bleached bob, same oversized pink blazer, same face. A card promising a face the render does not keep would be the pitch problem again. No plate therefore means no portraits. D-057.
+
+ITEM 2 COST NOTHING AT ALL, which is the embarrassing part. autoGenerateCast has always returned name, role and description. resolveCastV1 threw the first two away on a rule that is right about PROMPTS — a real name is what the provider refuses, 20 of 31 clips on the first live render — and was stated so broadly that the name never reached a screen either. It is kept now and goes nowhere near a call.
+
+ITEM 4 IS A BOUNDARY, NOT A REWRITE. The stored treatment keeps its tags on purpose, because generateShotListV1 reads section.beatEn back into a prompt where the tag is what makes it unambiguous. Everything leaving for a screen goes through one function instead. That bought something I did not design: on a live recast, renaming the person updated the logline, every beat and every row at once with nothing rewritten and nothing stale, because the stored text still says the tag.
+
+ONE THING TO EXPECT ON THE WIRE, since your done-when says no at-image-N anywhere. cast[].tag and rows[].castTags[] still carry them, and they have to — they are the join key between a row and a card, not prose. Every string a person reads is clean: logline, pitch, approach, beat, place, notes, why, and the row line.
+
+AND THE ROW NAMES PEOPLE NOW. The ponytail comment you quoted said it would name them the day somebody wrote short labels; the day arrived. It falls back to counting when the joined names would not fit the row, because the row is the thing being protected.
+
+A BUG YOUR TICKET DID NOT ASK ABOUT AND THE SAME SCREEN WOULD HAVE SHOWN. Crew notes were duplicating: mvr_1793357396752_54dbbb09 carries 'Watched the middle of 45 takes, 40 of them wandered' six times and 'Cutting it together to the beat' four, because runPlanV1 runs again on every resume and every single-clip re-render and each run narrated its phases afresh. 9.9 narrates from these, so your screen would have shown the same sentence six times. Deduped on the exact line, so a phase whose numbers changed still appends and one with nothing new to say does not.
+
+ONE LIMIT, and it only touches plans stored before today: a cast member with no name falls through to 'the subject', so an OLD plan's beat reads 'the subject marches through the night market flanked by the subject'. It satisfies the done-when and it is honest, and every render from here has names. Not worth a migration.
+
+Mobile needs nothing new from you for this — both fields are optional exactly as your assumption d described.

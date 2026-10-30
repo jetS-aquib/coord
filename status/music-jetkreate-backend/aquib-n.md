@@ -1,13 +1,83 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batch 8's call sheet (8.1-8.8) is built: the review gate, the call sheet read model, crew narration on the plan, the director-steered cast, the pitch as a contract, pro overrides, and the shot-ladder fix. Uncommitted, along with 8.9-8.14 and 8B.
+- **Current task:** JET-231 is built and handed back — the cast has a name, a portrait and no leaked @imageN. On top of Batch 8's call sheet (8.1-8.8). All of it uncommitted, along with 8.9-8.14 and 8B.
 - **Status:** waiting on human
-- **Blockers:** JET-228 and JET-229 need `coord approve` before mobile starts. JET-194 is nine days old, still ours, still unapproved — posterUrl is still a GCS URL. EPIDEMIC_API_KEY must be in .env wherever the library is served. Ten older tickets need `coord done`. Nothing is committed; waiting on a go.
-- **Last updated:** 2026-10-30T16:55:00+05:30
+- **Blockers:** JET-231 needs `coord done`. JET-228 and JET-229 need `coord approve` before mobile starts. JET-194 is nine days old, still ours, still unapproved — posterUrl is still a GCS URL. EPIDEMIC_API_KEY must be in .env wherever the library is served. Ten older tickets need `coord done`. Nothing is committed; waiting on a go.
+- **Last updated:** 2026-10-30T17:50:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-10-30T17:50
+
+**JET-231 is built and handed back with `coord review`.** 229 tests (was 224), typecheck
+clean, four do-not-touch files untouched plus `thumbnails.ts`. Nothing committed.
+**Verified on a live gated render, not only in tests** —
+`mvr_1793362298029_891e01ed`, still sitting in `review` on `mv_1793353541497_q7e2a9`.
+That plan blocks a new render on that project; `coord`-free cleanup is
+`POST /render/mvr_1793362298029_891e01ed/cancel`.
+
+**ONE OF THE TICKET'S THREE PREMISES WAS ALREADY FALSE, and the plan behind its own
+screenshot proves it.** It said there is no picture of the cast at the gate including
+the plate. The plate moved into `applyDirectionV1` with JET-228 — the one call site
+that is neither `regenerateCastV1` nor the anchoring path — and
+`mvr_1793360749640_e97d6b04`, the device run they filed from, has a populated
+`plateUrl`. Item 1 needed no work. **Second time in two sessions that a stated premise
+died to one mongosh query.** The habit is cheap and it keeps paying.
+
+**The name cost nothing, which is the part worth remembering.** `autoGenerateCast` has
+always returned `{name, role, description}` and `resolveCastV1` threw two of the three
+away. The rule it was obeying — a real name is what the provider refuses, 20 of 31
+clips on the first live render — is right about PROMPTS and was written so broadly
+that the name never reached a screen either. One field, no new call, and it fixes the
+card, the beat, the notes and the row at once.
+
+**D-057 — portraits, but only on a render that asked for the gate.** That constraint
+is the decision: a web render has no call sheet to show them on, so it draws none and
+costs what it costs today. Each portrait is drawn AGAINST THE PLATE, never from the
+description. **I downloaded both and looked at them:** same bleached bob, same
+oversized pink blazer, same face. A card promising a face the render does not keep is
+the pitch problem (D-053) again. No plate therefore means no portraits — three
+strangers are not an improvement on a blank slot.
+
+**Tags are resolved at a BOUNDARY, never at write time,** because
+`generateShotListV1` reads `section.beatEn` back into a prompt where the tag is what
+makes it unambiguous. `forReadersV1` reuses `substituteImageTagsV1` by handing it
+names instead of descriptions — the "the subject and the subject" collapse was already
+solved in there and did not need solving twice. **That bought something I did not
+design and only saw by running a recast:** renaming the person updates the logline,
+every beat and every row at once, with nothing rewritten and nothing stale, because
+the stored text still says the tag.
+
+**The live run also showed two things working for the first time.** Kabir cast ONE
+person where he would have cast three before D-056 — his card says "a single figure"
+and now the video agrees. And a row read `holds three bars, because the hook holds`:
+8.7's own flagship reason, which could not fire until `bars` and `heldForHook` existed
+on the clip.
+
+**A BUG THE TICKET DID NOT ASK ABOUT, found in stored data.**
+`mvr_1793357396752_54dbbb09` carries "Watched the middle of 45 takes, 40 of them
+wandered" **six times** and "Cutting it together to the beat" four, because
+`runPlanV1` runs again on every resume and every single-clip re-render and each run
+narrated its phases afresh. 9.9 narrates from these, so the screen would have shown
+one sentence six times. Deduped in the `updateOne` filter on the exact line — a phase
+whose numbers changed still appends, one with nothing new to say does not. Verified
+against mongo directly rather than reasoned about.
+
+**Worth a look separately, not this ticket: 40 of 45 clips failed the clip check on
+that render.** That is a distribution, and D-043 said the first render under it
+decides whether `CLIP_REDRAW_ON_V1` widens. 40 of 45 is the gate's `hasText` story
+again in shape — a check that fails almost everything is not measuring what it thinks.
+
+**Known limit, deliberately not fixed:** a cast member with no name falls back to "the
+subject", so a plan stored before today reads "the subject marches through the night
+market flanked by the subject". It satisfies the done-when, it is honest, and every
+render from here has names. Not worth a migration.
+
+**Next:** `coord done JET-231`. Approve JET-228 and JET-229. Then the thing that has
+been next for four notes and still is — **one render end to end on a library track**,
+which settles D-045, the library, the new ladder and the new cast sizing all at once.
 
 ### 2026-10-30T16:55
 
