@@ -4,9 +4,9 @@ title: Give the three directors a face, a name people would repeat, and a senten
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-30T13:03:56+05:30
-updated: 2026-10-30T13:04:26+05:30
+updated: 2026-11-01T02:33:58+05:30
 decisions: 
 ---
 
@@ -79,7 +79,10 @@ GET /directors returns three persona names, three non-empty avatarUrls that load
 
 ## Test steps
 
-—
+1. `GET /api/v1/music-videos/directors`. Each of the three carries a persona `name` a person would repeat, a one-sentence `intro`, and `knownFor` — not an id dressed up as a label.
+2. Load all three `avatarUrl`s on a device. Each returns an image over this backend's host. (If one is an empty string, the art has not been dropped in yet and the card is meant to fall back to the bundled asset — that is the agreed shape, not a failure.)
+3. `POST /api/v1/music-videos/brief` with `{ audioUrl, directorId, language: "<device locale>" }`. Returns 200 with a pitch about this song.
+4. `POST /api/v1/music-videos/brief` with no `directorId`. Returns 200 and is byte-for-byte what it was before this ticket — the no-director path is untouched.
 
 ## Thread
 2026-10-30T13:03:56+05:30 aquib N: created ticket, status: - -> open
@@ -145,3 +148,5 @@ One thing you should know because it affects your fallback list: avatarUrl is no
 longer ever empty for these three, so the "typographic until art lands" state is dead
 code on your side the moment you deploy against this. Keep the bundled art as the
 offline fallback — the ids still agree — but the card can assume a picture now.
+2026-11-01T02:33:58+05:30 aquib N: status: approved -> in_progress — built and committed; writing up test steps and handing back
+2026-11-01T02:33:58+05:30 aquib N: status: in_progress -> review — Built and committed. JET-225 at 51f3429, JET-226 at 079769c, JET-227 at 5b49a78. Test steps are filled in above.

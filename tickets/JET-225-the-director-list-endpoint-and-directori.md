@@ -4,9 +4,9 @@ title: The director list endpoint, and directorId on the brief and the project �
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-30T12:01:57+05:30
-updated: 2026-10-30T12:27:20+05:30
+updated: 2026-11-01T02:33:58+05:30
 decisions: D-047, D-048
 ---
 
@@ -86,7 +86,11 @@ GET /api/v1/music-videos/directors returns three directors with stable ids, a de
 
 ## Test steps
 
-—
+1. `GET /api/v1/music-videos/directors` with a user JWT. Expect `defaultId: "stays-close"` and three directors with ids `stays-close`, `fills-floor`, `holds-frame`, each carrying `name`, `intro`, `knownFor`, `traits` and an `avatarUrl` on this backend's own host.
+2. Open one of those `avatarUrl`s from a phone on the same LAN, with no auth header. It returns a webp image, not a 401 and not a blank box.
+3. `POST /api/v1/music-videos/brief` with `{ audioUrl, directorId: "stays-close" }`, then the same call with `"fills-floor"`. Both return 200 and echo the `directorId` you sent; the suggestions differ between the two.
+4. `POST /api/v1/music-videos/brief` with no `directorId` at all. Still 200, and the same shape it returned before this change — nothing about the no-director path moved.
+5. Save a project with a `directorId`, start a v1 render, then `GET /api/v1/music-videos/render/:jobId`. The plan carries that director, and the clip count and shot ladder follow their arithmetic rather than the house default.
 
 ## Thread
 2026-10-30T12:01:57+05:30 aquib N: created ticket, status: - -> open
@@ -128,3 +132,5 @@ picture, and I would rather ship that sentence true than ship a grey square that
 technically loads.
 2026-10-30T12:26:58+05:30 aquib N: linked decision D-047 (An unset director is the house style, not the default director)
 2026-10-30T12:27:20+05:30 aquib N: linked decision D-048 (A director's cut rate is a rank within the song, and it is allowed to be inert)
+2026-11-01T02:33:58+05:30 aquib N: status: approved -> in_progress — built and committed; writing up test steps and handing back
+2026-11-01T02:33:58+05:30 aquib N: status: in_progress -> review — Built and committed. JET-225 at 51f3429, JET-226 at 079769c, JET-227 at 5b49a78. Test steps are filled in above.

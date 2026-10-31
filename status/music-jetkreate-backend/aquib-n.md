@@ -1,13 +1,59 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batch 8's call sheet (8.1-8.8) and JET-231 are **committed** at `ffd15bf`. Nothing uncommitted. Waiting on approvals and on one end-to-end render.
+- **Current task:** Batch 9 planned. The lyrics half (9.8) is built and unit-tested, not committed. JET-225/226/227 handed back for closing; JET-232/233/234 filed and waiting on approval.
 - **Status:** waiting on human
-- **Blockers:** JET-231 needs `coord done`. JET-228 and JET-229 need `coord approve` before mobile starts. JET-194 is nine days old, still ours, still unapproved — posterUrl is still a GCS URL. EPIDEMIC_API_KEY must be in .env wherever the library is served. Ten older tickets need `coord done`. The git hooks are not installed in this clone — `coord devsetup --hooks` would have tagged and logged the commit without being asked.
-- **Last updated:** 2026-11-01T02:20:00+05:30
+- **Blockers:** JET-232 and JET-233 block 9.1-9.4 entirely — nothing about aspect can ship until video-processing-backend can be told an output frame. JET-234 is the one that turns lyrics on for real; our half is built, theirs is one line. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. JET-194 is ten days old. Ten older tickets need `coord done`. Git hooks still not installed in this clone — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-01T02:50:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-01T02:50
+
+**Batch 9 planned; 9.8's backend half built, NOT committed.** 241 tests (was 229),
+typecheck clean, four do-not-touch files untouched. Five files: two new
+(`captionSettingsV1.ts` + test), three touched (`musicVideoV1.routes.ts`,
+`video-api.service.ts`, `renderOrchestratorV1.ts`), plus the shared error handler
+and its new test.
+
+**THE PREMISE WAS TRUE THIS TIME, AND WORSE THAN FILED.** Lyrics are not "off for
+some users" — `showLyrics: false` is hardcoded at `music-jetkreate-mobile
+src/lib/generation.ts:105` and sent on every project save. 44 of 47 projects carry
+false, the other 3 are unset, and **all 41 v1 render plans ever created carry
+`showLyrics: false` with empty caption settings.** Not one render in the history of
+this pipeline has had lyrics burnt on it. The ~20 caption styles, the fonts, the
+kinetic animation and the word timings we pay Whisper for on every song have been
+reached by nobody on this path. One boolean in another repo. Filed as JET-234, and
+the one line can ship on its own ahead of any screen work.
+
+**Three artifact claims died to one mongosh query and one grep.** 9.7 (re-attach) is
+already DONE, not "already filed" — JET-198 shipped it. 9.9 (crew narration) is
+partly in already, written during Batch 8. And `aspectRatio: '9:16'` is on all 41
+plans — the phone has been asking for portrait since it shipped and we have never
+been able to tell the stitch, because every request model there is `extra="forbid"`
+with no frame field. That is JET-232, and it is the real blocker on 9.1-9.4.
+
+**A repo-wide bug found on the way, and fixed at the root.** `errorHandler.ts`
+guarded on `Array.isArray(err.errors)`; zod 4 renamed that to `issues`. This repo is
+on zod 4.3.6, so the guard has matched nothing since the upgrade and **every
+validation failure on every zod route, v0 and v1, has been answered 500 with raw zod
+JSON in the message** instead of 400. Found because the new caption validation
+worked on the first try and still returned 500. One line in the shared handler plus
+a test; D-058 records that it reaches v0 deliberately. Verified live: a bad caption
+key is now a 400 naming the field, and `audio_url` smuggled into `captionSettings`
+is refused — it would otherwise have been spread last into the stitch body and
+changed which file the master is muxed against.
+
+**Verified against the running server, not only in tests.** `GET
+/api/v1/music-videos/caption-styles` returns 200 with ~20 real styles and the fonts.
+A render POST with valid caption settings gets past validation and stops at the
+project lookup, so nothing was spent proving it.
+
+**Next:** approvals on JET-232/233/234, then one render end to end with lyrics on —
+which is still the same render that settles D-045, the library and the new cast
+sizing. 9.1-9.4 are blocked until JET-232 lands. Nothing of 9.5b/9.6/9.10 started.
+
 
 ### 2026-11-01T02:20
 

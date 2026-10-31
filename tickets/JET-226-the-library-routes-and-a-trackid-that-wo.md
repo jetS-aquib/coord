@@ -4,9 +4,9 @@ title: The library routes, and a trackId that works everywhere an audioUrl works
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-10-30T12:02:31+05:30
-updated: 2026-10-30T12:53:25+05:30
+updated: 2026-11-01T02:33:58+05:30
 decisions: D-049, D-050
 ---
 
@@ -86,7 +86,12 @@ A phone can list and search tracks, play a preview, and pick one. The same track
 
 ## Test steps
 
-—
+1. `GET /api/v1/music-videos/tracks` with a user JWT. Expect a page of tracks, each with a stable `audioUrl` and a cover URL, both on this backend's own host — no `storage.googleapis.com` and no signed third-party URL.
+2. `GET /api/v1/music-videos/tracks?term=<a word>` and `?genre=<a genre>`. The list narrows; `cursor` from one response fetches the next page.
+3. Play a track's `audioUrl` in the app's player and seek partway through. It plays and the seek lands — Range is passed through in both directions, which is what expo-audio needs before it will start.
+4. Save a project using that `audioUrl` and run the three calls an upload makes: `POST /transcript/warm`, `GET /:id/song-read`, `POST /brief`. All three answer exactly as they do for an uploaded MP3.
+5. Render that project end to end. Then render the same track a second time: the server log shows the transcript and the song read as cache hits rather than re-paying Whisper — the stable URL is the cache key (D-049).
+6. `GET /api/v1/music-videos/tracks/not-a-real-id/audio`. A 404 carrying a `code`, not a 500.
 
 ## Thread
 2026-10-30T12:02:31+05:30 aquib N: created ticket, status: - -> open
@@ -211,3 +216,5 @@ One thing I changed that touches you invisibly: these URLs are now built from th
 your device actually used, not from BACKEND_URL. BACKEND_URL here is localhost:5006,
 which a phone cannot reach — minting from it would have handed you three unloadable
 URLs and reinvented JET-194 from the other end.
+2026-11-01T02:33:58+05:30 aquib N: status: approved -> in_progress — built and committed; writing up test steps and handing back
+2026-11-01T02:33:58+05:30 aquib N: status: in_progress -> review — Built and committed. JET-225 at 51f3429, JET-226 at 079769c, JET-227 at 5b49a78. Test steps are filled in above.

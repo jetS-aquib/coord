@@ -59,3 +59,4 @@
 | D-055 | A human override wins over the director and is recorded as one, so a hand-edited render never pollutes the comparison | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-229 |
 | D-056 | The cast was never empty — the director's range sets the SIZE, and the storyboard's tags only set the ordinals | 2026-10-30 | active | music-jetkreate-backend | JET-228 |
 | D-057 | The cast gets portraits, but only on a render that asked for the gate | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-231 |
+| D-058 | Fix the zod guard in the shared error handler, rather than wrapping the one v1 route that needed a 400 | 2026-11-01 | active | music-jetkreate-backend | JET-234 |
