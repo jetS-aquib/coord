@@ -1,13 +1,41 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-231 is built and handed back — the cast has a name, a portrait and no leaked @imageN. On top of Batch 8's call sheet (8.1-8.8). All of it uncommitted, along with 8.9-8.14 and 8B.
+- **Current task:** Batch 8's call sheet (8.1-8.8) and JET-231 are **committed** at `ffd15bf`. Nothing uncommitted. Waiting on approvals and on one end-to-end render.
 - **Status:** waiting on human
-- **Blockers:** JET-231 needs `coord done`. JET-228 and JET-229 need `coord approve` before mobile starts. JET-194 is nine days old, still ours, still unapproved — posterUrl is still a GCS URL. EPIDEMIC_API_KEY must be in .env wherever the library is served. Ten older tickets need `coord done`. Nothing is committed; waiting on a go.
-- **Last updated:** 2026-10-30T17:50:00+05:30
+- **Blockers:** JET-231 needs `coord done`. JET-228 and JET-229 need `coord approve` before mobile starts. JET-194 is nine days old, still ours, still unapproved — posterUrl is still a GCS URL. EPIDEMIC_API_KEY must be in .env wherever the library is served. Ten older tickets need `coord done`. The git hooks are not installed in this clone — `coord devsetup --hooks` would have tagged and logged the commit without being asked.
+- **Last updated:** 2026-11-01T02:20:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-01T02:20
+
+**Committed at `ffd15bf`** — Batch 8's call sheet (8.1-8.8) and JET-231 together, 16
+files, +1994/-36. Working tree clean. 229 tests, typecheck clean, four do-not-touch
+files untouched.
+
+**Two tickets in one commit, deliberately.** JET-228/JET-229 (the call sheet, the gate,
+the overrides) and JET-231 (the cast's name and face) interleave inside
+`renderOrchestratorV1.ts`, `callSheetV1.ts` and `RenderPlanV1.ts`, and interactive git
+is unavailable in this environment, so a clean two-commit split was not available
+without hand-building an intermediate state that might not have compiled. The body
+names both, and every non-obvious line cites its decision ID inline — which is the
+mechanism CLAUDE.md actually relies on for explaining a line months later. If the
+split matters, the right move is `git revert` and redo rather than a rebase.
+
+**The repo's git hooks are not installed in this clone.** `.git/hooks/` holds nothing
+but samples and `core.hooksPath` is unset, so `prepare-commit-msg` did not add the
+`JET-231:` prefix (typed by hand) and `post-commit` did not tell the board (`coord
+log-commit` run by hand). `coord why src/services/render/callSheetV1.ts:60` resolves
+correctly, so nothing is lost — but the next commit here will silently miss both
+unless somebody runs `coord devsetup --hooks`. Worth doing before the next session.
+
+**Next, unchanged and now four notes old:** `coord done JET-231`, approve JET-228 and
+JET-229, and **one render end to end on a library track** — which settles D-045, the
+library, the new ladder and the new cast sizing in a single ~$2-3 pass. The test plan
+`mvr_1793362298029_891e01ed` is still parked in `review` on
+`mv_1793353541497_q7e2a9` and blocks a new render on that project.
 
 ### 2026-10-30T17:50
 
