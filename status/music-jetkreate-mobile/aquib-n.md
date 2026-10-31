@@ -1,9 +1,9 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 8's call sheet. JET-228 and JET-229 are built and have now had their first device run, which found four UI faults and one missing backend field. The UI is fixed; the field is **JET-231**, filed and waiting on approval.
-- **Status:** working
-- **Blockers:** JET-231 needs `coord approve` — the cast has no picture and no name anywhere in the system, so the call sheet draws a designed slot and parses a short label off the image prompt. Not blocking: everything degrades, nothing reflows when it lands.
-- **Last updated:** 2026-10-30T18:30:00+05:30
+- **Current task:** Batch 8's call sheet is **committed** — `3e1a6ec`, 12 files, on `v1-render-and-design-pass`. JET-228 and JET-229 are done on this side and survived three rounds of device feedback. Nothing pushed.
+- **Status:** waiting on human
+- **Blockers:** JET-231 needs `coord approve` — the cast still has no picture and no name anywhere in the system. Not blocking: the screen draws a designed slot and parses a short label, and both stopgaps become no-ops when it lands. JET-228 and JET-229 are still `go` on the board rather than `in_progress`; the commit is in and `coord fix` reports nothing failed, so this looks like the auto-transition not having run yet rather than something to force.
+- **Last updated:** 2026-11-01T11:15:00+05:30
 
 ## Handoff notes
 
