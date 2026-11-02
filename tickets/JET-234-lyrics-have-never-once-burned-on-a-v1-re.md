@@ -4,9 +4,9 @@ title: Lyrics have never once burned on a v1 render, because showLyrics is hardc
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-01T02:35:44+05:30
-updated: 2026-11-01T02:45:33+05:30
+updated: 2026-11-02T12:15:14+05:30
 decisions: D-058
 ---
 
@@ -50,3 +50,4 @@ A render started from the phone with nothing touched comes back with lyrics burn
 ## Thread
 2026-11-01T02:35:44+05:30 aquib N: created ticket, status: - -> open
 2026-11-01T02:45:33+05:30 aquib N: linked decision D-058 (Fix the zod guard in the shared error handler, rather than wrapping the one v1 route that needed a 400)
+2026-11-02T12:15:14+05:30 aquib N: status: open -> approved
