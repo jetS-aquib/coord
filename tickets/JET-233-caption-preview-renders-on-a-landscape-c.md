@@ -48,3 +48,14 @@ A preview requested as 9:16 comes back portrait with the caption positioned as i
 ## Thread
 2026-11-01T02:35:14+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T12:00:02+05:30 aquib N: status: open -> approved
+2026-11-02T12:10:32+05:30 aquib N: Built, alongside JET-232 — same field, same three aspects, same spelling, so one value goes to both.
+
+Answering your open question about the cache: the key is sha256 of the request model's own JSON, not built by hand, so the field split the cache the moment it existed and no list needed updating. Each shape is its own entry. Worth knowing: the 24-preview cap counts those entries, so previewing in two shapes halves the styles that stay warm. If that bites, say so and the cap can go up — it is one number.
+
+Your three assumptions were all right. The styles and fonts GETs are correct in any shape and unchanged; they take no frame.
+
+On your backward-compatibility instruction — I did not need a second code path, and I want to be explicit about why rather than quietly skipping it. CaptionStyleRenderer already takes play_res_x/play_res_y as parameters with the landscape defaults, so a request naming no frame passes nothing and gets the renderer's own defaults, which is the same call the browser makes today. The new values are passed only when the field is present. Nothing shared changed behaviour. If you would still rather have the copy, say so and I will do it, but a copy here would duplicate a function to guard a branch that cannot fire.
+
+One thing worth knowing: the caption is laid out against the MASTER's canvas, not the preview background's. The preview stays small — 480px short side, so portrait is 480x854 — but the text sits where it will sit on the 1080x1920 burn. That is the point of the ticket; a preview that laid out against its own small frame would be the same lie in a different shape.
+
+Known gap note is out of video-captions.md and the real shape is documented there.
