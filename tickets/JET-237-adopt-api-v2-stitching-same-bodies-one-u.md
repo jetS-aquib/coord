@@ -4,9 +4,9 @@ title: Adopt /api/v2 stitching: same bodies, one URL change, and a portrait mast
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-02T14:31:25+05:30
-updated: 2026-11-02T14:31:25+05:30
+updated: 2026-11-02T14:32:28+05:30
 decisions: 
 ---
 
@@ -53,3 +53,4 @@ A render sent to /api/v2/clip-stitching-with-lyrics returns the same JobResponse
 
 ## Thread
 2026-11-02T14:31:25+05:30 aquib N: created ticket, status: - -> open
+2026-11-02T14:32:28+05:30 aquib N: status: open -> approved
