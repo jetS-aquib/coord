@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 8's call sheet is **committed** — `3e1a6ec`, 12 files, on `v1-render-and-design-pass`. JET-228 and JET-229 are done on this side and survived three rounds of device feedback. Nothing pushed.
-- **Status:** waiting on human
-- **Blockers:** JET-231 needs `coord approve` — the cast still has no picture and no name anywhere in the system. Not blocking: the screen draws a designed slot and parses a short label, and both stopgaps become no-ops when it lands. JET-228 and JET-229 are still `go` on the board rather than `in_progress`; the commit is in and `coord fix` reports nothing failed, so this looks like the auto-transition not having run yet rather than something to force.
-- **Last updated:** 2026-11-01T11:15:00+05:30
+- **Current task:** JET-234 — lyrics on by default, and a style picker on the brief. Built, four checks green, uncommitted. Batch 8's call sheet is committed as `3e1a6ec`.
+- **Status:** working
+- **Blockers:** none for JET-234. One open question on its thread that could matter more than the feature: does the default caption font cover Devanagari? If not, lyrics-on-by-default gives a Hindi song tofu on the master, which is worse than the feature being off. JET-231 still needs `coord approve`, though the backend has committed its half (`ffd15bf`) so the cast stopgaps may already be removable.
+- **Last updated:** 2026-11-02T10:40:00+05:30
 
 ## Handoff notes
+
+### 2026-11-02T12:25:20+05:30
+
+Session ended while on JET-223. Touched: src/features/create/caption-style-sheet.tsx, src/features/create/lyrics.ts, scripts/lyrics-check.mts. Nothing committed. (written automatically — no one said what is next)
 
 ### 2026-10-30T17:15:12+05:30
 
