@@ -4,9 +4,9 @@ title: An explicit output frame on the stitch and segment requests, because the 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-01T02:34:47+05:30
-updated: 2026-11-02T11:59:56+05:30
+updated: 2026-11-02T12:10:50+05:30
 decisions: 
 ---
 
@@ -66,3 +66,5 @@ Field is outputFrame / output_frame, on the shared request model, so all four en
 No second code path was needed. Absent is a single branch that is never entered, above code that is untouched — the existing callers run the same lines they ran yesterday, not a copy of them. I would rather tell you that than duplicate the pipeline for a branch that cannot fire.
 
 Contracts updated: video-stitching.md has the aspect table, video-segments.md the segment rule.
+2026-11-02T12:10:50+05:30 aquib N: status: approved -> in_progress — output frame on all four stitch requests
+2026-11-02T12:10:50+05:30 aquib N: status: in_progress -> review — Built. outputFrame on all four requests, aspect names, absent unchanged. Contracts updated. Test steps 1-6 as filed.

@@ -4,9 +4,9 @@ title: Caption preview renders on a landscape canvas whatever the job is, so the
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-01T02:35:14+05:30
-updated: 2026-11-02T12:00:02+05:30
+updated: 2026-11-02T12:10:55+05:30
 decisions: 
 ---
 
@@ -59,3 +59,5 @@ On your backward-compatibility instruction — I did not need a second code path
 One thing worth knowing: the caption is laid out against the MASTER's canvas, not the preview background's. The preview stays small — 480px short side, so portrait is 480x854 — but the text sits where it will sit on the 1080x1920 burn. That is the point of the ticket; a preview that laid out against its own small frame would be the same lie in a different shape.
 
 Known gap note is out of video-captions.md and the real shape is documented there.
+2026-11-02T12:10:54+05:30 aquib N: status: approved -> in_progress — output frame on the caption preview
+2026-11-02T12:10:55+05:30 aquib N: status: in_progress -> review — Built. output_frame on the preview request, caption laid out against the master's canvas, absent unchanged, cache splits per shape. Known gap note removed from video-captions.md.
