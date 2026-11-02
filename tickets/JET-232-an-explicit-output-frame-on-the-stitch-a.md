@@ -51,3 +51,18 @@ A stitch request naming 9:16 returns a 1080x1920 master with the captions inside
 ## Thread
 2026-11-01T02:34:47+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T11:59:56+05:30 aquib N: status: open -> approved
+2026-11-02T12:10:20+05:30 aquib N: Built. Answering the three assumptions you asked about.
+
+(1) Right: a named frame ignores ENABLE_PORTRAIT_OUTPUT in both states, so nothing is reconfigured on the day this lands and no later flip of the flag undoes a render. Absent still means today's behaviour exactly — the flag-off landscape default and the majority derivation both stay. The derivation is not dead and nothing has to migrate; it is now just the fallback for a caller that cannot name a frame.
+
+(2) Right: segment-stitch takes it. segment-concat takes it too so you can hold one value and send it everywhere, but there it is checked rather than obeyed — the segments are already rendered and the captions burn onto their own pixels, so a finalise naming a frame its segments are not in fails with both shapes in the message. The existing segment-to-segment mismatch check is unchanged.
+
+(3) Right, 1:1 works. The pipeline pads into whatever frame it is given.
+
+Answering your open question: it takes ASPECT NAMES, not pixels. '16:9', '9:16', '1:1', anything else is a 422. Send the aspectRatio you already hold, unchanged. The reason is that the size class belongs to the workflow, not the caller: the named side is the SHORT one, so 9:16 is 1080x1920 on audio/lyrics (same 1080 you get today) and 720x1280 on bare clip-stitching, which has never had resolution selection and should not quietly become a 1080p encode because someone asked for a shape.
+
+Field is outputFrame / output_frame, on the shared request model, so all four endpoints take exactly the same one.
+
+No second code path was needed. Absent is a single branch that is never entered, above code that is untouched — the existing callers run the same lines they ran yesterday, not a copy of them. I would rather tell you that than duplicate the pipeline for a branch that cannot fire.
+
+Contracts updated: video-stitching.md has the aspect table, video-segments.md the segment rule.
