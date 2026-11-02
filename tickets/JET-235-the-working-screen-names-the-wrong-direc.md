@@ -60,3 +60,8 @@ Start a render with Kabir, force-quit the app, reopen it and resume that project
 2026-11-02T13:51:20+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T13:52:51+05:30 aquib N: linked decision D-060 (Director portraits are served from GCS, not from this backend)
 2026-11-02T13:53:06+05:30 aquib N: status: open -> approved
+2026-11-02T13:59:21+05:30 aquib N: Done in mobile, uncommitted pending the dev's go-ahead. Took the id route (plan 3), not a second field: RenderState gains director {id,name} off the payload, and the working screen reads (live ?? held)?.director ?? draft.director — the draft only survives as the fallback for a render this session started whose first poll has not returned.
+
+Fixed it in one place rather than at :458, because it was the same bug twice: the call sheet had the identical draft.director read and was patched in place last week. Both now go through useDirecting() / pickDirector(), with a runnable check on the chain (npm run check:directing) covering the resumed-cold case, the portrait order, and '' meaning the house style and drawing nothing.
+
+Note for the thread: normaliseRender defaults an absent director to {id:'',name:''}, so a plan written before this ships reads as house style instead of crashing on .name. Assumptions 1-3 in the ticket all hold as written.
