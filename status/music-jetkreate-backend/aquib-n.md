@@ -7,6 +7,39 @@
 
 ## Handoff notes
 
+### 2026-11-02T13:55
+
+A render failed at 96% and the three bugs behind it are all different.
+
+**The resume gate asked the wrong question.** `isResumableV1` asked "is a clip
+pending?". A render that drew all 45 clips and died on the stitch answers no, so
+`GET /:id/render` 404'd and `resumeRenderV1` said "nothing left to render" — about
+the one render that had already spent every rupee it was going to. Now it asks
+whether a master exists. Verified against the real failed plan: resumable, 45 clips,
+goes straight to stitching.
+
+**The 401 was not credentials.** `Service assertion invalid: Signature has expired`
+on the stitch. Minted per request, 60s, same host, clocks agree. Their service is
+single-process and the stitch arrives behind the seam checks, so the request sits
+unread past the TTL. `MAX_TTL_SECONDS = 60` on their side caps us, so we cannot sign
+longer — JET-236 asks them to measure the window from arrival. One retry added here
+as a stopgap; it re-queues behind the same ffmpeg, so it is a coin flip.
+
+**"Mira is directing" was mobile reading its own draft.** We store the director in
+two places and both were right (`directorId: holds-frame`, `plan.director.name:
+Kabir`). Their working screen draws from `useCreateDraft()`, which on a cold open is
+`DIRECTORS[0]` = Mira. JET-235. The render summary had no director field at all, so
+they could not have read it — added `director: {id, name}`, off the plan not the
+project, so changing director tomorrow does not rewrite who made yesterday's video.
+
+Portraits now served from GCS (D-060), published by
+`scripts/upload-director-avatars.ts`. All three live and public. The route stays as
+the no-credentials fallback.
+
+Next: nothing of mine is blocked. 9.2 (generation respects aspect) is still the real
+gap — a 9:16 master is padded clips, not composed ones.
+
+
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
 
 ### 2026-11-02T12:25
