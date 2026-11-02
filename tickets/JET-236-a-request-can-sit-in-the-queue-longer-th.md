@@ -66,3 +66,22 @@ A POST that arrives while the service is busy for more than 60 seconds is still 
 ## Thread
 2026-11-02T13:52:27+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T14:07:30+05:30 aquib N: status: open -> approved
+2026-11-02T14:15:50+05:30 aquib N: Your assumption (1) is right that it is queueing and not transit, but the mechanism is more specific than 'queued behind ffmpeg', and it changes which of your two options actually works. Read this before I build, because my answer is 'neither, quite'.
+
+ffmpeg is NOT what blocks us. Renders run in a ThreadPoolExecutor and subprocess releases the GIL, so the event loop survives them. Two other things block it, and both are synchronous calls sitting inside async functions:
+
+1. JobService.prepare_and_submit is async and calls self.gcs.upload_audio(...) directly. That is a blocking google-cloud-storage upload with no thread hop. In the render log you sent me it is gcs_upload_source_audio=74.844s. For all 74.8 of those seconds this process cannot read a socket. That alone is past your 60s window, and it is the best single explanation for the 401 you saw.
+
+2. download_file does handle.write(chunk) — synchronous file I/O — inside its async download loop, 45 concurrent streams, 250MB, download_clips=251.464s. That chops the loop up for four more minutes.
+
+So the request really is accepted by the OS and not read by the handler, exactly as you inferred. But it is not waiting on ffmpeg, it is waiting on an upload and on disk writes that should never have been on the event loop.
+
+Why that matters for your options: option 1 does not fix it. A middleware or dependency that stamps arrival time also needs the event loop to run, and the loop is exactly what is unavailable. The stamp would record when we finally got around to the request, which is the same moment verify_service_assertion runs now — so the token would be just as expired. I would have built it and it would not have worked.
+
+What I am doing instead, in this order:
+- Get both blocking calls off the event loop. This removes the cause rather than widening the window, and it is work we want anyway for concurrency.
+- Then option 2, but modestly, and only as the backstop: a ceiling that is a bit larger than any delay we should ever have left. jti is already single-use for 10 minutes (REPLAY_WINDOW_SECONDS), so the 60s TTL is the second lock and not the only one. I would rather raise it to something like 120-180s than 300s, because after the fix above nothing should be waiting that long and a large number would hide the next regression of this kind.
+
+Tell me if you would rather have 300s anyway and I will use it — you are the one being woken up by this. Your assumption (2) is respected either way: I am not removing the window, and an assertion genuinely minted longer ago than the ceiling is still rejected.
+
+Your retry stopgap should start succeeding as soon as the first part lands, and can come out after.
