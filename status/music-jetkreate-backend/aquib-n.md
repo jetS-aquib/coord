@@ -7,6 +7,41 @@
 
 ## Handoff notes
 
+### 2026-11-02T17:55
+
+A dead render showed "Stop render" and no way back. Two bugs, one of them mine.
+
+**I caused the symptom.** This morning's isResumableV1 fix made GET /:id/render return
+a stranded plan instead of 404ing. Mobile's re-attach maps anything that is not
+review or blocked to `running` (working/[id].tsx:137-146), so a failed render reads as
+live. It cannot self-correct either: liveJob is null for a terminal status, so the
+poll effect never starts and the correct `failed` branch at :294 never fires on a cold
+open. Before my change the endpoint 404'd, activeRender returned null, and the screen
+fell through to "Render this song". More honest payload, worse screen.
+
+**The second bug is older and costlier.** The failed branch offers "Try again", which
+starts a NEW render — 45 clips drawn and paid for a second time. There is no resume
+call anywhere in generation.ts; POST /render/:jobId/resume has existed since JET-198
+and the client has never called it. JET-239 covers both.
+
+**Fixed at our end: a stitch-stranded render is picked up on boot.**
+resumeRendersOnStartupV1 skips failed plans by design — D-051, a deploy must not start
+a $25 render nobody looked at. That reasoning is about money and does not reach a
+render whose clips are all drawn: what is left is one ffmpeg job that spends nothing.
+New isStitchOnlyV1 is deliberately stricter than isResumableV1 — "is any of the
+remaining work billable" rather than "is there work left". Collapsing them would let a
+deploy spend money.
+
+Verified against real data, not fixtures: both stranded renders (mvr_...810b959c,
+mvr_...0d84e7e2) went from failed to stitching on the next reload.
+
+Also: the 404 that killed the 15:20 render was transient — /api/v1 stitch routes were
+missing while video-processing-backend was mid-v2-work. Both v1 and v2 answer 401 now.
+
+Next: JET-238 (xfade on ffmpeg 7) decides whether those two stitches actually finish.
+JET-239 and JET-235/236/238 all need approve. 9.2 still untouched.
+
+
 ### 2026-11-02T17:40
 
 JET-237: /api/v2 went live. Checked it; our side needed no code change.
