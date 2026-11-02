@@ -4,9 +4,9 @@ title: xfade rejects the normalisation chain on ffmpeg 7, so no song can be stit
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-02T17:38:21+05:30
-updated: 2026-11-02T17:38:21+05:30
+updated: 2026-11-02T17:42:02+05:30
 decisions: 
 ---
 
@@ -87,3 +87,4 @@ A stitch with transitions completes on ffmpeg 7.1.5 and on 9.0.2, producing byte
 
 ## Thread
 2026-11-02T17:38:21+05:30 aquib N: created ticket, status: - -> open
+2026-11-02T17:42:02+05:30 aquib N: status: open -> approved
