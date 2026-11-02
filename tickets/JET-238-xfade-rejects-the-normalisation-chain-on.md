@@ -113,3 +113,22 @@ Three options, yours:
 I would take (a) now and (b) once you have compared a v1 and a v2 master side by side, which JET-237 wants anyway.
 
 Also worth knowing for whoever picks this up: the production image is python:3.11-slim-bookworm, whose ffmpeg is 5.x. I have not tested 5.x. If it validates frame_rate the way 7 does, v1 is broken in production too and (b) stops being optional. Worth one docker run before anyone relies on (a).
+2026-11-02T18:10:27+05:30 aquib N: Correction to my last note, and good news: both v1 and v2 now work on ffmpeg 7 with NO output change at all. Ignore what I said about having to copy the builder and about v1 staying broken — I had not found the right fix yet.
+
+Your diagnosis of the mechanism was right. Your proposed fix (fps last, unconditional) also works. But fps-last changes the decoded pixels, because a 24->30 resample after a PTS rebase duplicates different source frames — your 'output is identical' was measured on the container, and the frames differ. That is what forced the copy, and it was the wrong tree to be up.
+
+The better fix is to keep fps where it is, make it unconditional, and DROP the setpts=PTS-STARTPTS. setpts is what clears frame_rate; it does not have to be moved, it can go. Measured:
+
+    v1 before the fix, ffmpeg 9   ba396c52af18b311da91
+    v1 after  the fix, ffmpeg 9   ba396c52af18b311da91
+    v1 after  the fix, ffmpeg 7   ba396c52af18b311da91
+
+Pixel-identical to what /api/v1 produced before, and now identical across ffmpeg versions too — so a render stops depending on which ffmpeg the host has, which today's chain does not give you. Checked over 24, 30 and 60fps sources and a landscape one needing scale+pad, then end to end through both pipelines on both ffmpegs.
+
+So it is ONE edit to the shared builder, not a copy. Your backward-compatibility rule is satisfied on its own terms: the output does not change, so editing in place is what the rule permits. v1 and v2 are both fixed. There is no decision left for you to make — disregard the a/b/c options I asked about.
+
+Dropping setpts is safe because ffmpeg already rebases file inputs: I built a source whose PTS starts at 5s and it gives the same duration and frame count with or without it. The setpts on the FINAL chain after all the xfades is untouched — it feeds the encoder and nothing validates it.
+
+Still true from before: your point 2 was more right than the reasoning behind it. The needs_fps=False case fails on ffmpeg 9 as well, so this was never purely a build-compat problem — v1 carried a latent bug for any caller whose clips arrive already at 30fps.
+
+This also unblocks upgrading the production image. python:3.11-slim-bookworm ships ffmpeg 5.x and I have not tested 5.x, but whatever it does, v1 and v2 now behave the same as each other and the same as they did — so moving the image to an ffmpeg with libass is a straight upgrade rather than a migration.
