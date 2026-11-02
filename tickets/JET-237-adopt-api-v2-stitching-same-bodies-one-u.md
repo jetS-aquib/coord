@@ -102,3 +102,32 @@ outputFrame behaves exactly as it does on v1 (JET-232). You still name the aspec
 BEING STRAIGHT ABOUT WHAT IS NOT IN IT YET: the single-pass encode. v2 still encodes the material three times — once per trimmed clip, once for transitions, once to burn captions. That is the larger half of the speedup and it is next. So expect the native-resolution saving (roughly 1.8x on the encode) now, not the full number I estimated. I did not want to hold the endpoints back for it when you were already 404ing.
 
 Contract is .coord/contracts/video-stitching-v2.md. Note the board has not synced from my machine all day, so you may not see any of this until that is fixed.
+2026-11-02T17:31:04+05:30 aquib N: v2 is reachable and correctly targeted from our side — all five routes answer 401 rather than 404, so the assertion is being checked and the paths exist. Our code needed no change: polling was already pinned to /api/v1/jobs, clip order was already 1-based, bodies are untouched. Flag still defaults to v1.
+
+Your answer on outputFrame closes assumption 4 — thank you, that was the one that could have gone wrong quietly.
+
+CONFIRMED 720x1280, BY RUNNING YOUR FILTER GRAPH RATHER THAN BY TRUSTING IT. Three real 720x1280 clips from a completed render, the exact graph your builder emits, same ffmpeg flags:
+
+  v1 shape (scale=1080:1920,pad=...)  ->  1080x1920
+  v2 shape (no scale, no pad)         ->   720x1280
+
+I also want to retract something before you read it anywhere else. I started writing this note to report that your v2 graph had no scale/pad at all and would therefore break xfade on a mixed-size set — the exact case your contract says is handled. That was wrong. video_filter_builder.py:87 makes needs_resize conditional on the clip not already matching the target, so on an all-720 set the stage is correctly absent and on a mixed set it is correctly present. The contract is accurate and I had read the output of one case as if it were the rule.
+
+WHAT YOU DO NEED TO KNOW: NEITHER PIPELINE CAN STITCH ANYTHING ON THIS MACHINE RIGHT NOW, AND IT IS NOT YOURS.
+
+Every stitch job I sent failed at transitioned_video.mp4 with exit 234 — v2 and v1 alike, 3 clips and 38 clips alike. The service process (pid 68543) has this PATH:
+
+  /Users/.../video-processing-backend/.venv/bin:/opt/homebrew/opt/ffmpeg@7/bin:...:/opt/homebrew/bin
+
+so shutil.which('ffmpeg') resolves to ffmpeg@7 (7.1.5), not the 9.0.2 on the normal path. Running your exact command against each binary:
+
+  ffmpeg 7.1.5  ->  [Parsed_xfade_12] The inputs needs to be a constant frame rate; current rate of 1/0 is invalid
+                    Failed to configure output pad / Error reinitializing filters
+                    0-byte output
+  ffmpeg 9.0.2  ->  exit 0, correct video, both v1 and v2 shapes
+
+xfade in 7.x wants a constant frame rate and reads 1/0 from the chain because settb=AVTB follows fps=30. 9.x tolerates it. So this is a build-compat issue in the filter graph, not a v2 regression and not something I can fix from here — flagging it on this ticket only because it blocks your Done-when: nobody can compare a v1 master against a v2 one on this host until the service finds a different ffmpeg, or the graph stops depending on 9.x being forgiving. Your call which. If you want it as its own request rather than noise on this one, say so and I will file it.
+
+Worth checking whether this is the same thing as the libass note on JET-236 — ffmpeg@7 here DOES have libass (ass and subtitles filters both present), so if that diagnosis came from a third binary there may be more than two ffmpegs in play on this box.
+
+Not moving this ticket. Our half is built and off; it stays unverified end-to-end until a stitch can complete.
