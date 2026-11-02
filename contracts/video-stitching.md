@@ -65,27 +65,38 @@ is the off-beat video the whole feature exists to remove.
 
 ## Output frame
 
-There is no resolution, orientation or aspect field on any of these requests,
-and `extra="forbid"` means sending one is rejected rather than ignored. The
-frame is decided from the clips you send (JET-196):
+`outputFrame` (`output_frame`) is optional on every request here. It names an
+**aspect**, not pixels — `"16:9"`, `"9:16"` or `"1:1"` — and anything else is a
+422 (JET-232, D-026). Send the aspect your render plan already carries; the
+size class belongs to the workflow:
 
-- `clip-stitching` — always `1280x720@24`, whatever the clips are.
-- `clip-stitching-with-audio` and `clip-stitching-with-lyrics` — `1920x1080@30`.
+| aspect | `clip-stitching` | the audio and lyrics workflows |
+|--------|------------------|--------------------------------|
+| `16:9` | `1280x720@24`    | `1920x1080@30`                 |
+| `9:16` | `720x1280@24`    | `1080x1920@30`                 |
+| `1:1`  | `720x720@24`     | `1080x1080@30`                 |
 
-**Portrait output is opt-in and off by default.** With `ENABLE_PORTRAIT_OUTPUT=true`
-on the deployment, those two workflows instead produce `1080x1920@30` when
-**more than half** the clips are taller than they are wide; a tie, square clips,
-and clips whose dimensions could not be read still give landscape. Off — which
-is every deployment until someone sets it — the frame is landscape whatever the
-clips are, exactly as it has always been.
+The named side is the short one, so a shape change never changes the
+resolution: `clip-stitching` stays 720p whichever way up it is, because it has
+never had resolution selection, and the other two stay 1080p.
 
-It is a deployment flag, not a request field: turn it on once the players and
-any downstream compositing on that deployment are known to handle a non-16:9
-file.
+**Omit the field and nothing changes.** The frame is then decided from the clips
+you send, exactly as it was before the field existed (JET-196): landscape for
+everything, unless the deployment sets `ENABLE_PORTRAIT_OUTPUT=true`, in which
+case the audio and lyrics workflows give `1080x1920@30` when **more than half**
+the clips are taller than they are wide — a tie, square clips, and clips whose
+dimensions could not be read still give landscape.
+
+A named frame ignores that flag in both states (D-026 supersedes D-017), so
+nothing has to be reconfigured to use it and no later flip of the flag undoes
+it. The flag is now only the fallback for callers that cannot name a frame; it
+is not deprecated and nothing has to migrate.
 
 Clips that do not match the chosen frame are still scaled down and padded into
 it, so a stray landscape clip in a portrait set is letterboxed rather than
-cropped. Captions follow the frame; nothing about a caption request changes.
+cropped. Captions follow the frame — the ASS canvas moves with it, so every font
+size, margin and kinetic distance keeps the fraction of the frame it has in
+landscape, and nothing about a caption request changes.
 
 ## Notes
 

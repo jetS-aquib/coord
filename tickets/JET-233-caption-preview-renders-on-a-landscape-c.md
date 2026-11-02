@@ -4,9 +4,9 @@ title: Caption preview renders on a landscape canvas whatever the job is, so the
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-01T02:35:14+05:30
-updated: 2026-11-01T02:35:14+05:30
+updated: 2026-11-02T12:00:02+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ A preview requested as 9:16 comes back portrait with the caption positioned as i
 
 ## Thread
 2026-11-01T02:35:14+05:30 aquib N: created ticket, status: - -> open
+2026-11-02T12:00:02+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: An explicit output frame on the stitch and segment requests, because the 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-01T02:34:47+05:30
-updated: 2026-11-01T02:34:47+05:30
+updated: 2026-11-02T11:59:56+05:30
 decisions: 
 ---
 
@@ -50,3 +50,4 @@ A stitch request naming 9:16 returns a 1080x1920 master with the captions inside
 
 ## Thread
 2026-11-01T02:34:47+05:30 aquib N: created ticket, status: - -> open
+2026-11-02T11:59:56+05:30 aquib N: status: open -> approved

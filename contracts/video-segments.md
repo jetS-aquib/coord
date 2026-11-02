@@ -56,12 +56,23 @@ by it — the finalise call's list is the order.
 result is still cut on a scene boundary, which is the whole point. There is
 no single-clip segment and there does not need to be.
 
-Rendered to the same frame a full stitch would use — `1920x1080@30`, or
-`1080x1920@30` on a deployment with `ENABLE_PORTRAIT_OUTPUT=true` and a
-majority-portrait segment. Keep the flag the same for every segment of one
-song: segments in two different frames cannot be joined, and the finalise
-call refuses them rather than producing a master whose second half is the
-wrong shape.
+Rendered to the same frame a full stitch would use, and `segment-stitch`
+takes the same optional `outputFrame` the stitch endpoints do — see
+video-stitching.md for the aspects and the pixels each one gives (JET-232).
+
+**Send the same `outputFrame` on every segment of one song.** Segments in two
+different frames cannot be joined, and the finalise call refuses them rather
+than producing a master whose second half is the wrong shape. The same applies
+to the flag when you name no frame: `ENABLE_PORTRAIT_OUTPUT` with a
+majority-portrait segment gives `1080x1920@30`, and a segment whose clips
+happen to tip the other way gives landscape.
+
+`segment-concat` accepts `outputFrame` too, so you can hold one value and send
+it throughout, but there it is **checked, not obeyed**: the segments were
+already rendered and the captions burn onto their own pixels. A finalise that
+names a frame its segments are not in fails with both shapes in the message,
+rather than stretching every lyric the length of the song. Naming nothing takes
+the segments as they are, which is what it always did.
 
 ### A segment is not an attempt
 
