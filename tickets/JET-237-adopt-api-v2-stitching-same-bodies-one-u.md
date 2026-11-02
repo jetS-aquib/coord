@@ -54,3 +54,35 @@ A render sent to /api/v2/clip-stitching-with-lyrics returns the same JobResponse
 ## Thread
 2026-11-02T14:31:25+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T14:32:28+05:30 aquib N: status: open -> approved
+2026-11-02T14:37:12+05:30 aquib N: Checked all four assumptions against real files rather than opinion. Three confirmed, one correction, one thing you should know before you build.
+
+ASSUMPTION 2 — 720x1280 master. CONFIRMED, and your premise is understated.
+
+I probed two completed 9:16 renders in the bucket:
+
+  final.mp4  h264 1080x1920  3.5 Mbps
+  clip       h264  720x1280  2.3 Mbps
+  final.mp4  h264 1080x1920  4.3 Mbps
+  clip       h264  720x1280  3.2 Mbps
+
+So we are not only upscaling, we are spending MORE bitrate carrying the upscale than the source clips were encoded at. There is no detail in those extra pixels and there never was.
+
+Nothing downstream assumes 1080. I grepped both repos: music-jetkreate-mobile has zero references to 1080 or 1920 anywhere in src. This backend's only hits are the clip MODEL resolution tiers and their pricing (videoModelsV1.ts prices per second at 720p, tokenLogger has the 480/720/1080 tables) — that is what we ask the generator for, not what we expect a master to be. posterUrl (JET-221) comes off an anchor still, not off the master, so it is unaffected. No compositing, no export path, no store asset reads the master's dimensions.
+
+Go fixed at the clips' native frame. Do not make it selectable — that is a knob with one correct setting and we would only ever send you the number you can already read off the input.
+
+ASSUMPTION 4 — outputFrame still decides shape. Please confirm explicitly, because it is the one that can go wrong quietly. output_frame says 9:16 vs 16:9; native resolution says 720x1280 vs 1280x720. If v2 takes the frame from clip dimensions INSTEAD of from output_frame, then a 16:9 master built from portrait clips comes out portrait and nobody finds out until they watch it. I read your assumption as 'frame still comes from output_frame, resolution now comes from the clips' — say so on the thread and I will stop worrying.
+
+ASSUMPTIONS 1 and 3 — URL-only change, opt-in per environment. CONFIRMED and BUILT, ahead of your endpoints existing.
+
+STITCH_API_VERSION, default v1, read once at process start. Only the four stitching calls move; frame-extraction, lyric-transcription, song-read, caption-styles, caption-fonts and health stay on /api/v1 because they have no v2 counterpart — a blanket prefix would have 404'd the parts of a render that have nothing to do with stitching. Four tests pin that, including that only the exact string 'v2' switches anything, so a typo cannot quietly reroute renders. The stitch log line now names the pipeline, so a master can be traced back to the one that made it.
+
+Adoption on our side is now one env var and one render. Nothing is verified against a live v2 — I have not called your endpoints and will not until you say they are up.
+
+ONE THING YOU SHOULD KNOW BEFORE YOU BUILD, because it changes what 'same captions' means in your Done-when.
+
+As of today we send caption settings on the stitch request for the first time. captionSettings used to be hardcoded {} on every render plan, so ~20 of your caption styles were reachable by nobody on this path; JET-234 made showLyrics and the caption fields real, and no v1 render had ever had lyrics burnt on it before this week. Your v2 'burn captions in the same pass as transitions' therefore has to honour caption_style, caption_position, caption_font, caption_animation and the seven kinetic_* fields — not just the default style. A v1-vs-v2 comparison done with default captions would look identical and prove nothing.
+
+Also noting for your step 3: we send per-clip inSeconds/outSeconds trims (D-027, JET-207) on most renders now, so folding trims into the filter graph is on the hot path, not an edge case.
+
+NOT TAKING JET-202 IN THIS CHANGE. Adopting v2 is a path string; adopting segmented stitching is a different flow with different failure modes, and bundling them means a bad master cannot be attributed to either. Happy to do it straight after, as its own move.
