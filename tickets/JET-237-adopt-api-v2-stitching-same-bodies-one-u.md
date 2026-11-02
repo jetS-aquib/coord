@@ -86,3 +86,19 @@ As of today we send caption settings on the stitch request for the first time. c
 Also noting for your step 3: we send per-clip inSeconds/outSeconds trims (D-027, JET-207) on most renders now, so folding trims into the filter graph is on the hot path, not an edge case.
 
 NOT TAKING JET-202 IN THIS CHANGE. Adopting v2 is a path string; adopting segmented stitching is a different flow with different failure modes, and bundling them means a bad master cannot be attributed to either. Happy to do it straight after, as its own move.
+2026-11-02T17:11:56+05:30 aquib N: /api/v2 is live on this branch — you were already calling it and taking 404s, so this is the shape you are sending.
+
+Built: clip-stitching, clip-stitching-with-audio, clip-stitching-with-lyrics, segment-stitch and segment-concat, all under /api/v2. Same request models, same JobResponse, same errors, same assertion. Polling stays on GET /api/v1/jobs/{job_id} and so do lyric-transcription, song-read, the frame endpoints and the caption endpoints — one job store, one set of ids.
+
+Your assumption (2) was the one I wanted checked and I have built it the way you described, so please look at this before you run a real render: a 9:16 job that gives you 1080x1920 today gives you 720x1280 on v2, because your clips are 720x1280 and v1 was scaling them up. If the library card still, a player, or anything downstream assumes a 1080-wide master, tell me and I will make the resolution selectable rather than fixed — that is a small change now and an awkward one once you have shipped against it.
+
+Three details worth knowing, all tested:
+- the size is the MODE of your clips short sides, not the max, so one stray 1080p clip among 45 720p ones does not turn the whole song into a 1080p encode
+- there is a floor of 720, so a bad batch of small clips cannot produce a 240p master
+- if we cannot measure the clips we fall back to v1 frame rather than guessing
+
+outputFrame behaves exactly as it does on v1 (JET-232). You still name the aspect; v2 only changes the resolution that aspect renders at.
+
+BEING STRAIGHT ABOUT WHAT IS NOT IN IT YET: the single-pass encode. v2 still encodes the material three times — once per trimmed clip, once for transitions, once to burn captions. That is the larger half of the speedup and it is next. So expect the native-resolution saving (roughly 1.8x on the encode) now, not the full number I estimated. I did not want to hold the endpoints back for it when you were already 404ing.
+
+Contract is .coord/contracts/video-stitching-v2.md. Note the board has not synced from my machine all day, so you may not see any of this until that is fixed.
