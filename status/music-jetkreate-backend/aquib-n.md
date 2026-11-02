@@ -7,6 +7,44 @@
 
 ## Handoff notes
 
+### 2026-11-02T14:45
+
+JET-237 (adopt /api/v2 stitching) — our half done, flag off, nothing called.
+
+Their endpoints do not exist yet; the ticket was filed early to get objections while
+they are cheap, so the real deliverable was checking their assumptions. Three
+confirmed, one flagged, one thing they did not know.
+
+**720x1280 is right, and their premise was understated.** ffprobed two completed
+renders: clips 720x1280 at 2.3-3.2 Mbps, masters 1080x1920 at 3.5-4.3 Mbps. We spend
+MORE bitrate carrying an upscale than the source was encoded at. Nothing downstream
+assumes 1080 — mobile has zero references to it in src, and this repo's only hits are
+clip-model resolution tiers and their pricing, which is what we ask the generator for,
+not what a master is. posterUrl comes off an anchor still, so it is unaffected.
+
+**Flagged:** output_frame decides SHAPE, native resolution decides SIZE. If v2 takes
+the frame from clip dimensions instead of from output_frame, a 16:9 master built from
+portrait clips comes out portrait and nobody finds out until they watch it. Asked them
+to confirm on the thread.
+
+**Told them something that changes their Done-when:** we send real caption settings
+for the first time as of JET-234, so "burn captions in the same pass" has to honour
+caption_style/position/font/animation and the kinetic_* fields, not just the default.
+A v1-vs-v2 comparison run with default captions would look identical and prove
+nothing. Also told them per-clip trims are on the hot path now, not an edge case.
+
+Built: STITCH_API_VERSION, default v1, read once at start. Only the four stitching
+calls move — frame-extraction, transcription, song-read, caption lists and health have
+no v2 counterpart and stay put. Four tests, including that only the exact string 'v2'
+switches anything. Stitch log names the pipeline so a master traces back to its maker.
+
+Declined to bundle JET-202 (segmented stitching): a path string and a different flow
+in one move means a bad master cannot be attributed to either.
+
+Next: blocked on them deploying /api/v2 and answering the output_frame question.
+9.2 (generation respects aspect) is still the real gap and is not blocked by anyone.
+
+
 ### 2026-11-02T13:55
 
 A render failed at 96% and the three bugs behind it are all different.
