@@ -85,7 +85,9 @@ The key also carries the whole transcription configuration — every
 read from the settings themselves rather than a list somebody maintains. A
 deployment that retunes Whisper, or a release that changes how it works,
 therefore cannot be handed a transcript made the old way. Nothing has to be
-reconfigured and no caller has to opt in or out.
+reconfigured and no caller has to opt in or out. `LYRIC_ENGINE` is one of
+those settings, so switching engines cannot serve you a transcript the other
+one made either.
 
 Entries live 24 hours, and the most recent 64 are kept. Both are far more
 than a render needs; nothing in your flow should depend on either.
@@ -103,6 +105,33 @@ sent, so the work survives the answer being lost.
 Two callers asking for the same audio at once is also safe: the second one
 waits for the first and takes its result rather than running Whisper twice.
 
+## Which engine transcribes
+
+Whisper, unless the deployment sets `LYRIC_ENGINE=gemini` (JET-235, D-059).
+**Nothing in the response shape depends on this** — the Gemini path produces
+the transcript through the same extraction, the same cleaning and the same
+Devanagari transliteration, so every field here means what it meant, and
+`language` is still a BCP-47-ish code and still `"unknown"` for an
+instrumental.
+
+Two things are worth knowing if you are debugging a deployment that has it on:
+
+- It is a network call to a model this service does not host. Any failure —
+  no key, a 5xx, a timeout, audio too large — logs and **falls back to
+  Whisper** rather than failing. So a slow answer may be a Gemini call that
+  timed out and a Whisper transcription behind it.
+- `LYRIC_MIN_WORD_PROBABILITY` does nothing on that path, because Gemini
+  reports no per-word confidence. Words come back with a null `probability`
+  and every one of them is kept.
+
+Why anyone would: measured on a 256s track, the Whisper path is 201.8s
+(66.3s Demucs, 6.5s model load — 99s cold — and 135.4s decoding) against
+12-45s, and it reads the words considerably better. Whisper hallucinated
+`"Thank you."` over an instrumental intro and returned "Ever since I was a
+chick" for "Ever since I was a jit"; Gemini returned nothing over the intro
+and the real line. Sections are read from these words, so this lands in
+`/api/v1/song-read` too.
+
 ## The same bytes give the same words
 
 Byte-identical audio transcribes to an identical transcript, cache or no cache
@@ -119,6 +148,16 @@ changes is that a window Whisper decodes badly is kept as decoded rather than
 re-rolled, and that a re-render of unchanged audio is the same render. This is
 also what makes `/api/v1/song-read`'s sections stable, since they are read
 from these words.
+
+**On `LYRIC_ENGINE=gemini` this promise is weaker, and deliberately so.** The
+call pins `temperature: 0.0`, which is what makes it reproducible at all —
+without it the same bytes came back as 498 words, then 428, then 428, which is
+the same failure in a different engine. But the model runs on Google's
+machines under an unpinned name, so if they change it the transcript changes
+with no `APP_VERSION` and no `read_version` moving to tell you. Within a
+deployment and a cache lifetime you still get the same words; across a
+silent upstream model update you may not. D-059 records that trade.
+
 
 ## Notes
 

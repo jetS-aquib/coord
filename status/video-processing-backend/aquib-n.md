@@ -1,6 +1,6 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-232 and JET-233 built and handed back
+- **Current task:** JET-235 — Gemini as an optional lyric engine, built, Hindi still to test
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Nothing on these two tickets has reached anyone. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
 - **Last updated:** 2026-11-02T00:00:00+05:30
@@ -8,6 +8,54 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-02T14:30:00+05:30
+
+**JET-235 — `LYRIC_ENGINE=whisper|gemini`, defaulting to whisper. D-059.**
+
+Whisper is the whole wait and a lot of the wrongness. Measured here on the
+real `LyricExtractor`, 256s track: **201.8s** — Demucs 66.3, model load 6.5
+(99s cold), decode 135.4 — against **12-45s** for `gemini-3.5-transcribe`.
+The tempo/bars/energy half of the song read is 0.31s and never needed words,
+so there was nothing to win there; it was always Whisper.
+
+Three things worth remembering, all of them measured rather than reasoned:
+
+- **The seam is `_load_whisper_model`.** `run()` touches its model in exactly
+  one place — `model.transcribe(path, **kwargs) -> (segments, info)` — so the
+  Gemini path is a subclass overriding that one method and returning a
+  model-shaped adapter. **`lyric_extractor.py` has zero changed lines.** The
+  cleaning, word splitting, Devanagari transliteration and segment assembly
+  are literally the same code, which is why "the caller's payload is
+  identical" is a property of the design and not a promise somebody has to
+  re-check. Verified field-by-field against the real cached Whisper
+  transcript: same top-level keys, same segment keys, same word keys.
+- **Do not downmix the audio to mono.** This cost half a day and is the one
+  thing a future reader would otherwise redo. A/B at temperature 0 over nine
+  encodings: the original stereo MP3 is the ONLY one that reads the hook
+  correctly ("a jit"); every mono variant degrades it to "a G" or "a kid" —
+  at 16k/32k and still at 44.1k/128k. It is the stereo image that carries the
+  vocal out of the mix, not the bitrate. "It's only speech, downsample it" is
+  exactly the wrong instinct here. The upload now sends the delivered bytes
+  and re-encodes only for a format Gemini will not take, keeping channels.
+- **`temperature: 0.0` is load-bearing.** Without it the same bytes gave 498,
+  then 428, then 428 words — the same failure JET-215/D-035 fixed for
+  Whisper, in a different engine. With it, three runs byte-identical.
+
+Also: an instrumental comes back with *no parts at all*, which is the
+contract's answer already (no sections, bars kept), so that is returned as an
+empty transcript rather than raising — falling back to Whisper there would
+reintroduce the `"Thank you."` hallucination it produces over intros.
+
+**Next:** test a real sung Hindi track. It is the one genuine unknown —
+Devanagari and word timings work, but only verified on TTS speech, and
+`lyrics_display: hindi|roman|both` rides on it. After that, `GEMINI_API_KEY`
+on the deployment and flip `LYRIC_ENGINE` on one box.
+
+Unrelated and still true: `test_golden_script.py::test_rendered_lines_have_
+small_nonoverlapping_gap` fails on a clean tree on this machine — ffmpeg 8.1
+rejects the quoted `ass=` filter argument. No caption burn can be run
+locally here.
 
 ### 2026-11-02T00:00:00+05:30
 

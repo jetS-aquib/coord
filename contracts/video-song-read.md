@@ -145,6 +145,13 @@ reproducible. The analysis itself — tempo, bars, energy, blocking,
 subdivision, labelling — was always deterministic, and is unchanged. See
 D-035.
 
+On a deployment running `LYRIC_ENGINE=gemini` the words come from a hosted
+model instead, and the guarantee is the same within a deployment but weaker
+across a silent upstream model change — see "The same bytes give the same
+words" in video-transcription.md and D-059. Everything that does not come
+from words — `bpm`, `downbeats`, `energy`, `duration_seconds` — is unaffected
+either way; it never read the transcript.
+
 ## An instrumental still answers
 
 A track with no words, or one whose transcription failed, comes back with
