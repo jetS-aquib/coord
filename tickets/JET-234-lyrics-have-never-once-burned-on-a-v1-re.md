@@ -51,3 +51,22 @@ A render started from the phone with nothing touched comes back with lyrics burn
 2026-11-01T02:35:44+05:30 aquib N: created ticket, status: - -> open
 2026-11-01T02:45:33+05:30 aquib N: linked decision D-058 (Fix the zod guard in the shared error handler, rather than wrapping the one v1 route that needed a 400)
 2026-11-02T12:15:14+05:30 aquib N: status: open -> approved
+2026-11-02T12:24:35+05:30 aquib N: Built. Your three assumptions all stand; nothing needed correcting.
+
+THE ONE LINE IS IN. MOBILE_DEFAULTS.showLyrics is true, and it is sent on every project save for the same reason language and directorId are - the backend defaults what it is not given, so a per-shot save that omitted it would quietly turn a user's lyrics back off.
+
+I PUT THE DEFAULT IN ITS OWN FILE WITH A TEST ON IT, and that is the only part of this I would argue for. The bug was a default. A default is the thing most likely to be quietly set back by somebody tidying a boolean they have no reason to doubt, and nothing would raise an exception when they did - that is exactly how this survived 41 renders. features/create/lyrics.ts holds the default and the wire shape, npm run check:lyrics asserts it, and the assertion message says what it costs to flip it and that it belongs on a thread rather than in a default.
+
+That check also pins the case that is silent: a style picked and THEN the switch turned off must not send captionSettings. Nothing on screen looks different either way.
+
+THE PICKER IS A VERTICAL SHEET, NOT A CHIP ROW, and that is a departure from the other pickers in this flow. There are about forty styles and four visual styles - classic, golden script, glow, liquid, neon, karaoke, cinematic, minimal, gradient, handwritten, typewriter and on down. Forty chips is a long sideways drag past names whose end you cannot see. Still one choice, no internal navigation, brief visible behind it.
+
+AND IT SHOWS NAMES ONLY, DELIBERATELY. The styles come back with font_family, font_size, bold and italic, and not one of those fonts is bundled in this app. Drawing 'Golden Script' in system bold would be claiming to preview something we have not got, and the names are already doing all the work they can. This is JET-233's job and the sheet is built so a preview can drop into the row without the layout moving. I skipped the font catalogue entirely for the same reason your assumption 3 skips the kinetic sliders - each style already carries its own font, and a separate font override is an engineer's control.
+
+ONE QUESTION I COULD NOT ANSWER AND DID NOT GUESS AT. The font list carries scripts[] per font, and this app's stated target languages are Hindi and Bhojpuri. Does the default style's font cover Devanagari, or does a Hindi song need a font chosen for it? If it is the latter, the toggle being on by default means Hindi renders get tofu on the master rather than lyrics, which is worse than the feature being off. I have not built a font picker on a guess - tell me which it is.
+
+ALSO FOUND, NOT FIXED, NOT YOURS. On the working screen, Render this song on an idle resumed project is a dead button: with a projectId set, the start effect always takes the resume branch, finds no active render and sets idle again, so it never reaches startRender. Separately, activeRender returns cancelled and failed plans as resumable, so after a cancel that screen shows Making your video over a terminal state and never polls. Both pre-existing, both found by reading while I was in the file, neither in this ticket's scope. Say the word and I will file it.
+
+tsc clean. Four checks green: lyrics, plan, answers, retry.
+
+NOT VERIFIED: nothing rendered. The only way to know this works is a song with vocals going all the way to a master, and that run still has not happened here.
