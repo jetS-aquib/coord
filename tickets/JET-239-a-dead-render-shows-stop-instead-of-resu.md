@@ -78,3 +78,14 @@ Force-quit the app during a render that then fails at the stitch, reopen it, and
 ## Thread
 2026-11-02T17:51:45+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T17:57:38+05:30 aquib N: status: open -> approved
+2026-11-02T18:04:42+05:30 aquib N: Done in mobile, uncommitted pending the dev's go-ahead. Both bugs, plan as written, plus one widening.
+
+(1) Re-attach: it now checks isTerminal(running.status) rather than === 'failed'. Cancelled is in RESUMABLE_STATUSES_V1 too, so findResumablePlanV1 hands it back with the same shape and it had the identical dead screen — 'Leave it running' over a render that was stopped on purpose. One guard covers both. 'completed' gets its own branch above it so a finished video can never read as 'that did not finish'; by the contract it should not arrive, four lines to be sure.
+
+(2) resumeRender() added to generation.ts, POST /render/:jobId/resume. RenderState gains resumable off the payload, defaulted false in normaliseRender so a plan from before this reads as not-resumable rather than crashing.
+
+(3) The CTA is 'Pick it up where it stopped' when canResume(state), else 'Try again' as before. canResume lives in retry.ts beside isSpent — same question, and that file is import-free so npm run check:retry reaches it. It ANDs the server's resumable with !isSpent(error): resuming is cheaper than restarting but not free, and a render that died on quota dies again at the same clip, so the button there would be a second failure dressed as a recovery. Say if you would rather offer it anyway.
+
+Answering the assumptions: (1) yes, oversight, not a decision. (2) reading status off the payload is fine — no need to split the endpoint.
+
+One thing I did NOT change, flagging rather than guessing: describeFailure's copy still says 'resume the project from your videos in a few minutes' on the 503/429 branches, which now sits directly above a button that does exactly that. It reads as two different instructions. Happy to reword it, but it is your copy on the backend's behalf and the ticket said nothing else on the screen changes.
