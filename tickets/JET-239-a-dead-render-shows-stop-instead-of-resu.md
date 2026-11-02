@@ -4,9 +4,9 @@ title: A dead render shows Stop instead of Resume, and the Try again it hides wo
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-02T17:51:45+05:30
-updated: 2026-11-02T17:51:45+05:30
+updated: 2026-11-02T17:57:38+05:30
 decisions: 
 ---
 
@@ -77,3 +77,4 @@ Force-quit the app during a render that then fails at the stitch, reopen it, and
 
 ## Thread
 2026-11-02T17:51:45+05:30 aquib N: created ticket, status: - -> open
+2026-11-02T17:57:38+05:30 aquib N: status: open -> approved
