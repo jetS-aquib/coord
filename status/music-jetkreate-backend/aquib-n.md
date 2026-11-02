@@ -1,13 +1,45 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Batch 9 planned. The lyrics half (9.8) is built and unit-tested, not committed. JET-225/226/227 handed back for closing; JET-232/233/234 filed and waiting on approval.
+- **Current task:** JET-232's caller half is built — the stitch now names its frame. 9.8's backend half built earlier. Nothing committed.
 - **Status:** waiting on human
-- **Blockers:** JET-232 and JET-233 block 9.1-9.4 entirely — nothing about aspect can ship until video-processing-backend can be told an output frame. JET-234 is the one that turns lyrics on for real; our half is built, theirs is one line. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. JET-194 is ten days old. Ten older tickets need `coord done`. Git hooks still not installed in this clone — `coord devsetup --hooks`.
-- **Last updated:** 2026-11-01T02:50:00+05:30
+- **Blockers:** JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-02T12:25:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-02T12:25
+
+**The stitch finally names its frame.** `outputFrame` wired through all four
+endpoints — lyrics, audio, bare, segment-stitch — plus the finalise. 243 tests (was
+241), typecheck clean, four do-not-touch files untouched. Still uncommitted, with
+9.8's caption work.
+
+**The v0 wrappers are off the v1 path, deliberately.** `synthesis.service.ts` takes
+clip URLs with no room to say which part of a clip is used (D-027) or what shape the
+master is (D-026), and it is do-not-touch — so all three single-call stitches now go
+direct, the way every trimmed render already did. The wrappers added argument
+mapping, two log lines and the same `waitForCompletion`; their quality defaults are
+passed explicitly, so the body is what it was plus the frame. `synthesisSvc` is now
+unused here and the import is deleted.
+
+**Frame is always named, never inferred — a deliberate break with D-017.** A named
+frame short-circuits their `ENABLE_PORTRAIT_OUTPUT` flag in both states. The flag
+defaults off and is set on no deployment (checked), and D-026 supersedes D-017 so
+that a master's shape stops being a property of where it was rendered. An
+unrecognised aspect sends no frame at all, which is today's derivation.
+
+**Verified on the wire, not only in types.** Captured the real request bodies behind
+a stubbed fetch: `output_frame` present and correct on all four, **absent entirely
+when no frame is given** (the backward-compatible case), caption settings
+untouched alongside it, and `outputFrame` camelCase on segment-concat matching its
+sibling fields. Probe deleted after.
+
+**Next:** 9.2 — generation still draws every clip 16:9, so a 9:16 master is padded
+clips rather than composed ones. That is the remaining half of the aspect story and
+nothing external blocks it.
+
 
 ### 2026-11-01T02:50
 
