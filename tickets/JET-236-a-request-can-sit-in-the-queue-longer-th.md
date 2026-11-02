@@ -4,9 +4,9 @@ title: A request can sit in the queue longer than the assertion it carries is al
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-02T13:52:27+05:30
-updated: 2026-11-02T13:52:27+05:30
+updated: 2026-11-02T14:07:30+05:30
 decisions: 
 ---
 
@@ -65,3 +65,4 @@ A POST that arrives while the service is busy for more than 60 seconds is still 
 
 ## Thread
 2026-11-02T13:52:27+05:30 aquib N: created ticket, status: - -> open
+2026-11-02T14:07:30+05:30 aquib N: status: open -> approved
