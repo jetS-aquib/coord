@@ -15,3 +15,6 @@ _Written automatically from the activity log._
 
 Why they moved together is not recorded here. If you know, write it under this line —
 that sentence is the whole point, and the rest is only there so you recognise the change.
+
+Why they moved together is not recorded here. If you know, write it under this line —
+that sentence is the whole point, and the rest is only there so you recognise the change.
