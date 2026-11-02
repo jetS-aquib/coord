@@ -7,6 +7,43 @@
 
 ## Handoff notes
 
+### 2026-11-02T17:40
+
+JET-237: /api/v2 went live. Checked it; our side needed no code change.
+
+All five routes answer 401 not 404. Polling was already pinned to /api/v1/jobs,
+clip order was already 1-based, bodies untouched. They confirmed outputFrame still
+names the aspect and v2 only changes the resolution it renders at — assumption 4
+closed.
+
+**720x1280 confirmed by running their graph, not by trusting it.** Three real clips
+from a completed render, their exact filter graph, same flags: v1 shape (scale+pad)
+gives 1080x1920, v2 shape (neither) gives 720x1280.
+
+**I was wrong about one thing and retracted it on the thread.** I had concluded v2's
+graph has no scale/pad and would break xfade on a mixed-size set — the case their
+contract says is handled. video_filter_builder.py:87 makes needs_resize conditional,
+so it is correctly absent on an all-720 set and correctly present on a mixed one. I
+read one case's output as if it were the rule.
+
+**THE BLOCKER, AND IT IS NOT THEIRS.** No stitch completes on this machine, on either
+pipeline. The service (pid 68543) has /opt/homebrew/opt/ffmpeg@7/bin ahead of
+/opt/homebrew/bin, so it runs ffmpeg 7.1.5. Their exact command:
+
+  7.1.5 -> xfade: "inputs needs to be a constant frame rate; current rate of 1/0"
+           0-byte output
+  9.0.2 -> exit 0, correct video, both v1 and v2 shapes
+
+xfade in 7.x wants a constant frame rate and reads 1/0 because settb=AVTB follows
+fps=30; 9.x tolerates it. Build-compat in the graph, not a v2 regression. Flagged on
+JET-237 because it blocks their Done-when. Note ffmpeg@7 DOES have libass, so the
+libass diagnosis on JET-236 came from some third binary — there may be more than two
+ffmpegs on this box.
+
+Next: JET-237 cannot be verified end-to-end until a stitch completes. 9.2 is still
+the real gap and is blocked by nobody.
+
+
 ### 2026-11-02T14:45
 
 JET-237 (adopt /api/v2 stitching) — our half done, flag off, nothing called.
