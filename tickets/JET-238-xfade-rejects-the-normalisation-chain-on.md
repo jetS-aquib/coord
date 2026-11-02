@@ -88,3 +88,28 @@ A stitch with transitions completes on ffmpeg 7.1.5 and on 9.0.2, producing byte
 ## Thread
 2026-11-02T17:38:21+05:30 aquib N: created ticket, status: - -> open
 2026-11-02T17:42:02+05:30 aquib N: status: open -> approved
+2026-11-02T17:52:05+05:30 aquib N: Built on v2. Your diagnosis was right and I reproduced all four rows of your table on both ffmpegs. Two things came out of measuring it that change the answer, and one of them needs a decision from you.
+
+1. IT IS NOT ONLY A 7.x PROBLEM. Your fix list point 2 was more right than the reasoning behind it. When every clip is already at the target rate, needs_fps is False, no fps stage is emitted anywhere, and xfade refuses the graph ON FFMPEG 9 TOO — exit 234, 0 bytes, same message. I have that measured. So this is not purely build-compat: v1 carries a latent bug on the version we develop against, and it fires for any caller whose clips happen to arrive at 30fps.
+
+2. THE FIX IS NOT OUTPUT-IDENTICAL, so I followed your rule rather than your expectation. Your measurement was container-level — both orders do give 30/1 CFR on 9.0.2 — but the decoded pixels differ. A 24->30 conversion duplicates different source frames depending on whether the resample runs before or after setpts. Same frame count, same duration, same rate, different bytes out of the decoder. I checked by hashing raw yuv420p frames, not file sizes.
+
+I then tried to find an ordering that gives today's pixels AND a graph xfade accepts — including keeping fps in both positions, which you might expect to be a no-op on already-30fps content. It is not: that gives a third distinct result. There is no ordering that satisfies both. They are mutually exclusive.
+
+So: VideoFilterBuilderV2 (fps last, unconditional), FFmpegEngineV2 selects it, StitchPipelineV2 uses that engine. v1's builder is byte for byte untouched. End to end on three clips, two at 24fps and one at 30:
+
+    ffmpeg 7.1.5   v1 FAIL exit 234      v2 OK 720x1280 30/1
+    ffmpeg 9.0.2   v1 OK 1080x1920 30/1  v2 OK 720x1280 30/1
+
+v2 also comes out identical on both ffmpegs, which today's chain does not — a render stops depending on which ffmpeg the host has.
+
+THE DECISION I NEED: v1 still cannot stitch on ffmpeg 7, and still fails on 9 for a set already at the target rate. Your compatibility rule is what kept it that way, and I think that was the right call to make by default — but preserving v1's behaviour here partly means preserving a bug, and the cost is that anyone on a caption-capable host cannot use /api/v1 at all.
+
+Three options, yours:
+  a) Leave it. v2 is the path forward and music-jetkreate-backend is already on it. v1 keeps byte-identical output for the creator API and the web client, on hosts where it works.
+  b) Move v1 too, accepting the pixel change. Nobody is likely to notice a different frame-duplication pattern at the same count, duration and rate — but it IS a change and I will not make it on your behalf.
+  c) Move only the unconditional part on v1 — emit fps where it already goes AND at the end. That fixes the needs_fps=False case everywhere, but I measured it and it still changes pixels for 24fps clips, so it does not avoid the problem.
+
+I would take (a) now and (b) once you have compared a v1 and a v2 master side by side, which JET-237 wants anyway.
+
+Also worth knowing for whoever picks this up: the production image is python:3.11-slim-bookworm, whose ffmpeg is 5.x. I have not tested 5.x. If it validates frame_rate the way 7 does, v1 is broken in production too and (b) stops being optional. Worth one docker run before anyone relies on (a).
