@@ -1,11 +1,38 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Brand icon and splash wired from `JetKreateMusic-Icons`, plus `eas.json` for a first TestFlight build. Earlier the same day: 9.1's mobile half (the brief asks the frame). All uncommitted.
+- **Current task:** JET-241 closed out on this side: square is off for good, and the code now says the real reason rather than the one I guessed at when filing. Brand icon, splash and `eas.json` done earlier today; 9.1's mobile half before that. All uncommitted.
 - **Status:** waiting on human
-- **Blockers:** **TestFlight cannot ship usefully yet, and it is not the icons.** JET-244: the captcha gate 403s an empty token before any credential check, so a release build pointing at the deployed backend cannot sign in or register. Also needs a person, not an agent: `eas init` (creates the EAS project on the jetsin-aquib account) and the three `EXPO_PUBLIC_*` values as EAS environment variables, or the build inlines the committed `.env` placeholders and talks to localhost. Still waiting for `coord approve`: JET-241, JET-242, JET-243, JET-244.
-- **Last updated:** 2026-11-03T16:10:00+05:30
+- **Blockers:** JET-244 is the one that matters — a TestFlight build cannot sign in. Still needs `coord approve`: JET-242, JET-243, JET-244. JET-241 needs `coord done 241` from you. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` as EAS environment variables.
+- **Last updated:** 2026-11-03T16:40:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T15:58:40+05:30
+
+Session ended while on JET-223. Touched: app.json, eas.json. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-03 (JET-241 answered) — the brief stays at two frames, and now for the right reason
+
+Square is off, and the ticket is worth reading before anyone reopens this. The
+spike came back free: `400 value '1:1' is not supported for
+'response_format.aspect_ratio'` on gemini-omni-1.1-flash, never billed. Had
+steps 2 to 6 been written first we would own a route that accepts '1:1' and a
+generator that throws on it, several dollars of stills later.
+
+**The reason I filed it with was wrong, which is why the comments changed.**
+I wrote that the route's zod enum was what refused square. The enum is a
+symptom. `omni` is the only model in the registry that supports an END frame,
+and pinning both ends is what lets every clip render once and lands the seams
+at 2.2 to 2.4. Every model that does offer 1:1 is start-frame-only, so a square
+song would be serially generated with visible cuts: a worse video, not the same
+video in a different shape. D-064 names the condition to revisit — a model that
+takes an end frame AND 1:1 — and that is a provider release, not work here.
+
+Touched only the two comments that were telling the wrong story
+(`lib/generation.ts` on `Aspect`, `brief.tsx` on `ASPECTS`) and the plan's 9.1,
+9.2 and ticket rows. No behaviour changed: the brief was already two segments,
+which is the point. D-062 still holds; D-064 closes the clause in it that said
+the third was coming.
 
 ### 2026-11-03T15:48:41+05:30
 
