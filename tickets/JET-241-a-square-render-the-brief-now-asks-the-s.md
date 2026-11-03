@@ -4,9 +4,9 @@ title: A square render: the brief now asks the shape, and 1:1 is the one answer 
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-03T15:19:35+05:30
-updated: 2026-11-03T15:21:22+05:30
+updated: 2026-11-03T15:44:07+05:30
 decisions: D-062
 ---
 
@@ -46,3 +46,4 @@ A render started with aspectRatio '1:1' is accepted rather than 400ing; its anch
 ## Thread
 2026-11-03T15:19:35+05:30 aquib N: created ticket, status: - -> open
 2026-11-03T15:21:22+05:30 aquib N: linked decision D-062 (The brief offers Tall and Wide, not 1:1, and names the frame by where the video is going)
+2026-11-03T15:44:07+05:30 aquib N: status: open -> approved
