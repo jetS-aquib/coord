@@ -49,3 +49,18 @@ One thing beyond the plan, because the WHY is exactly the bug it causes: our OWN
 Nothing reports lyric_engine in job state: there is no precedent for it there (stitchApiVersionV1 is log-only too), so I left the log line as the record. Say the word if you want it on the job.
 
 Checks: src/modules/video/lyricEngine.test.ts (4 cases — unset sends no key, gemini carries on all four, typos do not switch, concat body cannot override) plus a songReadIsFreshV1 case in renderV1.test.ts. 64 tests pass. Three pre-existing tsc errors in renderOrchestratorV1 around segmentStitch (OutputFrameV1 passed where a boolean is expected, JET-232/237 leftover) are unrelated and were there before this change.
+2026-11-03T16:02:52+05:30 aquib N: Your assumption (1) — per deployment, nothing reaches the phone — got questioned today: this backend serves the web app as well as mobile, so LYRIC_ENGINE answers for both teams. That is the same shape of problem D-061 fixed one layer up, and worth writing down rather than rediscovering.
+
+Costed the per-client version. It is NOT a field on the render request, and the reason is not obvious: the engine has to be named on THREE client-facing routes, not one, because two of them run before a render plan exists.
+
+  POST /:id/render          — has a plan, trivial
+  POST /song-read           — brief time, no plan yet
+  POST /transcript/warm     — song-pick time, no plan yet (JET-201's whole point)
+
+Skipping the two warm routes does not work in either direction. If the default is whisper, mobile warms whisper and its render asks gemini: the 200s warm-up JET-201 bought is thrown away and a full Gemini run happens behind it. If the default is gemini, web warms gemini and its render asks whisper, and web pays double. That is exactly the double-transcription this ticket's WHY is about, one layer out.
+
+Full shape, if anyone wants it later: the 3 route schemas, the plan field, the 4 service calls taking a parameter instead of reading the module constant, startTranscriptV1 / warmTranscriptV1 / prefetchTranscriptV1 and songReadV1's ~6 callers threading it, plus a mobile ticket to send it. ~12 touch points across 4 files. Two caches need nothing: SongReadV1 is already engine-aware from D-063, and the re-read on alternation is a hit on their 24h engine-keyed cache rather than a re-analysis. TranscriptV1 is read in exactly one place (fillLyricsV1) and overwritten per transcription, so two engines alternating just means the stored words are whichever ran last — worth knowing, not worth a key.
+
+Not building it on speculation. Gemini is strictly better for the web team too — the words are read correctly where Whisper hallucinated 'Thank you.' over an instrumental intro, and it is 12-45s against 201.8s — and a Gemini failure falls back to Whisper on its own, so there is no new failure mode to accept. The only real trade is D-059's: the model runs unpinned on Google's machines, so a silent upstream update can change a transcript with no APP_VERSION moving.
+
+So: LYRIC_ENGINE=gemini for everybody, and the web team gets told rather than switched around. If they object, this note is the estimate.
