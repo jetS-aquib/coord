@@ -4,9 +4,9 @@ title: A budget a producer picks, demo or standard or hero, and the cost before 
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-03T15:20:10+05:30
-updated: 2026-11-03T15:20:10+05:30
+updated: 2026-11-03T23:46:38+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ The same song rendered at demo, standard and hero differs measurably in model, r
 
 ## Thread
 2026-11-03T15:20:10+05:30 aquib N: created ticket, status: - -> open
+2026-11-03T23:46:38+05:30 aquib N: status: open -> approved
