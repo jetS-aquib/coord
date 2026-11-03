@@ -59,3 +59,18 @@ A job that a worker has taken reads as something other than 'queued'. After a re
 ## Thread
 2026-11-03T16:31:23+05:30 aquib N: created ticket, status: - -> open
 2026-11-03T16:33:07+05:30 aquib N: status: open -> approved
+2026-11-03T17:33:19+05:30 aquib N: Done. Six root causes found and fixed in video-processing-backend (commit 6049035 on feature-mobile-v2):
+
+1. Double attempt claim (the primary cause of queued-forever): JET-202 wrapped create_or_get_job in if attempt_scoped: but left the original call above it. Every submission claimed its attempt twice — the second saw created=False and returned 202 without ever submitting the render. Removed the orphaned first call.
+
+2. GC'd asyncio tasks: create_task returned a task with only a weak reference. Added self._tasks: set[asyncio.Task] with a done-callback discard so the loop cannot GC a task mid-flight.
+
+3. CancelledError not caught: except Exception silently left a killed task's job at queued. Changed to except BaseException and re-raise so a cancelled task marks its job failed and propagates the cancellation correctly.
+
+4. Boot sweep: fail_jobs_left_by_a_dead_process() added and wired into app lifespan. Called before the first request; every non-terminal row from the previous process is failed with an explanation. store.unfinished() added to both FileJobStore and MongoJobStore.
+
+5. ffmpeg/ffprobe timeouts: new app/core/media_timeout.run() wraps subprocess.run with settings.media_timeout_seconds (default 1800s, min 60s, env MEDIA_TIMEOUT_SECONDS). All 13 bare subprocess.run calls on the render path routed through it: ffmpeg_engine, stitch_pipeline, lyric_extractor, caption_style_renderer, compositor, clip_trim, frames, song_read, gemini_transcriber.
+
+6. Whisper preload bounded: _whisper_preload_future.result() now passes timeout=settings.media_timeout_seconds. Executor shutdown changed to wait=False so a stalled model load cannot also block the cleanup.
+
+Regression suite: tests/test_queued_forever.py — 16 tests covering the double-claim fix, task reference fix, boot sweep, and cancellation handling. Bug was reproduced by reintroducing the duplicate claim; 12 tests failed. Fixed; all 38 tests now pass (610 total in the suite, 1 unrelated MongoDB connectivity failure in the sandbox).
