@@ -1,11 +1,50 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-234 — lyrics on by default, and a style picker on the brief. Built, four checks green, uncommitted. Batch 8's call sheet is committed as `3e1a6ec`.
+- **Current task:** Batch 9. 9.1's mobile half built on 3 Nov: the brief now asks the frame (Tall / Wide) and sends it on the save and the render instead of a hardcoded '9:16'. Typecheck and all five checks green, uncommitted. JET-234 and JET-239 are committed (`8afcf9b`, `1b5cb4c`).
 - **Status:** working
-- **Blockers:** none for JET-234. One open question on its thread that could matter more than the feature: does the default caption font cover Devanagari? If not, lyrics-on-by-default gives a Hindi song tofu on the master, which is worse than the feature being off. JET-231 still needs `coord approve`, though the backend has committed its half (`ffd15bf`) so the cast stopgaps may already be removable.
-- **Last updated:** 2026-11-02T10:40:00+05:30
+- **Blockers:** none for the frame. Three new requests need `coord approve` before anyone starts them: JET-241 (square, which spikes one clip first because the provider may not take 1:1), JET-242 (pause: resume is in on both sides, pause has no route), JET-243 (budget tier, and a cost before the 202). Still open from before: does the default caption font cover Devanagari? Lyrics are on by default now, so a Hindi song with a tofu master is live risk, not a future one.
+- **Last updated:** 2026-11-03T00:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03 — Batch 9 read, marked, and the frame picked up
+
+Went through Batch 9 of the Render Pipeline Delivery Plan row by row and marked
+the mobile side of it in the plan itself.
+
+Already in and committed: **9.7** (re-attach through JET-198, which is also why
+a 409 on start resolves through the lookup rather than by parsing the conflict
+prose), **9.8** (lyrics on by default with the style picker, JET-234), **9.6's
+resume half** (JET-239), and the **narration half of 9.9** — every line carries
+a real count off the real plan and the planning phase shows the crew's own last
+line off the wire. The ETA is the open half of 9.9 and it is ours: the numbers
+to derive one from are on every poll tick already, so it needs no ticket.
+
+Picked up **9.1**, and the thing worth remembering is that it was never
+blocked. The render route has taken `aspectRatio` since v1 shipped,
+`shotListV1` has had a framing ladder per aspect since 7.7,
+`renderOrchestratorV1` threads it into the stills and the plate, and
+`omniVideoService` passes it to the model. Mobile sent
+`const ASPECT_RATIO = '9:16'` on every call. The frame now lives on the create
+draft, goes out on the project save and on the render, and the brief asks for
+it as **Tall / Wide** rather than as a ratio.
+
+Two segments, not three, and that is D-062: the route validates
+`z.enum(['16:9','9:16'])`, so a square segment would be a control that returns
+a 400, and `thumbnails.ts` would draw landscape stills under square clips
+anyway. Filed as JET-241, which spikes one square clip for about a dollar
+before any of it is written.
+
+Also filed, both of them things the brief could draw today and has nothing to
+send: **JET-242** pause, **JET-243** a budget tier plus a cost before the money.
+9.3 and 9.4 already had tickets from the backend side (JET-232, JET-233) and
+the plan's ticket table now carries those ids.
+
+Next: the three need `coord approve`, nothing in mobile is blocked meanwhile.
+The 9.9 ETA is the next mobile-only piece. One finding not acted on:
+`components/segmented.tsx` segments are `minHeight: 40` against a 44pt floor,
+across settings, the shot override and now the brief. One token, three screens,
+and not mine to change unasked.
 
 ### 2026-11-02T12:25:20+05:30
 

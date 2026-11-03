@@ -63,3 +63,4 @@
 | D-059 | Gemini may transcribe lyrics instead of Whisper, per deployment | 2026-11-02 | superseded by D-061 | video-processing-backend music-jetkreate-backend |  |
 | D-060 | Director portraits are served from GCS, not from this backend | 2026-11-02 | active | music-jetkreate-backend music-jetkreate-mobile | JET-235 |
 | D-061 | The lyric engine is named per request, not per deployment | 2026-11-03 | active | video-processing-backend music-jetkreate-backend creater-ai-backend |  |
+| D-062 | The brief offers Tall and Wide, not 1:1, and names the frame by where the video is going | 2026-11-03 | active | music-jetkreate-mobile music-jetkreate-backend | JET-241 |

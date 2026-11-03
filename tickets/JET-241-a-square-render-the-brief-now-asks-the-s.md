@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: open
 created: 2026-11-03T15:19:35+05:30
-updated: 2026-11-03T15:19:35+05:30
-decisions: 
+updated: 2026-11-03T15:21:22+05:30
+decisions: D-062
 ---
 
 ## Request
@@ -45,3 +45,4 @@ A render started with aspectRatio '1:1' is accepted rather than 400ing; its anch
 
 ## Thread
 2026-11-03T15:19:35+05:30 aquib N: created ticket, status: - -> open
+2026-11-03T15:21:22+05:30 aquib N: linked decision D-062 (The brief offers Tall and Wide, not 1:1, and names the frame by where the video is going)
