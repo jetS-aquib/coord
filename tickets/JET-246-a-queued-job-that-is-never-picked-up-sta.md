@@ -80,3 +80,12 @@ Regression suite: tests/test_queued_forever.py — 16 tests covering the double-
 3. Submit a stitch request and observe the job row: status must move from queued to running before the render starts.
 4. Kill the process mid-render. Restart. The abandoned job must appear as failed with a 'left behind' message — not still at queued.
 5. With MEDIA_TIMEOUT_SECONDS=10, submit a stitch. Must fail in ~10s with a MediaTimeout error naming which step timed out, not hang forever.
+2026-11-03T23:06:55+05:30 aquib N: Two corrections to the test steps above, both checked against the code rather than assumed — follow them as written and step 2 and step 5 would both look like failures.
+
+STEP 5 is wrong about the timing. MEDIA_TIMEOUT_SECONDS is floored at 60 in config.py (max(60.0, ...)), deliberately, so that nobody can set an absurd ceiling. MEDIA_TIMEOUT_SECONDS=10 resolves to 60.0 — verified. So the step is: set MEDIA_TIMEOUT_SECONDS=60, submit a stitch of enough clips that a phase takes longer than a minute, and it must fail in about 60s with 'MediaTimeout: <step> exceeded 60s and was killed', naming the step. Waiting 10s and seeing nothing is the floor working, not the fix failing.
+
+STEP 2 was not true when it was written, and is now. The sweep only printed when it found something, so a clean boot was silent and there was no 'nothing left behind' line to look for. Added one: a boot now always says either '[jobs] swept N job(s) the last process left behind' or '[jobs] nothing left behind by the last process'. Whether the sweep ran is the first question anyone asks of this ticket, so it should not be inferable only from the absence of output.
+
+Also, for the record: the one failing test in the suite is tests/test_golden_script.py::test_rendered_lines_have_small_nonoverlapping_gap, and it is not MongoDB. It is a CalledProcessError from an ffmpeg lavfi call inside that test, it fails identically on the commit before this work (checked by stashing), and it is unrelated to JET-246. Worth knowing before someone chases a database that is answering fine.
+
+Unchanged and still true: the double attempt claim was the primary cause, and reintroducing it fails the new suite loudly (16 tests across test_queued_forever.py and test_v2_pipeline.py), which is the part that keeps it fixed.
