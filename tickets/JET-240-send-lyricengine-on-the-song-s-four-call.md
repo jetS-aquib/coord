@@ -4,10 +4,10 @@ title: Send lyricEngine on the song's four calls, so Gemini is a choice you make
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-03T15:17:53+05:30
-updated: 2026-11-03T15:17:53+05:30
-decisions: 
+updated: 2026-11-03T15:27:20+05:30
+decisions: D-063
 ---
 
 ## Request
@@ -40,3 +40,12 @@ With LYRIC_ENGINE unset, every request body is byte-identical to today's and no 
 
 ## Thread
 2026-11-03T15:17:53+05:30 aquib N: created ticket, status: - -> open
+2026-11-03T15:23:03+05:30 aquib N: status: open -> approved
+2026-11-03T15:27:20+05:30 aquib N: linked decision D-063 (Our song-read cache keys on the lyric engine, rather than bumping its generation)
+2026-11-03T15:27:38+05:30 aquib N: Built, not committed. LYRIC_ENGINE added beside STITCH_API_VERSION in video-api.service.ts; only the exact string 'gemini' switches, and unset omits the key entirely on all four calls (clip-stitching-with-lyrics, lyric-transcription, song-read, segment-concat — we do use segment-concat, on any song with 2+ segments). The engine goes in after the caption spread on both stitch bodies, same reason as outputFrame: a caller does not get to pick it. Render log line now reads 'stitching via /api/v1, gemini lyrics — N clips'.
+
+One thing beyond the plan, because the WHY is exactly the bug it causes: our OWN SongReadV1 cache is keyed on audioUrl + SONG_READ_CACHE_V1 and did not know about the engine, so flipping the flag would have served Whisper sections against Gemini captions. The row now stores lyricEngine and songReadIsFreshV1 compares it — '' both for old rows and an unset flag, so this re-reads nothing on deploy. D-063.
+
+Nothing reports lyric_engine in job state: there is no precedent for it there (stitchApiVersionV1 is log-only too), so I left the log line as the record. Say the word if you want it on the job.
+
+Checks: src/modules/video/lyricEngine.test.ts (4 cases — unset sends no key, gemini carries on all four, typos do not switch, concat body cannot override) plus a songReadIsFreshV1 case in renderV1.test.ts. 64 tests pass. Three pre-existing tsc errors in renderOrchestratorV1 around segmentStitch (OutputFrameV1 passed where a boolean is expected, JET-232/237 leftover) are unrelated and were there before this change.
