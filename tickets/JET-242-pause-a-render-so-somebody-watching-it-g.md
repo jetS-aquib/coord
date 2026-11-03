@@ -4,9 +4,9 @@ title: Pause a render, so somebody watching it go wrong can stop the spend witho
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-03T15:19:52+05:30
-updated: 2026-11-03T15:19:52+05:30
+updated: 2026-11-03T23:34:06+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Pausing a render mid-flight stops new clips being dispatched, the clips already 
 
 ## Thread
 2026-11-03T15:19:52+05:30 aquib N: created ticket, status: - -> open
+2026-11-03T23:34:06+05:30 aquib N: status: open -> approved
