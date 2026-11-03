@@ -1,11 +1,38 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Nothing in flight. JET-240 and the JET-232 frame fix are committed (df67552, efcd8d6), not pushed. JET-241 answered no. JET-245 and JET-246 filed off measurements, both waiting on approve.
+- **Current task:** JET-244's staging half built on both ends, uncommitted — staging needs CAPTCHA_BYPASS_CLIENT=mobile, production needs nothing. JET-240 and the JET-232 frame fix committed (df67552, efcd8d6), not pushed. JET-245/246 waiting on approve.
 - **Status:** waiting on human
-- **Blockers:** JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Blockers:** JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
 - **Last updated:** 2026-11-03T15:30:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T17:35
+
+**JET-244: staging lets a named client past the captcha. Production has nothing for a
+header to match.** Built both ends for today's staging release and TestFlight build.
+D-065 records the trade; the ticket stays open, because attestation is not done.
+
+`CAPTCHA_BYPASS_CLIENT` on the deployment, `X-Client` on the request, both must be
+non-empty to match. Staging sets `mobile`; production sets nothing, and that absence
+is the entire enforcement. Mobile sends the header from `lib/api.ts`'s shared builder.
+
+**Say the quiet part when anyone asks:** the header is not a credential. On staging
+those two routes have no captcha for anybody who sends it. That is the deliberate
+trade for a closed test group on a backend with no real users, and it is why web —
+sharing that deployment — keeps its captcha, which is the only reason this is keyed
+on a header rather than just the environment.
+
+**Before public launch, delete the flag rather than unsetting it**, so the mechanism
+cannot come back with an environment change alone. That is in D-065's consequences and
+it is the thing most likely to be forgotten.
+
+**A trap that cost me a test run and will cost the next person one.** Deleting
+`process.env.NODE_ENV` does not simulate production in this repo: `env.ts` calls
+`dotenv.config()`, `.env` carries `NODE_ENV=development`, and dotenv refills anything
+unset — so a re-imported module gets development back and `IS_DEV_MACHINE` short-
+circuits before the code under test. `captchaBypass.test.ts` names `production`
+explicitly and says why.
 
 ### 2026-11-03T17:10
 
