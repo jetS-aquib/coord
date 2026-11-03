@@ -32,13 +32,18 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   JET-198: a jobId is handed out once, so a client that loses it (reinstall, new
   device, a render started from the web) needs a supported way back to it.
 - `POST /api/v1/music-videos/render/:jobId/resume` — `202`; picks a stopped render
-  back up from its checkpoints. Valid on `cancelled`, `failed` and `blocked`.
-  Everything already rendered is kept, so it costs only what is left.
+  back up from its checkpoints. Valid on `cancelled`, `failed`, `blocked` and
+  `paused`. Everything already rendered is kept, so it costs only what is left.
 - `GET /api/v1/music-videos/render/:jobId` — poll one by id.
 - `GET /api/v1/music-videos/render/:jobId/events` — SSE, same payload per event.
   Mobile should poll: the stream drops when an app backgrounds.
 - `POST /api/v1/music-videos/render/:jobId/cancel` — stops at the next clip boundary;
-  work already in flight is paid for and kept.
+  work already in flight is paid for and kept. Ends the render.
+- `POST /api/v1/music-videos/render/:jobId/pause` — `202`; same stop, but the render is
+  **not** over: status becomes `paused` with `resumable: true`, and `…/resume`
+  continues it from the per-clip checkpoints. Only while the render is drawing
+  (`anchoring`, `rendering`, `verifying`) — `409` elsewhere, naming the status, because
+  before that cancelling is free and after it every clip is already paid for. JET-242.
 - `POST /api/v1/music-videos/render/:jobId/clips/:idx/rerender` — `202`; re-renders
   that one clip and re-stitches. Body `{ prompt? }` replaces that clip's prompt — the
   only way out of a refusal, since the provider refuses the same words again.
@@ -88,7 +93,7 @@ parser.
 ```jsonc
 { "jobId": "mvr_…", "musicVideoId": "mv_…",
   "status": "rendering",        // queued | anchoring | rendering | verifying
-                                // | stitching | blocked
+                                // | stitching | blocked | paused
                                 // | completed | failed | cancelled
   "progress": 62,               // 0-100
   "modelKey": "omni", "aspectRatio": "9:16", "concurrency": 6,
@@ -187,6 +192,17 @@ quietly abandon the first one's spend.
 
 ### Stopping is not discarding
 
+`cancel` ends a render; `pause` holds it. Both stop dispatching at the next unit
+boundary and both let the clips already in flight land and keep them, because that work
+is paid for either way — the difference is what is true afterwards. A `paused` render is
+one somebody is still watching: it is not terminal, nothing sweeps it, a deploy does not
+restart it, and `…/resume` continues it for the price of the clips that were never
+started. That is the whole point of it — watching a plan go wrong at shot 9 used to mean
+cancelling, and the only thing on offer after cancelling was paying for all 45 again.
+Starting a new render on that project is refused with a `409` while one is paused, for
+the same reason `blocked` refuses it: resume it or cancel it first, so a second render
+cannot quietly abandon the first one's spend.
+
 A render cancelled at clip 8 of 31 still holds 30 anchor stills and 8 clips that were
 paid for — on one real render, $6.40 of clips and every still. `cancelled` and
 `failed` are terminal for the workers, but they are not finished business, so the
@@ -194,14 +210,20 @@ project lookup returns them with `resumable: true` and `POST …/resume` continu
 the checkpoints. Resuming that render costs $18.40; restarting it costs $24.80.
 
 Starting a NEW render is never refused because of one of these — a render somebody
-stopped should not stop them starting another. Only an in-progress or `blocked`
+ended should not stop them starting another. Only an in-progress, `blocked` or `paused`
 render does that.
 
 ### Things a client has to know
 
 - **A render is in progress for exactly the statuses that are not terminal.** The
   `409` from a second `POST …/render` and the `404` from `GET /:id/render` are driven
-  by one query, so they cannot disagree.
+  by one query, so they cannot disagree. `blocked` and `paused` are the two
+  non-terminal statuses with nothing actually running: both are waiting on a person,
+  and both answer that `409` with what to do about it.
+- **The SSE stream ends on `paused`**, as it does on the terminal statuses. The clips
+  still in flight land on the plan afterwards; read them from the poll route. Streaming
+  past a pause would send `rendering` events to a client that had just been told
+  `paused`.
 - **Clips complete out of order.** Six render at once; `clips[]` is index-ordered,
   arrival is not.
 - **Per-scene progress is also written to the project**, as

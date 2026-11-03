@@ -1,11 +1,47 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-244's staging half built on both ends, uncommitted — staging needs CAPTCHA_BYPASS_CLIENT=mobile, production needs nothing. JET-240 and the JET-232 frame fix committed (df67552, efcd8d6), not pushed. JET-245/246 waiting on approve.
+- **Current task:** JET-242 built and handed back for review — pause/resume on a render (D-067, contract updated), uncommitted. Mobile's half (widen the RenderStatus union) has to land the same day. JET-244's staging half still uncommitted. JET-240 and the JET-232 frame fix committed (df67552, efcd8d6), not pushed.
 - **Status:** waiting on human
-- **Blockers:** JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
-- **Last updated:** 2026-11-03T15:30:00+05:30
+- **Blockers:** THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-03T23:45:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T23:45
+
+**JET-242: pause is a status, and one stop-check serves both reasons.** `POST
+/api/v1/music-videos/render/:jobId/pause` holds a render where it is: nothing new is
+dispatched, the clips already in flight land and are kept, the plan stays, and
+`…/resume` continues from the per-clip checkpoints for the price of the clips that
+never started. Handed back for review; D-067 records the shape.
+
+**The whole mechanism was already there.** Every boundary in the run asked one
+question through one function — `cancelledSince`. It is now `stoppedSince` and answers
+true for `cancelled` OR `paused`, so all nine checkpoints honour a pause without any
+of them being told about it. Patching only the clip loop would have left anchoring and
+the verify sweep still dispatching.
+
+**`paused` is deliberately NOT terminal**, which is the part to keep straight: the
+project lookup still returns it, a second render against the same song is refused with
+"resume it or cancel it" (same posture as `blocked` and `review`), startup resume skips
+it, and nothing sweeps it. Three places had to know or it would not be a pause at all —
+`runPlanV1`'s early return, `resumeRendersOnStartupV1`'s `$nin`, and the catch block,
+which no longer flips a pause to `failed` when an in-flight clip throws after it.
+
+**The SSE stream ends on `paused`**, like the terminal statuses. The alternative was
+sending `rendering` events to a client that had just been told `paused` and flipping
+the button back under the person who pressed it. The clips still in flight land on the
+plan; the poll route is where they are read. If mobile wants to watch them land live,
+that is a real follow-up and it belongs on a ticket, not in this file.
+
+**Test steps were written into the ticket by hand.** `coord` only takes `--test` at
+filing time, so there is no command that fills them on an existing request — worth a
+`--test` on `coord review`.
+
+**`captchaBypass.test.ts` fails on this machine**, and not because of anything here:
+`.env` carries `CAPTCHA_BYPASS_CLIENT=mobile` from today's staging work, and the test
+reads the real environment. It is JET-244's file and JET-244 is still open — the test
+should clear that variable itself rather than depend on whose machine it runs on.
 
 ### 2026-11-03T17:35
 

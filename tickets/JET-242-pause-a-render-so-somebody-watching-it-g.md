@@ -4,10 +4,10 @@ title: Pause a render, so somebody watching it go wrong can stop the spend witho
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-03T15:19:52+05:30
-updated: 2026-11-03T23:34:06+05:30
-decisions: 
+updated: 2026-11-03T23:42:21+05:30
+decisions: D-067
 ---
 
 ## Request
@@ -41,8 +41,26 @@ Pausing a render mid-flight stops new clips being dispatched, the clips already 
 
 ## Test steps
 
-—
+1. Start a render: `POST /api/v1/music-videos/:id/render` on a project with a saved
+   storyboard. Note the jobId.
+2. Poll `GET /api/v1/music-videos/render/:jobId` until status is `anchoring` or
+   `rendering` and clipsDone is rising.
+3. `POST /api/v1/music-videos/render/:jobId/pause` -> 202, status `paused`,
+   `resumable: true`. An open SSE stream ends here.
+4. Poll again after ~60s: clipsDone rises only by the clips that were already in
+   flight, then stops. The log shows no new clip dispatched, and no `failed`.
+5. `POST /api/v1/music-videos/render/:jobId/resume` -> 202. The log reads
+   `resuming - N/M clips already done`; only the clips that never started are paid
+   for, and the render finishes to a master.
+6. `POST .../pause` while the status is `queued`, `stitching` or `completed` -> 409
+   naming the status.
+7. While a render is paused, `POST /api/v1/music-videos/:id/render` on the same
+   project -> 409 "paused at your request".
+8. Restart the server while a render is paused: it stays paused, not resumed.
 
 ## Thread
 2026-11-03T15:19:52+05:30 aquib N: created ticket, status: - -> open
 2026-11-03T23:34:06+05:30 aquib N: status: open -> approved
+2026-11-03T23:40:57+05:30 aquib N: linked decision D-067 (Pause is a non-terminal render status, not a second kind of cancel)
+2026-11-03T23:41:33+05:30 aquib N: status: approved -> in_progress — picked it up
+2026-11-03T23:42:21+05:30 aquib N: status: in_progress -> review — Built: POST .../render/:jobId/pause, a non-terminal 'paused' status that resume accepts, and one stop-check both cancel and pause go through (D-067). Contract api-music-videos.md updated. Test steps filled in by hand - the CLI only takes --test at filing time. Mobile half is yours: widen the RenderStatus union before shipping, or a paused render reads as one that never started.
