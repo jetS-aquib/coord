@@ -18,6 +18,19 @@ All three require the `X-Service-Assertion` header (see Notes).
 - `POST /api/v1/clip-stitching-with-audio` — ordered clip URLs + one `audio_url` → transitioned MP4 with master audio.
 - `POST /api/v1/clip-stitching-with-lyrics` — clip URLs + `audio_url` + optional lyrics/caption settings (`caption_style`, `caption_position`, …) → transitioned MP4 with burnt-in captions.
 
+## Which engine transcribes
+
+`clip-stitching-with-lyrics` takes an optional `lyricEngine`, `"whisper"` or
+`"gemini"`. **Absent is `"whisper"`**, so a request made the way it has always
+been made transcribes the way it always has (D-061, superseding D-059 — there
+is no longer a `LYRIC_ENGINE` on the deployment that could change that under
+you). Anything else is a 422.
+
+If you also call `/api/v1/lyric-transcription` or `/api/v1/song-read` for the
+song, send the same value on all of them — the engine is part of those caches'
+keys, so a mismatch transcribes the song twice. See
+contracts/video-transcription.md for what Gemini changes and what it does not.
+
 ## Per-clip in and out points
 
 Each entry of `clips` is `{ "url": ..., "order": ... }` and may also carry

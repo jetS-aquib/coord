@@ -2,8 +2,8 @@
 id: D-059
 title: Gemini may transcribe lyrics instead of Whisper, per deployment
 date: 2026-11-02
-status: active
-superseded_by: 
+status: superseded
+superseded_by: D-061
 repos: video-processing-backend, music-jetkreate-backend
 tickets: 
 ---

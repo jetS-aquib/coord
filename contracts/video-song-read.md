@@ -31,7 +31,8 @@ Requires `X-Service-Assertion`, minted exactly as for stitching
 
 ```jsonc
 // request
-{ "audioUrl": "https://…/song.mp3", "language": "auto" }   // or "hi", "en", …
+{ "audioUrl": "https://…/song.mp3", "language": "auto",    // or "hi", "en", …
+  "lyricEngine": "whisper" }        // optional; absent is "whisper" (D-061)
 
 // 200
 {
@@ -145,11 +146,14 @@ reproducible. The analysis itself — tempo, bars, energy, blocking,
 subdivision, labelling — was always deterministic, and is unchanged. See
 D-035.
 
-On a deployment running `LYRIC_ENGINE=gemini` the words come from a hosted
-model instead, and the guarantee is the same within a deployment but weaker
-across a silent upstream model change — see "The same bytes give the same
-words" in video-transcription.md and D-059. Everything that does not come
-from words — `bpm`, `downbeats`, `energy`, `duration_seconds` — is unaffected
+A request that sends `"lyricEngine": "gemini"` has its words from a hosted
+model instead (D-061, and absent is `whisper`), and the guarantee is the same
+within a deployment but weaker across a silent upstream model change — see
+"The same bytes give the same words" in video-transcription.md and D-059.
+**Send the same `lyricEngine` here as on the transcription and the stitch**:
+sections are read from the transcript's words, so a different engine is a
+different read, and the engine is part of this cache's key as well as the
+transcript's. Everything that does not come from words — `bpm`, `downbeats`, `energy`, `duration_seconds` — is unaffected
 either way; it never read the transcript.
 
 ## An instrumental still answers
@@ -168,7 +172,10 @@ free, an edited song is correctly a miss, and regenerating a plan costs
 nothing. Entries live 24 hours and the most recent 64 are kept.
 
 The key also carries a version of this analysis, so a release that changes
-what a read says cannot serve one made the old way.
+what a read says cannot serve one made the old way — and, since D-061,
+`language` and `lyricEngine`, because both change the words the sections are
+read from. A read made for a caller who asked for Gemini is therefore never
+served to one who asked for nothing.
 
 ## Errors
 

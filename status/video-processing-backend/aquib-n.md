@@ -1,13 +1,53 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-235 — Gemini as an optional lyric engine, built, Hindi still to test
+- **Current task:** D-061 — the lyric engine moved from `LYRIC_ENGINE` onto the request, so Gemini cannot be turned on for one caller and land on another. Built; JET-240 filed to music-jetkreate-backend and waiting on approval
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Nothing on these two tickets has reached anyone. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-02T00:00:00+05:30
+- **Last updated:** 2026-11-03T00:00:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-03T00:00:00+05:30
+
+**D-061 — the lyric engine is the request's to name; `LYRIC_ENGINE` is gone.**
+
+D-059 put the engine on the deployment, which answers for every caller at
+once. `creater-ai-backend` calls `/api/v1/clip-stitching-with-lyrics` and has
+never heard of engines, so Gemini could not be turned on for
+music-jetkreate-backend without turning it on for them. Now: optional
+`lyricEngine` on the lyrics stitch, segment-concat, lyric-transcription and
+song-read, v1 and v2 alike; **absent is `whisper`, hardcoded**; a bad value
+is a 422 off a `Literal`. The env var is deleted rather than kept as the
+fallback — two ways to answer the same question is one way for a deployment
+to move what an old caller gets, which is the whole point of the decision.
+
+The only part that can go wrong silently is the two cache keys:
+
+- `transcription_config()` harvests `lyric_*` off **settings**, so it cannot
+  see a per-request engine. `fingerprint()` now takes `lyric_engine` as an
+  argument. Without that, the caller who asked for nothing is served Gemini's
+  words out of another caller's warm-up — worse than the problem being fixed.
+- `song_read.cache_key()` was bytes + READ_VERSION + app_version and nothing
+  else. It now carries the engine **and `language`**, which it should always
+  have had: sections are read from the transcript's words.
+
+Adding the engine to the fingerprint changes every existing key, so the
+transcript cache is cold once on deploy. 24h TTL, nothing depends on it.
+
+**Next:** JET-240 is filed to music-jetkreate-backend for their four call
+sites and needs approving. And `submit_workflow` has a **pre-existing** bug
+sitting right where I added the engine to job metadata: it calls
+`create_or_get_job` twice, first with a short metadata dict, so the full one
+(carrying `pipeline`, `output_frame` and now `lyric_engine`) never reaches
+the state of an attempt-scoped job. That is why
+`tests/test_v2_pipeline.py::test_the_job_records_which_pipeline_rendered_it`
+and `::test_v2_runs_on_the_v2_pipeline_and_v1_on_v1` fail on HEAD, and it
+makes the engine unattributable on exactly the jobs you would want to
+attribute. The fix is deleting the first call (job_service.py ~126-135); left
+alone because it is JET-237's area, not asked for, and changes what that
+ticket's tests assert.
 
 ### 2026-11-02T14:30:00+05:30
 

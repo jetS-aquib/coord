@@ -29,7 +29,8 @@ listed here is a 422, never ignored.
 
 ```jsonc
 // request
-{ "audioUrl": "https://…/song.mp3", "language": "auto" }   // or "hi", "en", …
+{ "audioUrl": "https://…/song.mp3", "language": "auto",    // or "hi", "en", …
+  "lyricEngine": "whisper" }        // optional; absent is "whisper" (D-061)
 
 // 200
 {
@@ -85,9 +86,12 @@ The key also carries the whole transcription configuration — every
 read from the settings themselves rather than a list somebody maintains. A
 deployment that retunes Whisper, or a release that changes how it works,
 therefore cannot be handed a transcript made the old way. Nothing has to be
-reconfigured and no caller has to opt in or out. `LYRIC_ENGINE` is one of
-those settings, so switching engines cannot serve you a transcript the other
-one made either.
+reconfigured and no caller has to opt in or out.
+
+`lyricEngine` is in the key too, and explicitly rather than as a setting
+(D-061), so asking for one engine cannot serve you a transcript the other
+made — including when another caller asked for the other one a minute ago on
+the same song.
 
 Entries live 24 hours, and the most recent 64 are kept. Both are far more
 than a render needs; nothing in your flow should depend on either.
@@ -105,16 +109,29 @@ sent, so the work survives the answer being lost.
 Two callers asking for the same audio at once is also safe: the second one
 waits for the first and takes its result rather than running Whisper twice.
 
-## Which engine transcribes
+## Which engine transcribes — you say, not the deployment
 
-Whisper, unless the deployment sets `LYRIC_ENGINE=gemini` (JET-235, D-059).
+`"lyricEngine": "whisper" | "gemini"`, optional, and **absent is `whisper`**
+(D-061, superseding D-059). It used to be `LYRIC_ENGINE` on the deployment,
+which could only answer for every caller at once; now the request answers,
+and a request that says nothing gets the transcription it has always got.
+Anything other than those two strings is a 422.
+
+Send the **same value** here, on `/api/v1/song-read`, and on the stitch for
+one song — exactly like `language`. A mismatch is not an error: it is a cache
+miss, so the song is transcribed twice and this warm-up call bought nothing.
+
+There is no deployment switch left, so if Gemini has to stop being used, that
+is your flag to turn off, not an env var here. A Gemini *failure* still needs
+nothing from you: it falls back to Whisper on its own.
+
 **Nothing in the response shape depends on this** — the Gemini path produces
 the transcript through the same extraction, the same cleaning and the same
 Devanagari transliteration, so every field here means what it meant, and
 `language` is still a BCP-47-ish code and still `"unknown"` for an
 instrumental.
 
-Two things are worth knowing if you are debugging a deployment that has it on:
+Two things are worth knowing if you are debugging a render that asked for it:
 
 - It is a network call to a model this service does not host. Any failure —
   no key, a 5xx, a timeout, audio too large — logs and **falls back to
@@ -149,7 +166,7 @@ re-rolled, and that a re-render of unchanged audio is the same render. This is
 also what makes `/api/v1/song-read`'s sections stable, since they are read
 from these words.
 
-**On `LYRIC_ENGINE=gemini` this promise is weaker, and deliberately so.** The
+**On `"lyricEngine": "gemini"` this promise is weaker, and deliberately so.** The
 call pins `temperature: 0.0`, which is what makes it reproducible at all —
 without it the same bytes came back as 498 words, then 428, then 428, which is
 the same failure in a different engine. But the model runs on Google's

@@ -60,5 +60,6 @@
 | D-056 | The cast was never empty — the director's range sets the SIZE, and the storyboard's tags only set the ordinals | 2026-10-30 | active | music-jetkreate-backend | JET-228 |
 | D-057 | The cast gets portraits, but only on a render that asked for the gate | 2026-10-30 | active | music-jetkreate-backend music-jetkreate-mobile | JET-231 |
 | D-058 | Fix the zod guard in the shared error handler, rather than wrapping the one v1 route that needed a 400 | 2026-11-01 | active | music-jetkreate-backend | JET-234 |
-| D-059 | Gemini may transcribe lyrics instead of Whisper, per deployment | 2026-11-02 | active | video-processing-backend music-jetkreate-backend |  |
+| D-059 | Gemini may transcribe lyrics instead of Whisper, per deployment | 2026-11-02 | superseded by D-061 | video-processing-backend music-jetkreate-backend |  |
 | D-060 | Director portraits are served from GCS, not from this backend | 2026-11-02 | active | music-jetkreate-backend music-jetkreate-mobile | JET-235 |
+| D-061 | The lyric engine is named per request, not per deployment | 2026-11-03 | active | video-processing-backend music-jetkreate-backend creater-ai-backend |  |

@@ -95,6 +95,7 @@ job that produced the customer's video.
   "audioUrl": "https://…/song.mp3",
   "showLyrics": true,
   "captionStyle": "spark", "captionFont": "bebas_neue", …      // as the lyrics stitch
+  "lyricEngine": "whisper"              // optional; absent is "whisper" (D-061)
 }
 
 // 202 — a normal job, the one that settles the attempt
