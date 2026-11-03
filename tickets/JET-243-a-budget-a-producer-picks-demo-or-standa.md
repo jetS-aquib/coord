@@ -4,9 +4,9 @@ title: A budget a producer picks, demo or standard or hero, and the cost before 
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-03T15:20:10+05:30
-updated: 2026-11-03T23:54:06+05:30
+updated: 2026-11-03T23:54:46+05:30
 decisions: D-068
 ---
 
@@ -41,7 +41,29 @@ The same song rendered at demo, standard and hero differs measurably in model, r
 
 ## Test steps
 
-—
+All on a project with a saved storyboard. The log lines quoted are from
+`renderOrchestratorV1`.
+
+1. **Nothing changes for a client that says nothing.** `POST
+   /api/v1/music-videos/:id/render` with no `tier`. The state reads
+   `"tier": "standard"`, `estimatedCostUsd` is what it has always been, and the log's
+   `re-render budget: N/<cap>` cap is `ceil(clips/5)` — the same number as before.
+   `modelKey` still comes off the project record.
+2. **demo is one take of each shot.** `POST .../render` with
+   `{ "tier": "demo", "review": true }` -> 202, status `review`. `GET
+   /api/v1/music-videos/render/:jobId/call-sheet` shows `"tier": "demo"` and
+   `costCeilingUsd` equal to `estimatedCostUsd`. Accept it and watch the log: no
+   `frame gate:` line, no `clip check:` line, and the budget cap is `0`.
+3. **hero pays to re-shoot.** Same with `{ "tier": "hero", "review": true }`. The call
+   sheet's `costCeilingUsd` is about 1.5x `estimatedCostUsd`; the log's budget cap is
+   `ceil(clips/2)` and the gate and clip-check lines are both there.
+4. **The number is there before the money.** In steps 2 and 3 both figures are on the
+   call sheet while the render is still `review` — nothing has been drawn yet.
+5. `POST .../render` with `{ "tier": "platinum" }` -> 400 from the body schema.
+6. **Expected, and the deferred half:** all three renders report `"modelKey": "omni"`.
+   Tiers do not differ in model yet — see the thread and D-068.
+7. A render started before this change (an existing plan in the database) still polls
+   and resumes; its state reads `"tier": "standard"`.
 
 ## Thread
 2026-11-03T15:20:10+05:30 aquib N: created ticket, status: - -> open
@@ -53,3 +75,4 @@ The same song rendered at demo, standard and hero differs measurably in model, r
 Tiers differ measurably in re-render budget (demo 0, standard a fifth of the clips, hero half), in whether the frame gate and the clip check run at all, and in reported cost. They do NOT differ in model: omni is the only model the v1 pipeline can render — generateClipV1 speaks the Interactions API and startRenderV1 refuses every BytePlus row — so a tier pointed at seedance-1-5-pro would 400 every render on that tier. The modelKey field on the tier is wired and read, and a test asserts all three resolve a google-omni model, so the day a provider is renderable 'demo at half price' is one row. D-068 records the trade. Say the word and I will file that as its own request.
 
 On your pricing worry: the number can be honest, so I did not fall back to relative shape. estimatedCostUsd is a floor (nothing re-shot) and costCeilingUsd is the most the tier's budget can add — both arithmetic over a plan that already exists, both on the state payload and the call sheet before anything is bought. 31 clips of 8s: demo $24.80 flat, standard $24.80-30.40, hero $24.80-37.60.
+2026-11-03T23:54:46+05:30 aquib N: status: in_progress -> review — Built: tier on the render body resolving the model, the re-render budget and the two check budgets server-side (RENDER_TIERS_V1, one table), tier stored and echoed on the plan, and estimatedCostUsd + costCeilingUsd on the state payload and the call sheet before anything is bought. Contract updated, D-068 records the trade. The model half of the 'done when' is deferred and explained on the thread — read that before closing. Mobile's half is yours: the three-way dial, and a floor-to-ceiling range rather than one figure.

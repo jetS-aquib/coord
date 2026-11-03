@@ -1,11 +1,44 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-242 built and handed back for review — pause/resume on a render (D-067, contract updated), committed as 3de70ee, not pushed. Mobile's half (widen the RenderStatus union) has to land the same day. JET-244's staging half still uncommitted. JET-240 and the JET-232 frame fix committed (df67552, efcd8d6), not pushed either — three unpushed commits now.
+- **Current task:** JET-243 built and handed back — render tiers (demo/standard/hero) and a cost floor plus ceiling before the money (D-068), uncommitted. JET-242 handed back to mobile, committed as 3de70ee. JET-244's staging half still uncommitted. Three unpushed commits.
 - **Status:** waiting on human
-- **Blockers:** THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
-- **Last updated:** 2026-11-03T23:45:00+05:30
+- **Blockers:** THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-243 needs `coord done` once demo, standard and hero have each rendered the same song — and read its thread first: the tiers do NOT differ in model, which half of its "done when" asked for. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-04T00:05:00+05:30
 
 ## Handoff notes
+
+### 2026-11-04T00:05
+
+**JET-243: a tier buys checking and re-shooting. It cannot buy a cheaper model, and
+that is the half to read before closing it.** `tier: demo | standard | hero` on the
+render body, resolved in `RENDER_TIERS_V1` (config/videoModelsV1.ts) to a model, a
+re-render budget and whether the frame gate and the clip check run at all. Stored on
+the plan, echoed on the state payload and the call sheet. D-068.
+
+**Why the model does not change.** `omni` is the only model the v1 pipeline can
+render — `generateClipV1` speaks the Interactions API and `startRenderV1` refuses every
+BytePlus row with a ValidationError — so a tier pointed at `seedance-1-5-pro` would 400
+every render on that tier. That is also where the real money is: $0.052/s against
+$0.10/s is half the price of the same song. The tier's `modelKey` is wired and read,
+and a test asserts all three resolve a `google-omni` model, so the day a second
+provider is renderable this is one row. Worth its own request; I noted it on JET-243
+rather than filing it.
+
+**The base cost of a song is not a choice.** Length times price per second, and the
+length is the song's. So the only honest dial is what is spent checking the work and
+doing it again — demo 0 re-renders and no checks, standard the fifth-of-the-song fuse
+the pipeline already used, hero half. Reported as `estimatedCostUsd` (floor, nothing
+re-shot) and `costCeilingUsd` (the most the budget can add): 31 clips of 8s is $24.80
+flat on demo, $24.80-30.40 on standard, $24.80-37.60 on hero. Both are arithmetic over
+a plan that already exists, which is why they are allowed on the call sheet at the
+review gate.
+
+**Two compatibility rules, both deliberate.** An absent `tier` takes standard's spend
+caps but still takes its MODEL from the project record — otherwise a project storing a
+BytePlus model would quietly start rendering on omni instead of erroring as it does
+today. And `RENDER_FRAME_GATE` / `RENDER_CLIP_CHECK` stay the deployment's kill switch:
+a check runs only when the deployment and the tier both allow it, which is why all four
+call sites now go through `gateOnV1` / `clipCheckOnV1` rather than reading the env.
 
 ### 2026-11-03T23:45
 
