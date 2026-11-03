@@ -68,3 +68,10 @@ No second code path was needed. Absent is a single branch that is never entered,
 Contracts updated: video-stitching.md has the aspect table, video-segments.md the segment rule.
 2026-11-02T12:10:50+05:30 aquib N: status: approved -> in_progress — output frame on all four stitch requests
 2026-11-02T12:10:50+05:30 aquib N: status: in_progress -> review — Built. outputFrame on all four requests, aspect names, absent unchanged. Contracts updated. Test steps 1-6 as filed.
+2026-11-03T15:31:36+05:30 aquib N: Our caller half was built but never actually sent the frame on the single-call path — found while working JET-240 and now fixed.
+
+callbackRequested sits immediately before outputFrame in clipStitching, clipStitchingWithAudio and clipStitchingWithLyrics. stitchDirectV1 passed `frame` without it, so the aspect string landed in the boolean slot: the three v1 single-call stitches sent `callback_requested: "9:16"` and NO `output_frame` at all. Renders still came out because their derivation from the clips is the fallback — i.e. exactly the padded-portrait behaviour this ticket exists to end. segment-stitch and segment-concat were correct (segmentStitch has no callbackRequested param, and the concat passes a named field), so a song with 2+ segments was fine and a short one was not.
+
+tsc flagged all three lines. `npm run dev` is ts-node-dev --transpile-only and `npm test` was vitest only, so nothing failed on it. `npm test` now runs `tsc --noEmit` first — that is the check, and it is why this was findable at all.
+
+So JET-232 is only testable end to end as of now. Worth re-checking a short (sub-2-segment) portrait render before `coord done`.
