@@ -1,8 +1,8 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-240 built — LYRIC_ENGINE names the engine on all four song calls. JET-232's caller half and 9.8's backend half built earlier. Nothing committed.
+- **Current task:** JET-240 built — LYRIC_ENGINE names the engine on all four song calls. Also fixed JET-232's frame never reaching the single-call stitch. Nothing committed.
 - **Status:** waiting on human
-- **Blockers:** JET-240 needs `coord done` once a gemini render is watched end to end — our half is built, their half is live. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Blockers:** JET-240 needs `coord done` once a gemini render is watched end to end — our half is built, their half is live. JET-232 is only now testable end to end: re-check a short portrait render before closing it. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
 - **Last updated:** 2026-11-03T15:30:00+05:30
 
 ## Handoff notes
@@ -30,9 +30,21 @@ watch one render. 9.2 is still the real gap — generation draws 16:9 clips what
 frame says, so a portrait master is padded rather than composed. Three new mobile
 requests (JET-241 square render, JET-242 pause, JET-243 budget) are waiting on approve.
 
-Unrelated and pre-existing: three tsc errors in renderOrchestratorV1 around
-segmentStitch, an OutputFrameV1 passed where a boolean is expected. JET-232/237
-leftover, not from this change, worth a no-ticket fix.
+**The three tsc errors I wrote off as cosmetic were JET-232 not working.**
+`callbackRequested` sits immediately before `outputFrame` in `clipStitching`,
+`clipStitchingWithAudio` and `clipStitchingWithLyrics`. `stitchDirectV1` passed
+`frame` without it, so the aspect string landed in the boolean slot and those three
+calls sent `callback_requested: "9:16"` and no `output_frame` at all. Renders still
+came out, because their derivation from the clips is the fallback — which is the
+padded-portrait behaviour JET-232 exists to end. The segment paths were correct, so a
+song with 2+ segments composed properly and a short one did not. Fixed by passing
+`false` explicitly; nothing here wants a callback, v0 polls.
+
+The compiler said so on all three lines for three days. `npm run dev` is
+`--transpile-only` and `npm test` was vitest alone, so nothing ever failed on it.
+`npm test` now runs `tsc --noEmit` first. That is the lesson worth keeping: a type
+error in this repo was decoration, and one of them was a feature silently not
+shipping.
 
 ### 2026-11-02T17:55
 
