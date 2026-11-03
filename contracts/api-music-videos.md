@@ -106,8 +106,8 @@ parser.
   "clipsTotal": 33, "clipsDone": 20, "clipsRefused": 0,
   "anchorsTotal": 34, "anchorsDone": 34,
   "worstSeamScore": 5.4, "seamThreshold": 9.0,   // null until verifying
-  "estimatedCostUsd": 24.80,     // the floor: nothing re-shot
-  "costCeilingUsd": 30.40,       // the most this tier's re-render budget can add
+  "estimatedCostUsd": 26.01,     // the floor: clips + stills, nothing re-done
+  "costCeilingUsd": 31.84,       // the most this tier's allowances can add
   "discardedSeconds": 4.0,       // generated, then cut off at assembly (D-027)
   "finalVideoUrl": "", "error": "", "resumable": false,
   "plateUrl": "https://…",      // the reference sheet the stills were drawn against
@@ -228,9 +228,9 @@ render whose size is a choice: what is spent checking the work and doing it agai
 
 | tier | re-renders it will pay for | continuity checks | 31-clip song |
 | --- | --- | --- | --- |
-| `demo` | none | off | $24.80 flat |
-| `standard` | a fifth of the clips, at least one | on | $24.80–$30.40 |
-| `hero` | half the clips | on | $24.80–$37.60 |
+| `demo` | none | off | $26.01 flat |
+| `standard` | a fifth of the clips, at least one | on | $26.01–$31.84 |
+| `hero` | half the clips | on | $26.01–$39.04 |
 
 `standard` is what every render did before tiers existed, down to the arithmetic, which
 is what makes omitting `tier` safe.
@@ -244,8 +244,32 @@ change is one row.
 **Both numbers are available before anything is bought**, on the state payload and on
 the call sheet the review gate shows (D-051): they are arithmetic over a plan that
 already exists, not a forecast. `estimatedCostUsd` is a floor and `costCeilingUsd` is a
-ceiling; on `demo` they are the same number. Neither counts the stills or the vision
-calls, which `estimatedCostUsd` has never counted either.
+ceiling; on `demo` they are the same number.
+
+### How the cost is arrived at
+
+`estimatedCostUsd` **changed meaning on 2026-11-04** and went up by about a dollar a
+song: it used to be the clips alone and it is now every line of the bill with a
+published rate. The clips were 95% of a render, which is why one line passed for the
+whole thing for so long. D-069.
+
+The call sheet carries the itemised version as `cost`, and every line states where its
+figure comes from:
+
+| line | 31-clip song | basis |
+| --- | --- | --- |
+| clips | 248s at $0.10/s = $24.80 | `published` — provider rate × a count we know |
+| stills | 36 images at $0.0336 = $1.21 | `published` — 32 anchors, 1 plate, 3 cast portraits |
+| planning calls | 3 text calls | `metered` — per token, logged per call, not forecast |
+| continuity checks | 63 vision calls | `metered` — same |
+| song read, transcription, seams, stitch | — | `ours` — video-processing-backend (D-014) |
+
+Only the `published` lines are in the totals, and `cost.excludes` names the ones that
+are not, so a total is never read as the whole bill. The metered lines are deliberately
+not estimated: they are priced per token, a long song costs several times a short one,
+and a plausible-looking figure that turns out wrong is worse than a line that says
+"measured, not predicted". Their call counts are exact, and every call is already
+recorded with its real cost by `tokenLogger` into `GenerationLog`.
 
 ### Things a client has to know
 

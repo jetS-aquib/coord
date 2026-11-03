@@ -1,11 +1,44 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-243 built and handed back — render tiers (demo/standard/hero) and a cost floor plus ceiling before the money (D-068), uncommitted. JET-242 handed back to mobile, committed as 3de70ee. JET-244's staging half still uncommitted. Three unpushed commits.
+- **Current task:** The render cost is itemised now (D-069) — estimatedCostUsd went from the clips alone to clips + stills, $24.80 -> $26.01 on a 31-clip song. Uncommitted. JET-242 (3de70ee) and JET-243 (98d6ae7) committed and handed back; JET-249 says my pause work refuses resume while in-flight clips land. Four unpushed commits.
 - **Status:** waiting on human
-- **Blockers:** THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-243 needs `coord done` once demo, standard and hero have each rendered the same song — and read its thread first: the tiers do NOT differ in model, which half of its "done when" asked for. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
-- **Last updated:** 2026-11-04T00:05:00+05:30
+- **Blockers:** JET-249 is a real defect in JET-242's pause: resumeRenderV1 throws while `running` still holds the job, so a paused render reports resumable and 409s until its in-flight clips land — it needs `coord approve`. THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-243 needs `coord done` once demo, standard and hero have each rendered the same song — and read its thread first: the tiers do NOT differ in model, which half of its "done when" asked for. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-04T00:45:00+05:30
 
 ## Handoff notes
+
+### 2026-11-04T00:45
+
+**The cost estimate was the clips and nothing else, and it was quoted as the whole
+bill.** `estimateRenderCostV1` is seconds of video times a price per second. It never
+counted the 32 anchor frames, the reference plate or the cast portraits — about $1.21 a
+song at $0.0336 an image — nor the 3 text calls, nor the 63 vision calls. The clips are
+95% of a render, which is exactly why one line passed for the whole thing for months.
+
+**What replaced it.** `renderCostV1(plan)` in services/render/renderCostV1.ts returns
+one line per thing a render buys, each stating where its number comes from:
+`published` (a provider rate times a count we know — clips and stills, the only lines
+in the totals), `metered` (real per-call costs recorded in GenerationLog but priced per
+token, so reported as exact call counts with no dollar figure), `ours`
+(video-processing-backend does the song read, transcription, seam comparisons and the
+stitch — no per-render bill). `estimatedCostUsd` is now the floor of the published
+lines, `costCeilingUsd` the same with every re-render and redraw the tier allows, and
+the call sheet carries the itemisation. D-069. 31-clip song: demo $26.01 flat, standard
+$26.01-31.84, hero $26.01-39.04.
+
+**Why the metered lines are not estimated.** Putting a plausible figure on a per-token
+call would be the same mistake one layer down — a treatment call on a long song costs
+several times one on a short song. The counts are exact because a count is knowable.
+
+**The gap worth closing next: we cannot reconcile an estimate against an actual.**
+`tokenLogger` writes every call's real cost to `GenerationLog` with the fn name and the
+userId, but no jobId, so no render's actual spend can be summed. Summing by userId over
+the render's own createdAt-to-completedAt window would answer it without touching a
+single call site, and it is the only way the metered lines ever get priced. Not filed —
+tell me and I will.
+
+**`renderCostCeilingV1` is deleted.** It priced clips only, and two ways to compute
+money is how two screens come to disagree.
 
 ### 2026-11-04T00:05
 
