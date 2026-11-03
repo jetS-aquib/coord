@@ -74,3 +74,9 @@ A job that a worker has taken reads as something other than 'queued'. After a re
 6. Whisper preload bounded: _whisper_preload_future.result() now passes timeout=settings.media_timeout_seconds. Executor shutdown changed to wait=False so a stalled model load cannot also block the cleanup.
 
 Regression suite: tests/test_queued_forever.py — 16 tests covering the double-claim fix, task reference fix, boot sweep, and cancellation handling. Bug was reproduced by reintroducing the duplicate claim; 12 tests failed. Fixed; all 38 tests now pass (610 total in the suite, 1 unrelated MongoDB connectivity failure in the sandbox).
+2026-11-03T17:33:47+05:30 aquib N: TEST STEPS — run these to verify before closing:
+1. cd video-processing-backend && .venv/bin/pytest tests/test_queued_forever.py -v — all 16 must pass.
+2. Start the service fresh. Check startup logs for a sweep line — either 'swept N jobs left by the previous process' or 'nothing left behind'.
+3. Submit a stitch request and observe the job row: status must move from queued to running before the render starts.
+4. Kill the process mid-render. Restart. The abandoned job must appear as failed with a 'left behind' message — not still at queued.
+5. With MEDIA_TIMEOUT_SECONDS=10, submit a stitch. Must fail in ~10s with a MediaTimeout error naming which step timed out, not hang forever.
