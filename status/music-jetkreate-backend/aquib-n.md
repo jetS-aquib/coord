@@ -1,11 +1,48 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-240 and the JET-232 frame fix are committed (df67552, efcd8d6), not pushed. JET-241 spiked and answered no — square is refused by the provider.
+- **Current task:** Nothing in flight. JET-240 and the JET-232 frame fix are committed (df67552, efcd8d6), not pushed. JET-241 answered no. JET-245 filed off a measurement, waiting on approve.
 - **Status:** waiting on human
-- **Blockers:** JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Blockers:** JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
 - **Last updated:** 2026-11-03T15:30:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T16:40
+
+**"Too many regenerations" is real, and it is the threshold, not the prompt.** Filed as
+JET-245 rather than fixed, because the fix needs data that does not exist yet.
+
+The working screen's rotate-cw glyph is `regenerating` (shot-strip.tsx MARKS), a
+status and not a button, so four of five clips really were being filmed again.
+
+Measured over all 42 scored renders in `renderplanv1`, 1509 clips:
+
+    frame   renders  clips   over 9.0      median seam
+    9:16    42       1484    375  (25%)    5.50
+    16:9     1         25     19  (76%)   16.36
+
+`SEAM_THRESHOLD_V1 = 9.0` comes from LIVE_SEAM_SCORES, read 2026-10-26, and every one
+of those 132 clips is 9:16. On 16:9 the median clip sits at 16.36 and there is no gap
+for the threshold to sit in.
+
+**Write this down so nobody re-derives it: the prompt is not the lever for the seam.**
+The score is whether the model honoured its pinned frames, not what the text said. A
+second take reproduces the first take's band rather than scattering — [29.61, 32.70],
+[13.19, 13.00], [28.48, 27.55], [37.02, 36.55]. Of 160 redraws of an over-threshold
+clip, 50 landed under 9.0 (31%); above a first take of 30 it is 5 of 39 (13%).
+
+Two things I checked and ruled out, so they do not get re-opened. The 29 clips redrawn
+despite passing the seam are the continuity supervisor (wardrobe, people count,
+lettering, anatomy) — that path already rewrites the prompt with the failure sentence
+and reverts when the retake is no better, and it works. And 25% on 9:16 is by design:
+renderV1.test.ts asserts the threshold trips at most a quarter of clips.
+
+**Do not act on 16:9 yet — n=1.** The gap is large but it is one render, and the
+existing threshold comment exists precisely because it was once set from hand-picked
+pairs. Two or three more 16:9 renders first.
+
+Query scripts are in the session scratchpad and will not survive; they are ~40 lines
+of mongoose against `renderplanv1` and JET-245 describes what they measured.
 
 ### 2026-11-03T16:05
 
