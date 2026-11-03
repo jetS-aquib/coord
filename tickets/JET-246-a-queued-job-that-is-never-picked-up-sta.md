@@ -4,10 +4,10 @@ title: A queued job that is never picked up stays queued forever, and a restart 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-03T16:31:23+05:30
-updated: 2026-11-03T16:33:07+05:30
-decisions: 
+updated: 2026-11-03T23:09:06+05:30
+decisions: D-066
 ---
 
 ## Request
@@ -54,7 +54,24 @@ A job that a worker has taken reads as something other than 'queued'. After a re
 
 ## Test steps
 
-—
+1. `.venv/bin/pytest tests/test_queued_forever.py -v` — all 16 pass. Reintroduce
+   the duplicate `create_or_get_job` in `submit_workflow` and 16 tests across
+   this file and `test_v2_pipeline.py` fail. That is the guard, not the fix.
+2. Start the service. The boot log must say one of
+   `[jobs] swept N job(s) the last process left behind` or
+   `[jobs] nothing left behind by the last process` — one of the two, every boot.
+3. Submit any `clip-stitching*` call. The row must leave `queued` within a
+   second (status `running`, a stage on it) and the render must actually start.
+   Before this it answered 202 and sat at `queued` with
+   `created_at == updated_at` forever.
+4. Kill the process mid-render, restart. The abandoned row must read `failed`
+   with "the process that owned this job exited before it finished", not `queued`.
+5. Set `MEDIA_TIMEOUT_SECONDS=60` — 10 is floored to 60, deliberately — and
+   submit a stitch whose encode runs longer than that. It must fail in about 60s
+   with `MediaTimeout: <step> exceeded 60s and was killed`, naming the step, and
+   the worker slot must free so the next job runs.
+6. A 39-clip render end to end: the 16 segments and the concat all complete, and
+   the job store holds 17 rows for it rather than 34.
 
 ## Thread
 2026-11-03T16:31:23+05:30 aquib N: created ticket, status: - -> open
@@ -89,3 +106,6 @@ STEP 2 was not true when it was written, and is now. The sweep only printed when
 Also, for the record: the one failing test in the suite is tests/test_golden_script.py::test_rendered_lines_have_small_nonoverlapping_gap, and it is not MongoDB. It is a CalledProcessError from an ffmpeg lavfi call inside that test, it fails identically on the commit before this work (checked by stashing), and it is unrelated to JET-246. Worth knowing before someone chases a database that is answering fine.
 
 Unchanged and still true: the double attempt claim was the primary cause, and reintroducing it fails the new suite loudly (16 tests across test_queued_forever.py and test_v2_pipeline.py), which is the part that keeps it fixed.
+2026-11-03T23:07:14+05:30 aquib N: status: approved -> in_progress — fixed in 6049035 plus the README and boot-log follow-up
+2026-11-03T23:08:32+05:30 aquib N: status: in_progress -> review — Six causes fixed in 6049035, plus the README lifecycle section, MEDIA_TIMEOUT_SECONDS documented, and a boot line on a clean sweep. Two corrections to the test steps posted earlier in the thread — the 60s floor and the missing clean-boot line — are folded into the Test steps above.
+2026-11-03T23:09:06+05:30 aquib N: linked decision D-066 (An ffmpeg call that overruns is killed and the job fails, rather than waited on)
