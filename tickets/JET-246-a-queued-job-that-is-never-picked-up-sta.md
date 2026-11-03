@@ -4,9 +4,9 @@ title: A queued job that is never picked up stays queued forever, and a restart 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-03T16:31:23+05:30
-updated: 2026-11-03T16:31:23+05:30
+updated: 2026-11-03T16:33:07+05:30
 decisions: 
 ---
 
@@ -58,3 +58,4 @@ A job that a worker has taken reads as something other than 'queued'. After a re
 
 ## Thread
 2026-11-03T16:31:23+05:30 aquib N: created ticket, status: - -> open
+2026-11-03T16:33:07+05:30 aquib N: status: open -> approved

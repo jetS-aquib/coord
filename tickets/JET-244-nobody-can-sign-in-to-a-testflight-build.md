@@ -4,10 +4,10 @@ title: Nobody can sign in to a TestFlight build: the captcha gate rejects an emp
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-03T15:47:50+05:30
-updated: 2026-11-03T15:47:50+05:30
-decisions: 
+updated: 2026-11-03T16:39:24+05:30
+decisions: D-065
 ---
 
 ## Request
@@ -44,3 +44,23 @@ A release build of the Expo app, pointing at the deployed backend with captcha e
 
 ## Thread
 2026-11-03T15:47:50+05:30 aquib N: created ticket, status: - -> open
+2026-11-03T16:33:03+05:30 aquib N: status: open -> approved
+2026-11-03T16:39:24+05:30 aquib N: linked decision D-065 (Staging lets a named client past the captcha; production has nothing for a header to match)
+2026-11-03T16:39:40+05:30 aquib N: Built the narrower answer you offered on this ticket — 'if the answer for a closed TestFlight group is deliberately narrower, say so and I will build to it.' Attestation is NOT done and this ticket should stay open for it; D-065 records the trade.
+
+Backend (music-jetkreate-backend):
+- config/env.ts: CAPTCHA_BYPASS_CLIENT, read raw from process.env beside IS_DEV_MACHINE and for the same reason — no schema default can switch it on, and a typo turns it off rather than on. Plus a boot banner when it is set.
+- captchaService.verify() takes a fourth arg, the request's X-Client header. A non-empty flag matching a non-empty header skips the check. Both sides must be non-empty, so unset-flag plus no-header can never match into a bypass.
+- auth.controller.ts passes req.get('x-client') on login and register. Nothing else changed; captchaToken still works exactly as before.
+
+Mobile (music-jetkreate-mobile): one line in lib/api.ts's shared header builder — X-Client: mobile on every request, not just the two auth routes, since a client naming itself is useful in any log.
+
+**What you set where.** Staging: CAPTCHA_BYPASS_CLIENT=mobile. Production: do not set it. Nothing else. The absence IS the enforcement — there is no value meaning 'production', because IS_DEV_MACHINE already documents why this process cannot tell.
+
+Be clear-eyed about what shipped: the header is not a credential, anyone can send it, and on staging those two routes have no captcha for anybody who asks. That is the deliberate trade for a closed TestFlight group against a backend with no real users. Web keeps its captcha on the same deployment, which is the only reason this is keyed on a header rather than just the environment.
+
+Checks: src/shared/services/captchaBypass.test.ts, 6 cases. The first is the one that matters — unset flag, every header anyone might try, all refused. Also exact matching (no case folding, no prefix), empty-flag/empty-header, and that a bypassed request never reaches Google. 263 tests pass with typecheck.
+
+One trap the test caught, worth knowing if you touch it: deleting process.env.NODE_ENV does NOT simulate production here. env.ts calls dotenv.config(), .env carries NODE_ENV=development, and dotenv refills anything unset — so the module gets development back and IS_DEV_MACHINE skips the captcha before the new code is reached. The test names 'production' explicitly instead.
+
+Nothing committed.
