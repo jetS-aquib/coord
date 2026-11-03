@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-03T15:19:35+05:30
-updated: 2026-11-03T15:44:07+05:30
-decisions: D-062
+updated: 2026-11-03T15:50:14+05:30
+decisions: D-062, D-064
 ---
 
 ## Request
@@ -47,3 +47,23 @@ A render started with aspectRatio '1:1' is accepted rather than 400ing; its anch
 2026-11-03T15:19:35+05:30 aquib N: created ticket, status: - -> open
 2026-11-03T15:21:22+05:30 aquib N: linked decision D-062 (The brief offers Tall and Wide, not 1:1, and names the frame by where the video is going)
 2026-11-03T15:44:07+05:30 aquib N: status: open -> approved
+2026-11-03T15:50:14+05:30 aquib N: linked decision D-064 (Square is refused by the only model that can pin both ends of a clip, so the brief stays at two frames)
+2026-11-03T15:50:29+05:30 aquib N: Spiked it as D-062 asked, and it is a no — for free, because the field is rejected at validation and never billed:
+
+  400 The value '1:1' is not supported for 'response_format.aspect_ratio'.
+      Supported values: '16:9', '9:16'.   (gemini-omni-1.1-flash, 4s, 720p)
+
+So assumption (3) is answered and the answer closes the ticket. omniVideo.ts:64 ('Omni video supports only 16:9 and 9:16') turns out to be right — I had it down as a likely Veo carry-over, since it arrived in the migration commit f07073d with no ticket and Veo really was 16:9/9:16 only. It was a measurement nobody wrote down.
+
+Nothing from steps 2-6 was written. Writing it would have given us a route that accepts '1:1' and a generator that throws on it, several dollars of stills later.
+
+On your other assumptions, since they are worth closing out:
+(1) moot. (2) correct and also moot — thumbnails.ts does collapse every non-9:16 aspect to 16:9, and the image side would have been fine: character portraits are already generated at 1:1 on both Google and BytePlus, so stills were never the hard part. (4) moot.
+
+**Square is not impossible, it is incompatible with the seam mechanism.** creater-ai-backend's MODEL_REGISTRY declares 1:1 for every Seedance model, and I believe it. But 'omni' is the only model in VIDEO_MODELS_V1 with supportsEndFrame, and pinning both ends is what lets every clip render at once and what makes the seams land at the measured 2.2-2.4. Every Seedance is start-frame-only, so a square song would be serially generated with visible cuts — a worse video, not the same video in a different shape. D-064 records that and the condition to revisit: a model that has supportsEndFrame AND takes 1:1. That is a provider release, not work here.
+
+Rate card (step 5) never came up — no paid square render happened or can.
+
+Two things this turned up that are not this ticket. src/routes/jobs.routes.ts accepts aspectRatio '1:1' on both v0 job schemas for every provider including google, so a square google job is accepted at the route and throws in generation; the enum is right for BytePlus and wrong for Google and nothing pairs them. And creater-ai-backend's registry offers 1:1 for omniflash in its selector — different model id to ours, so possibly fine, possibly the same 400. Both in D-064's consequences. Say the word and I will fix the first and file the second.
+
+Yours to close: coord no 241, or coord done 241 if you would rather it read as answered.

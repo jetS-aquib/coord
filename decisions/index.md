@@ -65,3 +65,4 @@
 | D-061 | The lyric engine is named per request, not per deployment | 2026-11-03 | active | video-processing-backend music-jetkreate-backend creater-ai-backend |  |
 | D-062 | The brief offers Tall and Wide, not 1:1, and names the frame by where the video is going | 2026-11-03 | active | music-jetkreate-mobile music-jetkreate-backend | JET-241 |
 | D-063 | Our song-read cache keys on the lyric engine, rather than bumping its generation | 2026-11-03 | active | music-jetkreate-backend | JET-240 |
+| D-064 | Square is refused by the only model that can pin both ends of a clip, so the brief stays at two frames | 2026-11-03 | active | music-jetkreate-backend music-jetkreate-mobile | JET-241 |
