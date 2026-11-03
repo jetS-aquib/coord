@@ -1,11 +1,39 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** Nothing in flight. JET-240 and the JET-232 frame fix are committed (df67552, efcd8d6), not pushed. JET-241 answered no. JET-245 filed off a measurement, waiting on approve.
+- **Current task:** Nothing in flight. JET-240 and the JET-232 frame fix are committed (df67552, efcd8d6), not pushed. JET-241 answered no. JET-245 and JET-246 filed off measurements, both waiting on approve.
 - **Status:** waiting on human
-- **Blockers:** JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Blockers:** JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
 - **Last updated:** 2026-11-03T15:30:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T17:10
+
+**We ARE on v2, and the stitch was never the slow part.** `STITCH_API_VERSION=v2`
+resolves, all five stitching calls route through `stitchPath()`, and the service
+serves all five v2 routes — confirmed live by `POST /api/v2/segment-concat 202` in
+their log. Measured stitch cost on completed renders: 35s (28 clips), 70s (28), 140s
+(38), against 320-490s of rendering in a 440-640s render.
+
+**What looked like a slow stitch was 17 jobs nobody was going to run.** Filed as
+JET-246. 16 segment_stitch + 1 segment_concat_lyrics, all `queued` with created_at
+equal to updated_at, never written again. A restart did not reclaim them — what
+unstuck the render was OUR boot-time resume queueing a fresh set. One row over there
+has been queued 25 hours.
+
+**Correct my first read if you find this note before the ticket.** I said "nothing is
+running" off a 0.1% CPU reading on the python process. That proves less than I made it
+sound: ffmpeg is a child process and would not show there. The real evidence is
+created_at == updated_at and the rows still untouched 20 minutes later. Their store has
+no in-progress state at all — 452 completed, 95 failed, 0 ever in flight — so `queued`
+means "not finished", not "not started". That ambiguity is half of what JET-246 asks for.
+
+**`.env` has `VIDEO_API_BASE_URL` twice** — the deployed URL then `localhost:5005`, and
+the last one wins, so everything goes to the local service. Aquib asked for it to be
+left alone, so it is deliberate and it stays. Worth knowing before reading any timing
+from this machine as if it were production.
+
+Also noted, not filed: segment_stitch is 95 failed against 452 completed all-time, 17%.
 
 ### 2026-11-03T16:40
 
