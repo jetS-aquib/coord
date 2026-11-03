@@ -1,11 +1,42 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-241 closed out on this side: square is off for good, and the code now says the real reason rather than the one I guessed at when filing. Brand icon, splash and `eas.json` done earlier today; 9.1's mobile half before that. All uncommitted.
+- **Current task:** JET-244's mobile half: `X-Client: mobile` on every request, from one constant so the two header builders cannot drift. JET-241 closed out, brand icon / splash / `eas.json`, and 9.1's mobile half earlier today. All uncommitted.
 - **Status:** waiting on human
-- **Blockers:** JET-244 is the one that matters — a TestFlight build cannot sign in. Still needs `coord approve`: JET-242, JET-243, JET-244. JET-241 needs `coord done 241` from you. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` as EAS environment variables.
-- **Last updated:** 2026-11-03T16:40:00+05:30
+- **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
+- **Last updated:** 2026-11-03T17:10:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T16:44:10+05:30
+
+Session ended while on JET-223. Touched: app.json, eas.json. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-03 (JET-244, the narrow half) — a TestFlight tester can sign in, on staging only
+
+The backend's half is in and the contract is exact: header `X-Client`, value
+compared with `.trim()` and no case folding against `CAPTCHA_BYPASS_CLIENT`,
+read on login and register as `req.get('x-client')`.
+
+Most of the mobile line was already written when I got here. What I changed is
+that it was a **string literal in one of two header builders**. `api.ts` has
+two: `buildRequest`, and `refresh()`, which deliberately bypasses `api()` so it
+cannot recurse and was building its own headers without the client. Both now
+spread one `CLIENT` constant. The drift that matters is not a missing header,
+it is a letter: the backend matches exactly, so `Mobile` or `mobile ` would not
+fail loudly, it would put one route back behind a captcha this client cannot
+answer.
+
+Deliberately NOT sent on the GCS upload in `uploads.ts` — that PUT goes to a
+signed Google URL, not our host, and our client name has no business there.
+
+`.env`'s note said production mobile auth was "not filed yet", which was true
+when it was written. It now names JET-244 and spells out the part that bites:
+**staging sets the flag, production does not**, so `EXPO_PUBLIC_API_URL` on a
+TestFlight build has to be staging. The header is a hint, not a credential, and
+anyone can send it — that is the trade D-065 records, taken for a closed test
+group against a backend with no real users.
+
+JET-244 stays open. Attestation is the actual fix and nobody has built it.
 
 ### 2026-11-03T15:58:40+05:30
 
