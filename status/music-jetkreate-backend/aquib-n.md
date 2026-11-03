@@ -1,11 +1,38 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-232's caller half is built — the stitch now names its frame. 9.8's backend half built earlier. Nothing committed.
+- **Current task:** JET-240 built — LYRIC_ENGINE names the engine on all four song calls. JET-232's caller half and 9.8's backend half built earlier. Nothing committed.
 - **Status:** waiting on human
-- **Blockers:** JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
-- **Last updated:** 2026-11-02T12:25:00+05:30
+- **Blockers:** JET-240 needs `coord done` once a gemini render is watched end to end — our half is built, their half is live. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-03T15:30:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T15:30
+
+**JET-240: the lyric engine is ours to name now.** D-061 moved it off their deployment
+and into the request, so `LYRIC_ENGINE=gemini` on our side turns Gemini on for our
+renders without turning it on for creater-ai-backend. Flag sits beside
+STITCH_API_VERSION, only the exact string switches, unset omits the key — their bodies
+are `extra="forbid"` and `null` is a 422, not whisper. All four song calls carry it or
+none do: the engine is in their transcript and song-read cache keys, so a mismatch is
+not an error, it is the song transcribed twice.
+
+**The part the ticket did not ask for, and the part that would have bitten.** Our own
+SongReadV1 is keyed on audioUrl and gated by SONG_READ_CACHE_V1, which knew nothing
+about the engine — so the first render after the flip would have planned its cuts off
+Whisper sections while the captions burnt from Gemini words. The row stores the engine
+now and `songReadIsFreshV1` compares it. Empty for old rows and for an unset flag, so
+nothing re-reads on deploy; only the deployment that flips pays, and only per song it
+renders. D-063 records why that beat bumping the generation.
+
+**Next:** deploy with it unset and confirm the bodies are unchanged, then set it and
+watch one render. 9.2 is still the real gap — generation draws 16:9 clips whatever the
+frame says, so a portrait master is padded rather than composed. Three new mobile
+requests (JET-241 square render, JET-242 pause, JET-243 budget) are waiting on approve.
+
+Unrelated and pre-existing: three tsc errors in renderOrchestratorV1 around
+segmentStitch, an OutputFrameV1 passed where a boolean is expected. JET-232/237
+leftover, not from this change, worth a no-ticket fix.
 
 ### 2026-11-02T17:55
 
