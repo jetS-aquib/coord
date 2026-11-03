@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: in_progress
 created: 2026-11-03T15:20:10+05:30
-updated: 2026-11-03T23:48:02+05:30
-decisions: 
+updated: 2026-11-03T23:54:06+05:30
+decisions: D-068
 ---
 
 ## Request
@@ -47,3 +47,9 @@ The same song rendered at demo, standard and hero differs measurably in model, r
 2026-11-03T15:20:10+05:30 aquib N: created ticket, status: - -> open
 2026-11-03T23:46:38+05:30 aquib N: status: open -> approved
 2026-11-03T23:48:02+05:30 aquib N: status: approved -> in_progress — picked it up
+2026-11-03T23:54:06+05:30 aquib N: linked decision D-068 (A render tier buys checking and re-shooting, not a cheaper model)
+2026-11-03T23:54:20+05:30 aquib N: Built, with one half of the 'done when' deferred and that is the thing to read before closing it.
+
+Tiers differ measurably in re-render budget (demo 0, standard a fifth of the clips, hero half), in whether the frame gate and the clip check run at all, and in reported cost. They do NOT differ in model: omni is the only model the v1 pipeline can render — generateClipV1 speaks the Interactions API and startRenderV1 refuses every BytePlus row — so a tier pointed at seedance-1-5-pro would 400 every render on that tier. The modelKey field on the tier is wired and read, and a test asserts all three resolve a google-omni model, so the day a provider is renderable 'demo at half price' is one row. D-068 records the trade. Say the word and I will file that as its own request.
+
+On your pricing worry: the number can be honest, so I did not fall back to relative shape. estimatedCostUsd is a floor (nothing re-shot) and costCeilingUsd is the most the tier's budget can add — both arithmetic over a plan that already exists, both on the state payload and the call sheet before anything is bought. 31 clips of 8s: demo $24.80 flat, standard $24.80-30.40, hero $24.80-37.60.

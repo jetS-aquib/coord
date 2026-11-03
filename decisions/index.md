@@ -69,3 +69,4 @@
 | D-065 | Staging lets a named client past the captcha; production has nothing for a header to match | 2026-11-03 | active | music-jetkreate-backend music-jetkreate-mobile | JET-244 |
 | D-066 | An ffmpeg call that overruns is killed and the job fails, rather than waited on | 2026-11-03 | active | video-processing-backend music-jetkreate-backend | JET-246 |
 | D-067 | Pause is a non-terminal render status, not a second kind of cancel | 2026-11-03 | active | music-jetkreate-backend music-jetkreate-mobile | JET-242 |
+| D-068 | A render tier buys checking and re-shooting, not a cheaper model | 2026-11-03 | active | music-jetkreate-backend music-jetkreate-mobile | JET-243 |

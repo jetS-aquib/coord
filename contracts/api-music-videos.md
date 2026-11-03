@@ -24,8 +24,13 @@ Also mounted at `/api/v1/music-videos`.
 whole song from one call, instead of the client calling a clip endpoint per scene.
 
 - `POST /api/v1/music-videos/:id/render` — start one. Body
-  `{ modelKey?, aspectRatio?, seed?, trim? }`, all optional; defaults come from the
-  project. `202` with the state below plus `pollUrl` and `eventsUrl`.
+  `{ tier?, modelKey?, aspectRatio?, seed?, trim? }`, all optional; defaults come from
+  the project. `202` with the state below plus `pollUrl` and `eventsUrl`.
+  `tier` is `demo | standard | hero` — what the song is worth, in a producer's terms —
+  and the server resolves it to a model and two spend caps. Omit it and the render
+  behaves exactly as it did before tiers existed. `modelKey` stays an engineer's
+  control and still wins over the tier; no client needs to know a model id or a price
+  per second. JET-243.
 - `GET /api/v1/music-videos/:id/render` — **the render running for this project, or
   the most recent one that could be picked back up**; `404` when there is neither.
   Same state payload, with `resumable` saying which of the two it is. Added for
@@ -96,11 +101,13 @@ parser.
                                 // | stitching | blocked | paused
                                 // | completed | failed | cancelled
   "progress": 62,               // 0-100
-  "modelKey": "omni", "aspectRatio": "9:16", "concurrency": 6,
+  "modelKey": "omni", "tier": "standard",   // demo | standard | hero
+  "aspectRatio": "9:16", "concurrency": 6,
   "clipsTotal": 33, "clipsDone": 20, "clipsRefused": 0,
   "anchorsTotal": 34, "anchorsDone": 34,
   "worstSeamScore": 5.4, "seamThreshold": 9.0,   // null until verifying
-  "estimatedCostUsd": 24.80,
+  "estimatedCostUsd": 24.80,     // the floor: nothing re-shot
+  "costCeilingUsd": 30.40,       // the most this tier's re-render budget can add
   "discardedSeconds": 4.0,       // generated, then cut off at assembly (D-027)
   "finalVideoUrl": "", "error": "", "resumable": false,
   "plateUrl": "https://…",      // the reference sheet the stills were drawn against
@@ -212,6 +219,33 @@ the checkpoints. Resuming that render costs $18.40; restarting it costs $24.80.
 Starting a NEW render is never refused because of one of these — a render somebody
 ended should not stop them starting another. Only an in-progress, `blocked` or `paused`
 render does that.
+
+### What a tier changes, and what it cannot
+
+A song's base cost is its length times a price per second, and the length is the song's
+— no tier makes a four-minute track shorter. What a tier sets is the only part of a
+render whose size is a choice: what is spent checking the work and doing it again.
+
+| tier | re-renders it will pay for | continuity checks | 31-clip song |
+| --- | --- | --- | --- |
+| `demo` | none | off | $24.80 flat |
+| `standard` | a fifth of the clips, at least one | on | $24.80–$30.40 |
+| `hero` | half the clips | on | $24.80–$37.60 |
+
+`standard` is what every render did before tiers existed, down to the arithmetic, which
+is what makes omitting `tier` safe.
+
+**All three resolve to `omni` today.** It is the only model the v1 pipeline can render,
+so the tier is not yet a choice of model — `demo` on a cheaper provider is where the
+real difference in money is, and it needs that provider wired into the clip path
+first. The field is read, not assumed, so the day a second model is renderable the
+change is one row.
+
+**Both numbers are available before anything is bought**, on the state payload and on
+the call sheet the review gate shows (D-051): they are arithmetic over a plan that
+already exists, not a forecast. `estimatedCostUsd` is a floor and `costCeilingUsd` is a
+ceiling; on `demo` they are the same number. Neither counts the stills or the vision
+calls, which `estimatedCostUsd` has never counted either.
 
 ### Things a client has to know
 
