@@ -1,11 +1,57 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Batch 9. 9.1's mobile half built on 3 Nov: the brief now asks the frame (Tall / Wide) and sends it on the save and the render instead of a hardcoded '9:16'. Typecheck and all five checks green, uncommitted. JET-234 and JET-239 are committed (`8afcf9b`, `1b5cb4c`).
-- **Status:** working
-- **Blockers:** none for the frame. Three new requests need `coord approve` before anyone starts them: JET-241 (square, which spikes one clip first because the provider may not take 1:1), JET-242 (pause: resume is in on both sides, pause has no route), JET-243 (budget tier, and a cost before the 202). Still open from before: does the default caption font cover Devanagari? Lyrics are on by default now, so a Hindi song with a tofu master is live risk, not a future one.
-- **Last updated:** 2026-11-03T00:00:00+05:30
+- **Current task:** Brand icon and splash wired from `JetKreateMusic-Icons`, plus `eas.json` for a first TestFlight build. Earlier the same day: 9.1's mobile half (the brief asks the frame). All uncommitted.
+- **Status:** waiting on human
+- **Blockers:** **TestFlight cannot ship usefully yet, and it is not the icons.** JET-244: the captcha gate 403s an empty token before any credential check, so a release build pointing at the deployed backend cannot sign in or register. Also needs a person, not an agent: `eas init` (creates the EAS project on the jetsin-aquib account) and the three `EXPO_PUBLIC_*` values as EAS environment variables, or the build inlines the committed `.env` placeholders and talks to localhost. Still waiting for `coord approve`: JET-241, JET-242, JET-243, JET-244.
+- **Last updated:** 2026-11-03T16:10:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T15:48:41+05:30
+
+Session ended while on JET-223. Touched: app.json, eas.json. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-03 (later) — the app stopped looking like the Expo template
+
+Wired `JetKreateMusic-Icons` from the platform root into this app. Native dirs
+are gitignored here, so this is CNG: `app.json` is the only source of truth and
+`eas build` regenerates the icon catalogs. The kit's own `ios/` and
+`android/res/` folders are for a native project and are not used.
+
+Assets copied into `assets/images/`, the Expo template ones deleted:
+`assets/expo.icon/` (the template's icon-composer bundle, which `ios.icon`
+pointed at), the three `android-icon-*.png`, and `favicon.png`. `icon.png` is
+RGB with no alpha, which is what App Store Connect requires, and the kit says
+it QA'd the Android foreground against circle, squircle and teardrop masks.
+
+**The splash is on the app's canvas, not the icon's background.** The kit's
+`#0B0B10` is the icon's own field; the splash uses `canvas` from
+`theme/tokens.ts` instead, `#fafaf8` light and `#0d0e11` dark, with the
+transparent 2048 symbol at `imageWidth: 180`. `app/index.tsx` already said
+"same background as the splash, so there is no flash between them" while the
+splash was Expo's `#208AEF` blue. It is true now.
+
+`name` is "JetKreate Music" now; `slug` is untouched, because that is what EAS
+identifies the project by.
+
+`eas.json` is new: remote versioning with `autoIncrement`, and
+development/preview/production profiles that each name an EAS **environment**
+rather than carrying any value. Deliberate: the three `EXPO_PUBLIC_*` are
+inlined at build time and the real ones live only in gitignored `.env.local`,
+so a cloud build with nothing set would ship the committed placeholders and
+point at localhost. `submit.production` carries the team id and nothing else,
+so the first `eas submit` prompts for the Apple ID rather than this file
+guessing at it.
+
+**Not verified, and say so to anyone who asks:** no prebuild was run. Running
+`expo prebuild --clean` would have wiped the working `ios/` with its installed
+Pods, which is not a thing to do to somebody's machine to check an icon. What
+is verified is that `expo config` resolves, every declared path exists, and the
+dimensions and alpha are right. The generated catalogs are a device check.
+
+Next: JET-244 is the real blocker and it needs approving and then building.
+Before any build, somebody has to run `eas init` and set the three env vars on
+the production environment.
 
 ### 2026-11-03 — Batch 9 read, marked, and the frame picked up
 
