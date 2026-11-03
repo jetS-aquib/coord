@@ -1,11 +1,44 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** JET-240 built — LYRIC_ENGINE names the engine on all four song calls. Also fixed JET-232's frame never reaching the single-call stitch. Nothing committed.
+- **Current task:** JET-240 and the JET-232 frame fix are committed (df67552, efcd8d6), not pushed. JET-241 spiked and answered no — square is refused by the provider.
 - **Status:** waiting on human
-- **Blockers:** JET-240 needs `coord done` once a gemini render is watched end to end — our half is built, their half is live. JET-232 is only now testable end to end: re-check a short portrait render before closing it. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Blockers:** JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
 - **Last updated:** 2026-11-03T15:30:00+05:30
 
 ## Handoff notes
+
+### 2026-11-03T16:05
+
+**JET-241 is a no, and it cost nothing to find out.** D-062 said spike square against
+the provider before writing any of it. The spike never billed, because the field is
+rejected at validation:
+
+    400 The value '1:1' is not supported for 'response_format.aspect_ratio'.
+        Supported values: '16:9', '9:16'.   (gemini-omni-1.1-flash)
+
+`omniVideo.ts:64` was right. I had it down as a likely Veo carry-over — it arrived in
+the Veo→Omni migration with no ticket, and Veo genuinely was 16:9/9:16 only — but it
+was a measurement nobody wrote down. Worth remembering before dismissing the next one.
+
+**The useful part is why square is not merely missing.** Seedance does take 1:1, and
+creater-ai-backend's registry says so. But `omni` is the only model with
+`supportsEndFrame`, and pinning both ends is what lets every clip render at once and
+what holds the seams at the measured 2.2-2.4. Seedance is start-frame-only, so a
+square song would be serially generated with visible cuts — a worse video, not the
+same video in a different shape. D-064 records the one condition to revisit: a model
+with `supportsEndFrame` that also takes 1:1. Provider release, not work here.
+
+Nothing from JET-241 steps 2-6 was written, which is the point of spiking first: it
+would have been a route accepting a value the generator throws on, several dollars of
+stills later.
+
+**Two loose threads, deliberately not pulled.** `src/routes/jobs.routes.ts` accepts
+`aspectRatio: '1:1'` on both v0 job schemas for every provider including google, so a
+square google job is accepted and then throws in generation — the enum is right for
+BytePlus, wrong for Google, and nothing pairs model with aspect. And
+creater-ai-backend's `MODEL_REGISTRY` declares 1:1 for `omniflash`, which its selector
+offers; different model id to ours, so possibly fine and possibly the same 400. Both
+in D-064's consequences. The first is a small fix here; the second is a ticket to them.
 
 ### 2026-11-03T15:30
 
