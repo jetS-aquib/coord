@@ -4,9 +4,9 @@ title: A render blocked by refused shots should show why each was refused, offer
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-04T13:21:06+05:30
-updated: 2026-11-04T13:21:06+05:30
+updated: 2026-11-04T13:22:40+05:30
 decisions: 
 ---
 
@@ -54,3 +54,4 @@ A blocked render with refused shots shows each one with its cause and a pre-fill
 
 ## Thread
 2026-11-04T13:21:06+05:30 aquib N: created ticket, status: - -> open
+2026-11-04T13:22:40+05:30 aquib N: status: open -> approved

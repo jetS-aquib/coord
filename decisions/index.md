@@ -71,3 +71,4 @@
 | D-067 | Pause is a non-terminal render status, not a second kind of cancel | 2026-11-03 | active | music-jetkreate-backend music-jetkreate-mobile | JET-242 |
 | D-068 | A render tier buys checking and re-shooting, not a cheaper model | 2026-11-03 | active | music-jetkreate-backend music-jetkreate-mobile | JET-243 |
 | D-069 | A render's cost is itemised, and the lines we cannot predict are counted rather than guessed | 2026-11-04 | active | music-jetkreate-backend music-jetkreate-mobile | JET-243 |
+| D-070 | A refused shot's suggested fix is asked for once, at the blocked gate, and the fix is one call for many shots | 2026-11-04 | active | music-jetkreate-backend music-jetkreate-mobile | JET-250 |

@@ -57,6 +57,12 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `POST /api/v1/music-videos/render/:jobId/clips/:idx/rerender` — `202`; re-renders
   that one clip and re-stitches. Body `{ prompt? }` replaces that clip's prompt — the
   only way out of a refusal, since the provider refuses the same words again.
+- `POST /api/v1/music-videos/render/:jobId/clips/fix` — `202`; fixes several missing
+  shots of a `blocked` render in one go. Body `{ clips: [{ index, prompt }] }` (1–100).
+  Sets each prompt, re-renders only those shots, then stitches as usual. `409` unless
+  the render is `blocked`; `400` naming the shot if one is listed twice, does not exist,
+  or is not missing (`refused`/`failed`) — re-doing a rendered shot is `…/rerender`.
+  Any `failed` shot is retried on the way through too. JET-250.
 - `POST /api/v1/music-videos/render/:jobId/stitch` — `202`; assembles a `blocked`
   render as it is, missing shots and all. Deliberate opt-in; `409` on any other status.
 - `GET /api/v1/music-videos/:id/song-read` — what the song is doing: `bpm`,
@@ -136,6 +142,22 @@ Deriving that in each client is how two clients come to disagree.
 On a `refused` clip, `error` is written for the person who wrote the prompt, not for a
 developer — show it.
 
+A `refused` clip also carries `refusal` (null on every other clip). JET-250:
+
+```jsonc
+"refusal": {
+  "cause": "real-person",          // real-person | copyright | content
+  "suggestedPrompt": "A pop singer in her thirties on a stadium stage, …"  // or null
+}
+```
+
+`cause` is for picking an icon or a headline; `error` stays the sentence to show.
+`suggestedPrompt` is a rewrite of the clip's `prompt` that changes as little as it can
+to get past the provider — pre-fill an editable field with it, never send it unseen.
+It is written when the render goes `blocked` (one text call for all refused shots), so
+it may be null for a moment on a clip still refusing mid-render, and stays null when
+no rewrite could be had: fall back to the current `prompt` then.
+
 ### Pictures before there is video
 
 A render draws every anchor still before it renders a single clip, which is minutes of
@@ -194,7 +216,9 @@ So a render that finishes with ANY shot missing now ends as `blocked` and is **n
 assembled**. `error` names how many shots are missing and what to do. Everything that
 did render is kept and paid for once. Three ways out, all the caller's choice:
 
-- re-render the missing shots with edited prompts (`…/clips/:idx/rerender` with `prompt`)
+- fix the missing shots with edited prompts, all at once (`…/clips/fix`) — each refused
+  shot carries a cause and a suggested prompt to start from
+- re-render one missing shot with an edited prompt (`…/clips/:idx/rerender` with `prompt`)
 - assemble it as it is (`…/stitch`)
 - cancel it
 
