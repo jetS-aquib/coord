@@ -4,9 +4,9 @@ title: A paused render says resumable, then refuses resume until its in-flight c
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-04T00:13:28+05:30
-updated: 2026-11-04T00:13:28+05:30
+updated: 2026-11-04T11:43:02+05:30
 decisions: 
 ---
 
@@ -36,7 +36,20 @@ Pause a render mid-anchoring, tap resume at once: it either continues or the sta
 
 ## Test steps
 
-1. Start a render, pause during anchoring or rendering. 2. Immediately POST .../resume. 3. Expect 202 (continues once the in-flight clips land) or resumable:false with a reason; never a 409 naming paused.
+1. Start a render and let it reach `anchoring` or `rendering` with clips in flight.
+2. `POST /api/v1/music-videos/render/:jobId/pause` -> 202, status `paused`.
+3. **Immediately** `POST .../resume` -> 202, not 409. Poll `GET .../render/:jobId`:
+   status still `paused`, `resumable: true`, `resumeQueued: true`. The log reads
+   `resume accepted — picks up once the shots in flight land`.
+4. Keep polling. Once the in-flight clips land, status goes to `queued` and then
+   `rendering` with no further tap, `resumeQueued` back to `false`, and the log reads
+   `resuming — N/M clips already done`. No new clip is billed twice.
+5. Repeat steps 1-3, then `POST .../cancel` before the clips land. It ends `cancelled`
+   and does NOT start again on its own.
+6. `POST .../resume` on a `rendering` render still 409s — and names `rendering`.
 
 ## Thread
 2026-11-04T00:13:28+05:30 aquib N: created ticket, status: - -> open
+2026-11-04T11:40:40+05:30 aquib N: status: open -> approved
+2026-11-04T11:41:23+05:30 aquib N: status: approved -> in_progress — picked it up
+2026-11-04T11:43:02+05:30 aquib N: status: in_progress -> review — Built: resume is now accepted the instant a render stops (paused, or cancelled), even while its in-flight shots are still landing. The draining run hands over when it exits; status stays paused until then on purpose — flipping it to queued mid-drain would let the old run skip the pending clips and block the song. New resumeQueued on the state payload so mobile can say 'picking up' instead of looking as if the tap did nothing. 409 now only ever names a status that really cannot resume. Contract updated. Mobile: drop the retry note, and show resumeQueued if you want the in-between to read right.

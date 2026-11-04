@@ -1,11 +1,29 @@
 # music-jetkreate-backend — aquib N
 
-- **Current task:** The render cost is itemised now (D-069) — estimatedCostUsd went from the clips alone to clips + stills, $24.80 -> $26.01 on a 31-clip song. Uncommitted. JET-242 (3de70ee) and JET-243 (98d6ae7) committed and handed back; JET-249 says my pause work refuses resume while in-flight clips land. Four unpushed commits.
+- **Current task:** JET-249 built and handed back — resume is accepted while a stopped render's in-flight shots drain. Uncommitted. Five unpushed commits (through 973136e).
 - **Status:** waiting on human
-- **Blockers:** JET-249 is a real defect in JET-242's pause: resumeRenderV1 throws while `running` still holds the job, so a paused render reports resumable and 409s until its in-flight clips land — it needs `coord approve`. THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-243 needs `coord done` once demo, standard and hero have each rendered the same song — and read its thread first: the tiers do NOT differ in model, which half of its "done when" asked for. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
-- **Last updated:** 2026-11-04T00:45:00+05:30
+- **Blockers:** JET-249 needs `coord done` once a pause-then-instant-resume has been watched end to end. THE BOARD IS NOT SYNCING FROM THIS MACHINE — `.coord` push fails with `remote: error: inflate: data stream error (invalid distance too far back)`, 4 times since 23:10 on 2026-11-03. Nothing filed here reaches anyone until it is fixed, and that includes JET-242's review and D-067. `coord sync --resolve`, or the manual push in `coord fix`; it looks like a corrupt object on the remote, so do not force it. JET-242 needs `coord done` once a render is paused and resumed end to end. JET-243 needs `coord done` once demo, standard and hero have each rendered the same song — and read its thread first: the tiers do NOT differ in model, which half of its "done when" asked for. JET-244 stays OPEN after today — attestation is still unbuilt and the flag must be deleted, not just unset, before public launch (D-065). JET-246 needs `coord approve` — it is theirs to fix and the render that found it is still stitching. JET-245 needs `coord approve` — it is the seam threshold, and it should not start until two or three more 16:9 renders exist. JET-241 is mine to report and yours to close — `coord no 241`, the provider refuses 1:1 (D-064). JET-240 needs `coord done` once a gemini render is watched end to end. JET-232 is only now testable end to end: re-check a short portrait render before closing it. Two commits unpushed. JET-241/242/243 from mobile need `coord approve`. JET-232/233 need `coord done` (their halves landed; ours is now built too). JET-234 is mobile's to start — one line unblocks every render. 9.2 is the next real gap: generation still draws 16:9 clips whatever the frame says, so a portrait master is padded rather than composed. JET-225/226/227/231 need `coord done`. JET-228/229 need `coord approve`. Git hooks still not installed — `coord devsetup --hooks`.
+- **Last updated:** 2026-11-04T12:10:00+05:30
 
 ## Handoff notes
+
+### 2026-11-04T12:10
+
+**JET-249: resume is accepted the moment a render stops, and the run that is still
+draining hands over when it exits.** The bug was the order of two questions in
+`resumeRenderV1`: "is a run alive?" was asked before "is this a stopped status?", so a
+paused render whose in-flight clips were still landing got "this one is paused" against
+a payload that had just said resumable. Status is asked first now (`resumeDecisionV1`,
+pure and tested), and a live run means "queue it", not "refuse it".
+
+**Status stays `paused` while it drains, and that is the part not to "simplify".**
+Setting `queued` immediately makes the old run's next `stoppedSince()` say "not
+stopped" with the pending clips already skipped, and it walks on to the completeness
+gate and blocks the song. The hand-over is in `runPlanV1`'s `finally`, after `running`
+is cleared. `resumeQueued` on the payload is what lets a client show the in-between.
+
+**In-process, like `running` itself.** A restart mid-drain loses the queued resume and
+the render stays paused — honest, one more tap. A cancel in the window withdraws it.
 
 ### 2026-11-04T00:45
 

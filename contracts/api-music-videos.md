@@ -39,6 +39,11 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `POST /api/v1/music-videos/render/:jobId/resume` — `202`; picks a stopped render
   back up from its checkpoints. Valid on `cancelled`, `failed`, `blocked` and
   `paused`. Everything already rendered is kept, so it costs only what is left.
+  **Valid the instant a render stops**, even though the shots already in flight keep
+  landing for up to a couple of minutes: the resume is accepted (`202`), the payload
+  reads `resumeQueued: true` with status still `paused` (or `cancelled`), and the render
+  moves to `queued` by itself once they have landed. Repeating it is harmless; a
+  `cancel` in that window withdraws it. JET-249.
 - `GET /api/v1/music-videos/render/:jobId` — poll one by id.
 - `GET /api/v1/music-videos/render/:jobId/events` — SSE, same payload per event.
   Mobile should poll: the stream drops when an app backgrounds.
@@ -110,6 +115,7 @@ parser.
   "costCeilingUsd": 31.84,       // the most this tier's allowances can add
   "discardedSeconds": 4.0,       // generated, then cut off at assembly (D-027)
   "finalVideoUrl": "", "error": "", "resumable": false,
+  "resumeQueued": false,         // resume pressed, waiting on in-flight shots (JET-249)
   "plateUrl": "https://…",      // the reference sheet the stills were drawn against
   "clips": [{ "index": 0, "sceneIndex": 0, "status": "done", "state": "finalized",
               "durationSeconds": 8, "videoUrl": "https://…",
