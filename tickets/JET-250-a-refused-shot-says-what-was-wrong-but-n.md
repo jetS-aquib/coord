@@ -4,7 +4,7 @@ title: A refused shot says what was wrong but not what to write instead, and fix
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-04T13:20:50+05:30
 updated: 2026-11-04T13:25:42+05:30
 decisions: D-070
@@ -58,3 +58,4 @@ A blocked render's poll lists each refused shot with a cause key, the human sent
 2026-11-04T13:25:31+05:30 aquib N: linked decision D-070 (A refused shot's suggested fix is asked for once, at the blocked gate, and the fix is one call for many shots)
 2026-11-04T13:25:42+05:30 aquib N: status: approved -> in_progress
 2026-11-04T13:25:42+05:30 aquib N: Built. refusal { cause, suggestedPrompt } on refused clips (in the poll); suggestions from one call over all refused shots at the blocked gate (suggestRefusalFixesV1, fails soft); POST …/clips/fix { clips:[{index,prompt}] } re-renders only those and stitches. Contract updated, D-070. Known limit: the suggestion rewrites the clip prompt only — a refusal caused by a cast description will be re-refused.
+2026-11-04T13:25:43+05:30 aquib N: status: in_progress -> review
