@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-04T13:38:25+05:30
+
+Session ended while on JET-246. Touched: app/services/job_service.py. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-04T00:32:29+05:30
 
 Session ended while on JET-246. Touched: app/pipeline/stitch_pipeline_v2.py, tests/test_v2_single_pass.py. Nothing committed. (written automatically — no one said what is next)
