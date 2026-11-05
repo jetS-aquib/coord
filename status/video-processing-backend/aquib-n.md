@@ -11,6 +11,7 @@
 ### 2026-11-05T19:00:00+05:30
 
 **Missing lyrics in videos — D-073.** Not the caption mapping (verified: zero transcript words lost between transcript and burned ASS). Gemini on the full mix drops sung stretches and sometimes returns a 12-word repetition loop. Now: Demucs stem (192k, not 96k — 96k read 0 words) + mix sent in parallel, fuller one leads, silences >4s filled from the other, loop reply = that input failed. Transcript cache key (TRANSCRIPT_VERSION 2) and READ_VERSION 3 bumped. Files: gemini_transcriber.py, stitch_pipeline.py, transcription.py, song_read.py, tests. Next: commit; JET-256 on music side; watch Demucs CPU/RAM on the 2-vCPU/4GB server. Comparison scripts are in this session's scratchpad (not kept). Also filed today: JET-252 (done), JET-255 (poll retry).
+Round 2 (user's local render still had the gap): Gemini also truncates or mis-times the VOCALS reply at random (6 words; or 307 words with verse 1 placed 10s late). Each reply is now judged by how much of the stem's singing it covers (want 85%), retried up to 3x, stopping early on an identical answer; best-covering reply leads the merge. Stay With Me 5/5 runs at 92-95%. Timeless/short top out ~77-80% (ad-libs on the stem) and still vary run to run (498 vs 424, 88 vs 64) — not worse than before, not solved. Deleted the two local cache entries the bad 18:47 render left (transcripts/092fb4…, song-reads/4c421f…).
 
 ### 2026-11-05T01:00:39+05:30
 
