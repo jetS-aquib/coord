@@ -4,9 +4,9 @@ title: One failed poll ('fetch failed') abandons a render that is still running,
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-05T13:51:47+05:30
-updated: 2026-11-05T13:51:47+05:30
+updated: 2026-11-05T13:54:16+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A render survives up to 7 consecutive failed polls; a job that really failed or 
 
 ## Thread
 2026-11-05T13:51:47+05:30 aquib N: created ticket, status: - -> open
+2026-11-05T13:54:16+05:30 aquib N: status: open -> approved
