@@ -4,10 +4,10 @@ title: Refresh turns every failure into a 401, and a refresh token can never be 
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-05T11:42:05+05:30
-updated: 2026-11-05T11:43:52+05:30
-decisions: 
+updated: 2026-11-05T11:45:47+05:30
+decisions: D-072
 ---
 
 ## Request
@@ -36,8 +36,15 @@ Refresh with DB down returns 5xx, not 401. Refresh for a deleted or non-active u
 
 ## Test steps
 
-—
+1. Stop Mongo (or point MONGO_URI at a dead host), POST /api/auth/refresh with a valid refresh token: expect 5xx, not 401.
+2. With Mongo up, POST /api/auth/refresh with a garbage token: expect 401. Same with a token for a deleted user, or a suspended/banned user: expect 401.
+3. Call any requireAuth route with a valid access token whose user row was deleted: expect 401 INVALID_TOKEN. With Mongo down: expect 5xx.
+4. Suspended user with a valid access token still gets 403 ACCOUNT_SUSPENDED.
+5. Revocation: tokenVersion deliberately not built, see D-072.
 
 ## Thread
 2026-11-05T11:42:05+05:30 aquib N: created ticket, status: - -> open
 2026-11-05T11:43:52+05:30 aquib N: status: open -> approved
+2026-11-05T11:45:11+05:30 aquib N: linked decision D-072 (Refresh-token revocation: per-user tokenVersion, deferred (not built in JET-253))
+2026-11-05T11:45:23+05:30 aquib N: status: approved -> in_progress
+2026-11-05T11:45:47+05:30 aquib N: status: in_progress -> review — refresh: verify-only 401, DB errors 5xx, non-active/missing user 401; requireAuth: missing user 401, DB errors 5xx. tokenVersion deferred, D-072.
