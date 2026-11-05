@@ -74,3 +74,4 @@
 | D-070 | A refused shot's suggested fix is asked for once, at the blocked gate, and the fix is one call for many shots | 2026-11-04 | active | music-jetkreate-backend music-jetkreate-mobile | JET-250 |
 | D-071 | One flat generation quota of 50 for every user while only internal users exist | 2026-11-04 | active | music-jetkreate-backend |  |
 | D-072 | Refresh-token revocation: per-user tokenVersion, deferred (not built in JET-253) | 2026-11-05 | active | music-jetkreate-backend | JET-253 |
+| D-073 | Gemini transcribes the mix AND the Demucs vocal stem, and merges them, instead of the mix alone | 2026-11-05 | active | video-processing-backend music-jetkreate-backend | JET-256 |
