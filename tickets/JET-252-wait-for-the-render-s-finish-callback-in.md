@@ -4,9 +4,9 @@ title: Wait for the render's finish callback instead of polling /api/v1/jobs eve
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-05T11:38:05+05:30
-updated: 2026-11-05T11:38:05+05:30
+updated: 2026-11-05T12:09:03+05:30
 decisions: 
 ---
 
@@ -40,8 +40,15 @@ A render completes with at most one GET /api/v1/jobs call per 15s while waiting;
 
 ## Test steps
 
-—
+1. Start a v1 render on staging/local with the video service posting to the existing MUSIC_VIDEO_CALLBACK_URL.
+2. While it stitches, watch the backend log: "[VideoApiService] job=... status=..." should appear roughly once per 15s per job (it was once a second), and the stitch should settle within about a second of the video service finishing.
+3. Drop the callback (unset the URL on the video service or block the route): the render still finishes, just up to 15s late.
+4. A failed/cancelled stitch still fails the render with the job's error.
+5. music-jetkreate-frontend music-video assembly (POST /webhooks/video-processing/music-video, GenerationJob path) behaves exactly as before; no frontend change.
 
 ## Thread
 2026-11-05T11:38:05+05:30 aquib N: created ticket, status: - -> open
 2026-11-05T12:04:28+05:30 aquib N: Constraint from the requester: reuse the existing MUSIC_VIDEO_CALLBACK_URL and its webhook route (POST /webhooks/video-processing/music-video). No new endpoint, no new env var, nothing for the other team to configure. Plan step 3 is that: the SAME receiver gets a second branch. If no music_video GenerationJob matches the attemptId, look for an in-memory waiter on jobId and resolve it, after the same assertion + payload-hash checks. Video service side needs no change; it already posts to that URL when callback_requested is true. Also: the receiver currently answers 404 'Assembly job not found' when no row matches, so that branch must run BEFORE the 404.
+2026-11-05T12:05:54+05:30 aquib N: status: open -> approved
+2026-11-05T12:09:03+05:30 aquib N: status: approved -> in_progress
+2026-11-05T12:09:03+05:30 aquib N: status: in_progress -> review — v1 stitch/segment calls send callback_requested; the existing receiver wakes an in-process waiter (before its 404) and the wait does one real GET; fallback poll 15s. Frontend/GenerationJob path untouched.
