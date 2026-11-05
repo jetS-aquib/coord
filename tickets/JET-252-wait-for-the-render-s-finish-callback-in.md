@@ -44,3 +44,4 @@ A render completes with at most one GET /api/v1/jobs call per 15s while waiting;
 
 ## Thread
 2026-11-05T11:38:05+05:30 aquib N: created ticket, status: - -> open
+2026-11-05T12:04:28+05:30 aquib N: Constraint from the requester: reuse the existing MUSIC_VIDEO_CALLBACK_URL and its webhook route (POST /webhooks/video-processing/music-video). No new endpoint, no new env var, nothing for the other team to configure. Plan step 3 is that: the SAME receiver gets a second branch. If no music_video GenerationJob matches the attemptId, look for an in-memory waiter on jobId and resolve it, after the same assertion + payload-hash checks. Video service side needs no change; it already posts to that URL when callback_requested is true. Also: the receiver currently answers 404 'Assembly job not found' when no row matches, so that branch must run BEFORE the 404.
