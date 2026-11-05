@@ -4,9 +4,9 @@ title: Send callbackRequested on lyric-transcription and song-read, wait for the
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-06T02:25:52+05:30
-updated: 2026-11-06T02:26:03+05:30
+updated: 2026-11-06T02:27:28+05:30
 decisions: D-074
 ---
 
@@ -45,3 +45,4 @@ On the server, a song nobody has uploaded before: no 504 in the logs; the video 
 ## Thread
 2026-11-06T02:25:52+05:30 aquib N: created ticket, status: - -> open
 2026-11-06T02:26:03+05:30 aquib N: linked decision D-074 (lyric-transcription and song-read answer 202 and call back when a read outlasts 20s, instead of raising the load balancer timeout)
+2026-11-06T02:27:28+05:30 aquib N: status: open -> approved
