@@ -4,9 +4,9 @@ title: Handle 202 reading_lyrics from song-read and brief: show a waiting messag
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-06T02:31:26+05:30
-updated: 2026-11-06T02:31:26+05:30
+updated: 2026-11-06T02:31:43+05:30
 decisions: 
 ---
 
@@ -40,3 +40,4 @@ Upload a never-seen song: the app shows the waiting message, then the sections, 
 
 ## Thread
 2026-11-06T02:31:26+05:30 aquib N: created ticket, status: - -> open
+2026-11-06T02:31:43+05:30 aquib N: status: open -> approved
