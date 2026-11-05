@@ -4,9 +4,9 @@ title: Refresh turns every failure into a 401, and a refresh token can never be 
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-05T11:42:05+05:30
-updated: 2026-11-05T11:42:05+05:30
+updated: 2026-11-05T11:43:52+05:30
 decisions: 
 ---
 
@@ -40,3 +40,4 @@ Refresh with DB down returns 5xx, not 401. Refresh for a deleted or non-active u
 
 ## Thread
 2026-11-05T11:42:05+05:30 aquib N: created ticket, status: - -> open
+2026-11-05T11:43:52+05:30 aquib N: status: open -> approved
