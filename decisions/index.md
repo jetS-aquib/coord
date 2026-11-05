@@ -75,3 +75,4 @@
 | D-071 | One flat generation quota of 50 for every user while only internal users exist | 2026-11-04 | active | music-jetkreate-backend |  |
 | D-072 | Refresh-token revocation: per-user tokenVersion, deferred (not built in JET-253) | 2026-11-05 | active | music-jetkreate-backend | JET-253 |
 | D-073 | Gemini transcribes the mix AND the Demucs vocal stem, and merges them, instead of the mix alone | 2026-11-05 | active | video-processing-backend music-jetkreate-backend | JET-256 |
+| D-074 | lyric-transcription and song-read answer 202 and call back when a read outlasts 20s, instead of raising the load balancer timeout | 2026-11-06 | active | video-processing-backend music-jetkreate-backend | JET-257 |
