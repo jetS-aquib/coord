@@ -4,9 +4,9 @@ title: Bump SONG_READ_CACHE_V1 to 3, so songs already read get the Gemini sectio
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-05T18:42:24+05:30
-updated: 2026-11-05T18:42:54+05:30
+updated: 2026-11-05T19:52:49+05:30
 decisions: D-073
 ---
 
@@ -43,3 +43,4 @@ Rendering 'Stay With Me' again logs 'stored song read is generation 2... reading
 ## Thread
 2026-11-05T18:42:24+05:30 aquib N: created ticket, status: - -> open
 2026-11-05T18:42:54+05:30 aquib N: linked decision D-073 (Gemini transcribes the mix AND the Demucs vocal stem, and merges them, instead of the mix alone)
+2026-11-05T19:52:49+05:30 aquib N: status: open -> approved
