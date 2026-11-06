@@ -76,3 +76,5 @@
 | D-072 | Refresh-token revocation: per-user tokenVersion, deferred (not built in JET-253) | 2026-11-05 | active | music-jetkreate-backend | JET-253 |
 | D-073 | Gemini transcribes the mix AND the Demucs vocal stem, and merges them, instead of the mix alone | 2026-11-05 | active | video-processing-backend music-jetkreate-backend | JET-256 |
 | D-074 | lyric-transcription and song-read answer 202 and call back when a read outlasts 20s, instead of raising the load balancer timeout | 2026-11-06 | active | video-processing-backend music-jetkreate-backend | JET-257 |
+| D-075 | Story gets its own writer call before the treatment, and each location gets its own reference plate | 2026-11-06 | superseded by D-076 | music-jetkreate-backend | JET-262 |
+| D-076 | Story gets its own writer call before the treatment, and each location gets its own reference plate | 2026-11-06 | active | music-jetkreate-backend | JET-262 |

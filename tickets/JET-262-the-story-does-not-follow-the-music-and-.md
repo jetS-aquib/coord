@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: open
 created: 2026-11-06T16:23:00+05:30
-updated: 2026-11-06T16:23:00+05:30
-decisions: 
+updated: 2026-11-06T16:28:06+05:30
+decisions: D-075, D-076
 ---
 
 ## Request
@@ -44,3 +44,5 @@ With the flags on, a render logs a script whose chorus scene is the payoff and w
 
 ## Thread
 2026-11-06T16:23:00+05:30 aquib N: created ticket, status: - -> open
+2026-11-06T16:27:45+05:30 aquib N: linked decision D-075 (Story gets its own writer call before the treatment, and each location gets its own reference plate)
+2026-11-06T16:28:06+05:30 aquib N: linked decision D-076 (Story gets its own writer call before the treatment, and each location gets its own reference plate)
