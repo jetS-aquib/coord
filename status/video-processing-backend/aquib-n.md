@@ -1,6 +1,6 @@
 # video-processing-backend — aquib N
 
-- **Current task:** D-073 — Gemini lyrics dropped whole verses; now transcribes mix + Demucs vocal stem and merges. Uncommitted, waiting on the human to commit. JET-256 (music side cache bump) waiting on approval
+- **Current task:** JET-263 — Hinglish spelling for Roman captions (one Gemini 3.6 Flash text call per song). Done, 614 tests pass, uncommitted, waiting on the human to commit
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
 - **Last updated:** 2026-11-05T19:00:00+05:30
@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-06T17:49:23+05:30
+
+Session ended while on JET-246. Touched: app/processors/lyrics/hinglish.py, app/processors/lyrics/gemini_transcriber.py, app/processors/lyrics/transliterator.py, aquib-n.md. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-05T19:00:00+05:30
 
 **Missing lyrics in videos — D-073.** Not the caption mapping (verified: zero transcript words lost between transcript and burned ASS). Gemini on the full mix drops sung stretches and sometimes returns a 12-word repetition loop. Now: Demucs stem (192k, not 96k — 96k read 0 words) + mix sent in parallel, fuller one leads, silences >4s filled from the other, loop reply = that input failed. Transcript cache key (TRANSCRIPT_VERSION 2) and READ_VERSION 3 bumped. Files: gemini_transcriber.py, stitch_pipeline.py, transcription.py, song_read.py, tests. Next: commit; JET-256 on music side; watch Demucs CPU/RAM on the 2-vCPU/4GB server. Comparison scripts are in this session's scratchpad (not kept). Also filed today: JET-252 (done), JET-255 (poll retry).

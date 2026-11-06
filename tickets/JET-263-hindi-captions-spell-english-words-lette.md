@@ -4,9 +4,9 @@ title: Hindi captions spell English words letter by letter: सीन comes out 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-06T17:46:20+05:30
-updated: 2026-11-06T17:46:20+05:30
+updated: 2026-11-06T17:47:03+05:30
 decisions: 
 ---
 
@@ -48,3 +48,4 @@ Rendering the chai-tapri Hindi song with roman captions shows 'oye hoye kya scen
 
 ## Thread
 2026-11-06T17:46:20+05:30 aquib N: created ticket, status: - -> open
+2026-11-06T17:47:03+05:30 aquib N: status: open -> approved
