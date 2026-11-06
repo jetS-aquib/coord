@@ -4,9 +4,9 @@ title: Let the creator choose where the lyrics sit in the frame (captionPosition
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-06T15:20:44+05:30
-updated: 2026-11-06T15:20:44+05:30
+updated: 2026-11-06T15:21:44+05:30
 decisions: 
 ---
 
@@ -40,3 +40,4 @@ Choosing bottom_center and rendering gives a video whose lyrics all sit at botto
 
 ## Thread
 2026-11-06T15:20:44+05:30 aquib N: created ticket, status: - -> open
+2026-11-06T15:21:44+05:30 aquib N: status: open -> approved
