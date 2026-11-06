@@ -41,3 +41,4 @@ List response includes renderStatus and resumable for every project that has a r
 ## Thread
 2026-11-06T13:27:02+05:30 aquib N: created ticket, status: - -> open
 2026-11-06T13:27:44+05:30 aquib N: status: open -> approved
+2026-11-06T13:32:10+05:30 aquib N: Part 1 built (renderStatus, resumable, read-only stalled flag on GET /api/music-videos). Deliberately NOT flipping stalled jobs to failed: 'running' is per-process (JET-254 may run several instances), a stitch can go ~12 min with no write, and failed lets a second render start over a live one (double spend). Needs a cross-instance heartbeat first; suggest its own ticket.
