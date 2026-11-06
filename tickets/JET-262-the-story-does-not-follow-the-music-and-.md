@@ -53,3 +53,4 @@ With the flags on, a render logs a script whose chorus scene is the payoff and w
 2026-11-06T16:30:30+05:30 aquib N: status: open -> approved
 2026-11-06T16:31:29+05:30 aquib N: status: approved -> in_progress
 2026-11-06T16:31:56+05:30 aquib N: status: in_progress -> review — Built behind RENDER_SCRIPT_WRITER=1 and RENDER_LOCATION_PLATES=1, both off by default. Typecheck clean, render tests 237/237. Not yet rendered end to end — that is the test. D-076.
+2026-11-06T16:34:09+05:30 aquib N: Switches moved from env vars into code at the dev's request (an env change needs a devops request; a redeploy does not): SCRIPT_WRITER_V1 in scriptV1.ts and LOCATION_PLATES_V1 in renderOrchestratorV1.ts, both now true. Turning either off is setting it to false and redeploying. Test steps 1-2 now mean: render once with both false, once with both true.
