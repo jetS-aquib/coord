@@ -4,9 +4,9 @@ title: A branded public share page for a finished video, plus the share-link rou
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-06T15:30:31+05:30
-updated: 2026-11-06T15:30:31+05:30
+updated: 2026-11-06T15:32:15+05:30
 decisions: 
 ---
 
@@ -40,3 +40,4 @@ POST share returns a stable url for an owned, completed project and 403/404 for 
 
 ## Thread
 2026-11-06T15:30:31+05:30 aquib N: created ticket, status: - -> open
+2026-11-06T15:32:15+05:30 aquib N: status: open -> approved
