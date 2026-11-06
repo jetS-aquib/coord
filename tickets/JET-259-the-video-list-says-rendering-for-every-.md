@@ -4,9 +4,9 @@ title: The video list says Rendering for every render that failed, paused or got
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-06T13:27:02+05:30
-updated: 2026-11-06T13:27:02+05:30
+updated: 2026-11-06T13:27:44+05:30
 decisions: 
 ---
 
@@ -40,3 +40,4 @@ List response includes renderStatus and resumable for every project that has a r
 
 ## Thread
 2026-11-06T13:27:02+05:30 aquib N: created ticket, status: - -> open
+2026-11-06T13:27:44+05:30 aquib N: status: open -> approved
