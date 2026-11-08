@@ -43,3 +43,4 @@ A lyrics stitch with lyric_lines changing one line burns the new words in that l
 
 ## Thread
 2026-11-09T01:05:35+05:30 aquib N: created ticket, status: - -> open
+2026-11-09T01:27:40+05:30 aquib N: Heads-up from mobile: for Indic songs the corrected lyric_lines will arrive already romanized (mobile shows and edits the romanized spelling once the song-read carries it, see the new song-read roman request). Please burn them as given rather than transliterating again; Latin text through transliterate() may be a no-op already, worth confirming.
