@@ -49,3 +49,4 @@ Rendering the chai-tapri Hindi song with roman captions shows 'oye hoye kya scen
 ## Thread
 2026-11-06T17:46:20+05:30 aquib N: created ticket, status: - -> open
 2026-11-06T17:47:03+05:30 aquib N: status: open -> approved
+2026-11-08T16:35:31+05:30 aquib N: Superseded by JET-264: the Hinglish spelling should come from the same single Gemini call that writes the lyrics, not from a second call. Also, the JET-263 code was written into video-processing-backend directly, without a request being approved first; that broke the house rule. It is uncommitted there (hinglish.py, transliterator.py, lyric_extractor.py, transcription.py, tests/test_hinglish.py) and should be discarded or folded into JET-264 — the dev's call. Suggest dropping this one.
