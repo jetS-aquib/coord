@@ -4,9 +4,9 @@ title: Lyrics: words show up before they are sung, lines break mid-phrase, and H
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-08T16:35:25+05:30
-updated: 2026-11-08T16:35:25+05:30
+updated: 2026-11-08T16:41:28+05:30
 decisions: 
 ---
 
@@ -50,3 +50,4 @@ On the three test songs: median word-onset error under 100 ms and no word shown 
 
 ## Thread
 2026-11-08T16:35:25+05:30 aquib N: created ticket, status: - -> open
+2026-11-08T16:41:28+05:30 aquib N: status: open -> approved
