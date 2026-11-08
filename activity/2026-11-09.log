@@ -33,3 +33,7 @@
 2026-11-09T01:28:01+05:30	music-jetkreate-mobile	context	aquib N	together-music-jetkreate-backend-music-jetkreate-mobile-video-processing-backend-2026-11-09
 2026-11-09T01:31:49+05:30	video-processing-backend	edit	aquib N	expressive-mapping-widget.md
 2026-11-09T01:39:58+05:30	video-processing-backend	edit	aquib N	eval/lyrics/score.py
+2026-11-09T01:39:59+05:30	video-processing-backend	edit	aquib N	tests/test_lyric_eval_score.py
+2026-11-09T01:40:14+05:30	video-processing-backend	edit	aquib N	tests/test_lyric_eval_score.py
+2026-11-09T01:40:57+05:30	video-processing-backend	edit	aquib N	scripts/lyric_eval.py
+2026-11-09T01:41:24+05:30	video-processing-backend	edit	aquib N	eval/lyrics/README.md

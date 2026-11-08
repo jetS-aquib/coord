@@ -44,3 +44,4 @@ Score tests pass; a run on the seeded songs writes a table and JSON; --compare a
 
 ## Thread
 2026-11-09T01:38:53+05:30 aquib N: created ticket, status: - -> open
+2026-11-09T01:46:48+05:30 aquib N: Harness built (uncommitted): eval/lyrics/{score.py,songs.json,README.md,refs/}, scripts/lyric_eval.py, tests/test_lyric_eval_score.py (14 pass, suite 647). Plumbing verified on Lutt Putt with a throwaway ref (deleted): 2 reads 2.9 min cold, 1.6 min with the cached stem; --set applies and rejects unknown names; --compare prints deltas and regressions. Blocked on references: no .lrc is committed yet; songs.json seeds 3 songs with local paths. Baseline waits on the JET-264/265 commit.
