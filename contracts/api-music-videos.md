@@ -82,7 +82,7 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   Body `{ audioUrl, lines: [{ start, end, text }] }`, 0-400 lines, `text` 0-300 chars.
   Text only: each line carries the `start`/`end` the song read gave it, unchanged, and
   is matched back on those. `text: ''` removes the line; a read line not sent stays as
-  heard. Stored per user + audio (a library track is shared between people), so it
+  heard. Stored on the song read as one entry per user (a library track is shared between people), so it
   never changes anyone else's read. From then on that user's song-read, brief and
   render (planner lines, `MusicVideo.lyrics`) use the corrected words. `lines: []`
   clears them. `404` if the song has not been read yet. Returns `{ success, edited }`.
