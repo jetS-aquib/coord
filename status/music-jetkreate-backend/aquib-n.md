@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-09T01:10:07+05:30
+
+Session ended while on JET-262. Touched: src/models/LyricsEditV1.ts, src/services/render/lyricsEditV1.ts, src/services/render/lyricsEditV1.test.ts. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-06T16:35
 
 **JET-262 built (D-076), uncommitted.** New `scriptV1.ts`: `generateScriptV1` sees every
