@@ -4,9 +4,9 @@ title: Song-read lines should carry the romanized text the captions already burn
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-09T01:27:40+05:30
-updated: 2026-11-09T02:05:01+05:30
+updated: 2026-11-09T02:13:43+05:30
 decisions: 
 ---
 
@@ -39,8 +39,11 @@ A Hindi song's song-read lines carry roman in the same spelling its captions bur
 
 ## Test steps
 
-—
+1. POST /api/v1/song-read for a Hindi song (e.g. 'Oye Hoye Kya Scene Hai', lyricEngine gemini).
+2. read_version is "6"; each line has text in Devanagari and roman in Hinglish (e.g. 'teri walk mein taan hai'), spelled as the captions burn it.
+3. POST it for an English song (e.g. 'Stay With Me'): lines have no roman key at all; text and sections are as before.
 
 ## Thread
 2026-11-09T01:27:40+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T02:05:01+05:30 aquib N: status: open -> approved
+2026-11-09T02:13:43+05:30 aquib N: status: approved -> in_progress

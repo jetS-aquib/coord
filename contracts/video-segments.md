@@ -95,7 +95,8 @@ job that produced the customer's video.
   "audioUrl": "https://…/song.mp3",
   "showLyrics": true,
   "captionStyle": "spark", "captionFont": "bebas_neue", …      // as the lyrics stitch
-  "lyricEngine": "whisper"              // optional; absent is "whisper" (D-061)
+  "lyricEngine": "whisper",             // optional; absent is "whisper" (D-061)
+  "lyricLines": [ { "start": 21.76, "end": 23.4, "text": "…" } ]   // optional; the creator's corrected lines (JET-267)
 }
 
 // 202 — a normal job, the one that settles the attempt
@@ -112,6 +113,8 @@ same `audioUrl`, same caption fields, same defaults. `showLyrics: false`
 joins and muxes the audio without captions. There is no `quality` — quality
 selects the analysis sample step and vocal separation, and a finalise
 analyses nothing.
+
+`lyricLines` works exactly as on the lyrics stitch; see contracts/video-stitching.md.
 
 Refused with `409` if a listed job is not a segment, is not completed, or
 has no stored output; with `422` if a segment is listed twice.

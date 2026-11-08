@@ -31,6 +31,26 @@ song, send the same value on all of them — the engine is part of those caches'
 keys, so a mismatch transcribes the song twice. See
 contracts/video-transcription.md for what Gemini changes and what it does not.
 
+## The creator's corrected lines
+
+`clip-stitching-with-lyrics` and `segment-concat` (v1 and v2) take an optional
+`lyricLines` (or `lyric_lines`): `[{ "start": 21.76, "end": 23.4, "text": "teri walk mein taan hai" }]`
+(JET-267). Each entry is a line from `/api/v1/song-read` with its `start` and
+`end` **sent back unchanged** and its `text` edited by the creator.
+
+- The burn shows that text on that line, instead of the transcript's words.
+  Words the creator left alone keep their sung timing; a changed word takes
+  the slot between its neighbours, inside the line's span.
+- `"text": ""` removes the line from the video.
+- Lines you do not send burn as heard. Absent `lyricLines` is the render you
+  get today, byte for byte.
+- Text is burnt **as given**, never transliterated: send the `roman` spelling
+  the song read returns for Hindi songs (contracts/video-song-read.md).
+- A line is found by its start and end, within 0.1 s. One that matches no
+  transcript line is still burnt, at its own times.
+- `end` before `start` is a 422. The transcript cache is not touched: a
+  correction applies to this render only.
+
 ## Per-clip in and out points
 
 Each entry of `clips` is `{ "url": ..., "order": ... }` and may also carry
