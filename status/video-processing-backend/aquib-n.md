@@ -1,6 +1,6 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-263 — Hinglish spelling for Roman captions (one Gemini 3.6 Flash text call per song). Done, 614 tests pass, uncommitted, waiting on the human to commit
+- **Current task:** JET-264 — Gemini lyric sheet (lines, punctuation, Hinglish) pinned to the transcript's word times; JET-263's separate call dropped. 617 tests pass, uncommitted, waiting on the human to commit. JET-256 should now bump to 4
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
 - **Last updated:** 2026-11-05T19:00:00+05:30
@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-08T18:30:00+05:30
+
+**JET-264.** Spike showed Gemini's word times are fine (~30 ms from MMS_FA); "words before they are sung" was gap-based lines up to 27 s long. Dev ruled out any local model on the VM. Built: one gemini-3.6-flash prompt call writes the lyric sheet, each word pinned to the transcript's matching word time (gemini_transcriber._pin), Hinglish via transliterate(known=). JET-263 cut down to the API key in a header and the candra-vowel fix; hinglish.py deleted. Residual: 4-17% of words still >200 ms early when Gemini's clock squashes a phrase. Spike scripts: scratchpad s264/ (not kept). Next: commit, `coord review 264`, music side bumps SONG_READ_CACHE_V1 to 4 (JET-256).
+
 ### 2026-11-06T17:49:23+05:30
 
 Session ended while on JET-246. Touched: app/processors/lyrics/hinglish.py, app/processors/lyrics/gemini_transcriber.py, app/processors/lyrics/transliterator.py, aquib-n.md. Nothing committed. (written automatically — no one said what is next)
