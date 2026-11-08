@@ -4,9 +4,9 @@ title: Lyrics: words show up before they are sung, lines break mid-phrase, and H
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-08T16:35:25+05:30
-updated: 2026-11-08T16:41:28+05:30
+updated: 2026-11-09T02:05:06+05:30
 decisions: 
 ---
 
@@ -56,3 +56,5 @@ On the three test songs: median word-onset error under 100 ms and no word shown 
 2026-11-08T18:23:57+05:30 aquib N: Round 2, measured against published lyrics (chorus only: the user's file is a different version, its verse differs). (1) Words: the sheet alone invented plausible words ('tashan' for taan, 'jaave' for jaan), 64-79%. Giving it the transcript as evidence: 80-94% over a dozen runs. Remaining: 'taan' is heard as 'jaan' by every Gemini transcript and ~90% of sheets — no Gemini-only fix found. Tried and dropped: Google Search grounding (model never searched), stem in 30s pieces, 3.8 Flash, 3.1 Pro (91%, 2x slower). (2) Sync: captions were rebuilt from a flat word list (pause/42-char rules) and the renderer only had SRT text, so a whole caption appeared at once. Now with lyric_engine=gemini each sheet line is one caption (cut evenly at a comma only past two rows), and golden_script reveals each word at its sung time (word_starts carried from processed captions to the renderer). Verified by burning a preview: words appear as sung. Sheet used only if 80% of words match the transcript.
 2026-11-08T23:48:27+05:30 aquib N: Lutt Putt Gaya render (transcript cached 23:20, storage/transcripts/7492370a…json): Gemini's transcribe call returned 56 words for a 3:43 song, 14 lines, nothing between 10s and 108s or between 138s and 196s, and its first line placed at 0.5s over the instrumental intro. It transcribed the mix, not a vocal stem (transcription_audio = the mp3). The sheet is timed from that transcript and dropped below 80% match, so captions fell back to the 56 words — hence 'one or two lines at the start, then nothing'. The truncation guard (<3 words/min) does not catch 15 words/min. Web team's video of the same song: Roman Hinglish lines with , ! ..., the whole song covered. Proposal (not built, waiting on the dev): make the prompt sheet the source of text AND line times, and the transcript only an optional word-level refinement where it agrees; gate lines on the vocal stem; one Gemini audio call per song.
 2026-11-09T00:15:56+05:30 aquib N: Follow-up filed as JET-265: the sheet becomes the source of text and line times, so a short transcript can no longer wipe out the lyrics.
+2026-11-09T02:05:06+05:30 aquib N: status: approved -> in_progress
+2026-11-09T02:05:06+05:30 aquib N: status: in_progress -> review — Committed in 769d6bf together with JET-265 (same files). Lines from the lyric sheet, per-word reveal in golden_script.

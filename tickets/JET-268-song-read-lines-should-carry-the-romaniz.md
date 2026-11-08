@@ -4,9 +4,9 @@ title: Song-read lines should carry the romanized text the captions already burn
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T01:27:40+05:30
-updated: 2026-11-09T01:27:40+05:30
+updated: 2026-11-09T02:05:01+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A Hindi song's song-read lines carry roman in the same spelling its captions bur
 
 ## Thread
 2026-11-09T01:27:40+05:30 aquib N: created ticket, status: - -> open
+2026-11-09T02:05:01+05:30 aquib N: status: open -> approved
