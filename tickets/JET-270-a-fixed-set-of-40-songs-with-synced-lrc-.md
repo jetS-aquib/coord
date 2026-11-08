@@ -1,0 +1,46 @@
+---
+id: JET-270
+title: A fixed set of 40+ songs with synced .lrc references, and one script that scores the Gemini lyrics path on all of them
+from: video-processing-backend
+to: video-processing-backend
+filed_by: aquib N
+status: open
+created: 2026-11-09T01:38:53+05:30
+updated: 2026-11-09T01:38:53+05:30
+decisions: 
+---
+
+## Request
+
+Stop tuning lyrics one song at a time; measure every change on a fixed song set
+
+## Understanding
+
+Build an eval harness in this repo: eval/lyrics/ (songs.json, refs/*.lrc in Roman, README), scripts/lyric_eval.py running the production Gemini path (StitchPipeline._gemini_extractor) N times per song with constant overrides via --set, and eval/lyrics/score.py (word accuracy with loose Hinglish spelling, line recall, chant recall, invented lines, timing vs .lrc, gaps). Audio stays out of git. Collecting the 40+ .lrc references is the dev/team's work; I build the harness and seed the three songs already debugged. No production code changes. Assumes AI cost is not a concern (dev said so).
+
+## Plan
+
+1. eval/lyrics/score.py + tests/test_lyric_eval_score.py
+2. scripts/lyric_eval.py: --songs/--tag, --runs, --jobs, --set, --compare; per-run JSON in eval/lyrics/runs/
+3. songs.json seeded with Lutt Putt, Oye Hoye, Stay With Me; README on adding songs and the keep/drop rule
+4. .gitignore for audio, cache, runs
+5. After JET-264/265 are committed: baseline.json on the full set
+
+## Reason
+
+Each fix (D-073, JET-264, JET-265) made one song work with no way to see what it did to others; story writing and direction depend on lyric quality
+
+## Related files
+
+scripts/lyric_eval.py,eval/lyrics/score.py,eval/lyrics/songs.json,eval/lyrics/README.md,tests/test_lyric_eval_score.py,.gitignore
+
+## Acceptance criteria
+
+Score tests pass; a run on the seeded songs writes a table and JSON; --compare against itself reports no regressions; SHEET_CALLS=1 shows lower chant recall on Lutt Putt
+
+## Test steps
+
+—
+
+## Thread
+2026-11-09T01:38:53+05:30 aquib N: created ticket, status: - -> open
