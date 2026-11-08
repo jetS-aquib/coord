@@ -4,10 +4,11 @@ title: Hindi captions spell English words letter by letter: सीन comes out 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: rejected
 created: 2026-11-06T17:46:20+05:30
-updated: 2026-11-06T17:47:03+05:30
+updated: 2026-11-09T02:06:45+05:30
 decisions: 
+closed: 2026-11-09
 ---
 
 ## Request
@@ -50,3 +51,4 @@ Rendering the chai-tapri Hindi song with roman captions shows 'oye hoye kya scen
 2026-11-06T17:46:20+05:30 aquib N: created ticket, status: - -> open
 2026-11-06T17:47:03+05:30 aquib N: status: open -> approved
 2026-11-08T16:35:31+05:30 aquib N: Superseded by JET-264: the Hinglish spelling should come from the same single Gemini call that writes the lyrics, not from a second call. Also, the JET-263 code was written into video-processing-backend directly, without a request being approved first; that broke the house rule. It is uncommitted there (hinglish.py, transliterator.py, lyric_extractor.py, transcription.py, tests/test_hinglish.py) and should be discarded or folded into JET-264 — the dev's call. Suggest dropping this one.
+2026-11-09T02:06:45+05:30 aquib N: status: approved -> rejected — folded into JET-264

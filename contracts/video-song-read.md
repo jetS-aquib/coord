@@ -45,11 +45,11 @@ Requires `X-Service-Assertion`, minted exactly as for stitching
   "sections": [
     { "label": "intro",  "start": 0.0,  "end": 10.86, "lines": [] },
     { "label": "verse",  "start": 10.86, "end": 34.0,
-      "lines": [ { "start": 11.2, "end": 14.8, "text": "…" }, … ] },
+      "lines": [ { "start": 11.2, "end": 14.8, "text": "…", "roman": "…" }, … ] },
     { "label": "chorus", "start": 34.0, "end": 55.7, "lines": [ … ] }
   ],
   "cached": false,
-  "read_version": "2"
+  "read_version": "6"
 }
 ```
 
@@ -89,6 +89,15 @@ failing that at its longest breath. Pieces are never cut below 8 seconds, so
 "about a third" is a target and not a guarantee: a passage with nowhere left
 to cut stays whole rather than being chopped into unusable slivers. An
 `intro` or `outro` carries no lines and is never subdivided.
+
+**`lines[].roman`** (JET-268): the line in the Roman spelling the captions
+actually burn, e.g. `"text": "तेरी वॉक में तान है"`, `"roman": "teri walk mein taan hai"`.
+Present only when it differs from `text`, so for an English song (or any
+Latin-script line) the field is **absent**, not null. Show and edit this one
+when it is there: it is what the creator will see on the video. Send edits back
+as `lyric_lines` on the stitch (JET-267), already in Roman — they are burnt as
+given, not transliterated again. Reads stored before `read_version` "6" do not
+have it.
 
 `label` is one of `intro`, `verse`, `pre-chorus`, `chorus`, `bridge`, `outro`,
 and **is a guess**. Read the boundaries as much more reliable than the names:
