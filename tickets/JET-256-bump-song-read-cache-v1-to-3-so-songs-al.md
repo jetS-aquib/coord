@@ -44,3 +44,4 @@ Rendering 'Stay With Me' again logs 'stored song read is generation 2... reading
 2026-11-05T18:42:24+05:30 aquib N: created ticket, status: - -> open
 2026-11-05T18:42:54+05:30 aquib N: linked decision D-073 (Gemini transcribes the mix AND the Demucs vocal stem, and merges them, instead of the mix alone)
 2026-11-05T19:52:49+05:30 aquib N: status: open -> approved
+2026-11-08T17:05:59+05:30 aquib N: Update from JET-264: READ_VERSION in video-processing-backend is now 4 (song read sections come from the lyric sheet's lines). Bump SONG_READ_CACHE_V1 to 4, not 3.
