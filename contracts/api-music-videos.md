@@ -78,6 +78,10 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   string or an access log. Same body and same `404` as the route above. JET-214.
   Both song-read routes also return `edited: boolean` — true when this caller's
   corrected lyrics (below) replaced some lines. JET-266.
+  Each line may also carry `roman`: the line in Roman letters, as the captions burn it
+  (from video-processing-backend, JET-268). Absent for Latin-script songs, for reads
+  made before it, and on any line the caller corrected — a correction replaces both
+  `text` and `roman`. Sending a line back as its own `roman` is not a correction. JET-269.
 - `PUT /api/v1/music-videos/lyrics` — the creator's corrections to the read's words.
   Body `{ audioUrl, lines: [{ start, end, text }] }`, 0-400 lines, `text` 0-300 chars.
   Text only: each line carries the `start`/`end` the song read gave it, unchanged, and
