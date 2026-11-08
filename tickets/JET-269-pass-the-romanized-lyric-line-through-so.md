@@ -4,9 +4,9 @@ title: Pass the romanized lyric line through song-read, and let a correction rep
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T01:27:40+05:30
-updated: 2026-11-09T01:27:40+05:30
+updated: 2026-11-09T02:16:00+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ POST song-read for a Hindi song returns lines with roman; after a PUT correcting
 
 ## Thread
 2026-11-09T01:27:40+05:30 aquib N: created ticket, status: - -> open
+2026-11-09T02:16:00+05:30 aquib N: status: open -> approved
