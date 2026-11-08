@@ -4,9 +4,9 @@ title: Lyrics vanish when Gemini's transcription misses verses: make the written
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T00:15:51+05:30
-updated: 2026-11-09T00:15:51+05:30
+updated: 2026-11-09T00:16:18+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ Lutt Putt Gaya: captions cover every sung section (no sung stretch over 8s witho
 
 ## Thread
 2026-11-09T00:15:51+05:30 aquib N: created ticket, status: - -> open
+2026-11-09T00:16:18+05:30 aquib N: status: open -> approved
