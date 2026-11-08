@@ -1,11 +1,26 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-266 mobile half: the Lyrics step (1c) between audio and director, view by ear, fix in place, PUT on Continue. Uncommitted.
+- **Current task:** D-077 P0 mobile-only audit fixes on top of JET-266/269 lyrics work. All uncommitted.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-09T02:00:00+05:30
+- **Last updated:** 2026-11-09T04:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-09T03:30:58+05:30
+
+Session ended while on JET-223. Touched: src/app/(create)/lyrics.tsx, i-want-you-to-piped-harbor.md, product-values-and-flow.md. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-09T04:00:00+05:30 (D-077 P0, mobile only)
+
+Done: lyrics as a SectionList with "Play this part" (stops at the part's end) and
+follow via scrollToLocation; "Part n" everywhere via partName() (song-read.tsx);
+"Song catalogue" / "Browse songs"; working idle button "Start filming"; plan's Start
+filming disabled when the sheet never loaded; Change the direction refills the draft
+from the resumed project; share Alert -> link + file glyphs, inline error; visible
+em-dashes gone; MOBILE-DESIGN.md glossary, stale leave rule fixed, delete removed
+pending JET-278 (DELETE has no owner check). Next: P1 waits on JET-271/272.
+
 
 ### 2026-11-09T01:22:58+05:30
 
