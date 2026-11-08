@@ -47,3 +47,4 @@ A Hindi song's song-read lines carry roman in the same spelling its captions bur
 2026-11-09T01:27:40+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T02:05:01+05:30 aquib N: status: open -> approved
 2026-11-09T02:13:43+05:30 aquib N: status: approved -> in_progress
+2026-11-09T02:14:05+05:30 aquib N: Built (uncommitted). lines_from adds roman = segment romanized_text when non-empty and != text; SongLine.roman serialized only when present (absent, not null, for English). READ_VERSION 6. Contract video-song-read.md updated. No new Gemini call.
