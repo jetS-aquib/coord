@@ -76,6 +76,19 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   no project exists yet and creating a draft one would put a row in the Library for
   every abandoned file. POST, not GET: a signed audio URL does not belong in a query
   string or an access log. Same body and same `404` as the route above. JET-214.
+  Both song-read routes also return `edited: boolean` — true when this caller's
+  corrected lyrics (below) replaced some lines. JET-266.
+- `PUT /api/v1/music-videos/lyrics` — the creator's corrections to the read's words.
+  Body `{ audioUrl, lines: [{ start, end, text }] }`, 0-400 lines, `text` 0-300 chars.
+  Text only: each line carries the `start`/`end` the song read gave it, unchanged, and
+  is matched back on those. `text: ''` removes the line; a read line not sent stays as
+  heard. Stored per user + audio (a library track is shared between people), so it
+  never changes anyone else's read. From then on that user's song-read, brief and
+  render (planner lines, `MusicVideo.lyrics`) use the corrected words. `lines: []`
+  clears them. `404` if the song has not been read yet. Returns `{ success, edited }`.
+  The caption burn does not use them yet — it waits on JET-267. JET-266.
+- `DELETE /api/v1/music-videos/lyrics` — body `{ audioUrl }`; back to what was heard.
+  JET-266.
 - `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
   `{ audioUrl }`. Not project-scoped, because the point is that it is called at
   **upload**, before a project exists. Fire and forget: nothing depends on it, nothing
