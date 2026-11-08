@@ -1,6 +1,6 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-264 + JET-265 (both uncommitted, same files) — stem transcribed in pieces, lyric sheet is the source of lines/times/Roman text. 631 tests pass. Waiting on the human to commit. JET-256 should bump the music side's song-read cache (READ_VERSION is now 5)
+- **Current task:** JET-264 + JET-265 committed (769d6bf) and in review; JET-270 lyric eval harness committed (638af64), waiting on approval and on 40+ checked .lrc references. JET-256 should bump the music side's song-read cache (READ_VERSION is now 5)
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
 - **Last updated:** 2026-11-09T01:00:00+05:30
