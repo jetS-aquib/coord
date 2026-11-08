@@ -78,3 +78,4 @@
 | D-074 | lyric-transcription and song-read answer 202 and call back when a read outlasts 20s, instead of raising the load balancer timeout | 2026-11-06 | active | video-processing-backend music-jetkreate-backend | JET-257 |
 | D-075 | Story gets its own writer call before the treatment, and each location gets its own reference plate | 2026-11-06 | superseded by D-076 | music-jetkreate-backend | JET-262 |
 | D-076 | Story gets its own writer call before the treatment, and each location gets its own reference plate | 2026-11-06 | active | music-jetkreate-backend | JET-262 |
+| D-077 | Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first | 2026-11-09 | active | music-jetkreate-mobile music-jetkreate-backend video-processing-backend | JET-271 JET-272 JET-273 JET-274 JET-275 JET-276 JET-277 |
