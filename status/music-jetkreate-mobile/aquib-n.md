@@ -1,11 +1,25 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-244's mobile half: `X-Client: mobile` on every request, from one constant so the two header builders cannot drift. JET-241 closed out, brand icon / splash / `eas.json`, and 9.1's mobile half earlier today. All uncommitted.
+- **Current task:** JET-266 mobile half: the Lyrics step (1c) between audio and director, view by ear, fix in place, PUT on Continue. Uncommitted.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-03T17:10:00+05:30
+- **Last updated:** 2026-11-09T02:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-09T01:22:58+05:30
+
+Session ended while on JET-223. Touched: src/app/(create)/lyrics.tsx. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-09T02:00:00+05:30 (JET-266, mobile half)
+
+New `src/app/(create)/lyrics.tsx`: tap a line plays from it, playing line follows the
+audio, Edit/Done turns lines into inline fields, cleared line = removed (struck
+through, Undo). Continue PUTs every line via `saveLyrics` only when something changed
+since the last save (`lyricsToSend`, checked in `npm run check:lyrics`). audio's
+Continue goes here only when the read has words. Nav Read updated. Not run on a
+device. Edits reach the call sheet now; the burnt captions wait on JET-267.
+
 
 ### 2026-11-03T16:44:10+05:30
 
