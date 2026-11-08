@@ -1,13 +1,17 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-264 — Gemini lyric sheet (lines, punctuation, Hinglish) pinned to the transcript's word times; JET-263's separate call dropped. 617 tests pass, uncommitted, waiting on the human to commit. JET-256 should now bump to 4
+- **Current task:** JET-264 + JET-265 (both uncommitted, same files) — stem transcribed in pieces, lyric sheet is the source of lines/times/Roman text. 631 tests pass. Waiting on the human to commit. JET-256 should bump the music side's song-read cache (READ_VERSION is now 5)
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-05T19:00:00+05:30
+- **Last updated:** 2026-11-09T01:00:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-09T01:00:00+05:30
+
+**JET-265** (on top of uncommitted JET-264). Lutt Putt Gaya went blank because the whole-song transcribe call heard 56-63 words and JET-264 threw the sheet away under 80% agreement. Now: with a stem, the clock is the stem in ~30s pieces (gemini_transcriber._cuts/_transcribe_pieces; D-073's mix+stem merge and _fill_silences deleted); the sheet carries line start/end and is the source (_pin: transcript times within 5s of the line, else the sheet's window spread over sung frames, silent lines dropped, transcript-only lines kept). Roman for any script via transliterate(known=) by word core. Lutt 220 words, Oye Hoye chorus 81-87%, Stay With Me 329/333. Scripts: scratchpad s265/ (not kept). Next: commit (264+265 together), `coord review 264` and `265`, JET-256 on the music side, test a Tamil/Punjabi song.
+
 ### 2026-11-08T18:30:00+05:30
 
 **JET-264.** Spike showed Gemini's word times are fine (~30 ms from MMS_FA); "words before they are sung" was gap-based lines up to 27 s long. Dev ruled out any local model on the VM. Built: one gemini-3.6-flash prompt call writes the lyric sheet, each word pinned to the transcript's matching word time (gemini_transcriber._pin), Hinglish via transliterate(known=). JET-263 cut down to the API key in a header and the candra-vowel fix; hinglish.py deleted. Residual: 4-17% of words still >200 ms early when Gemini's clock squashes a phrase. Spike scripts: scratchpad s264/ (not kept). Next: commit, `coord review 264`, music side bumps SONG_READ_CACHE_V1 to 4 (JET-256).
