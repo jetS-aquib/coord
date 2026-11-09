@@ -1,11 +1,24 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-271 mobile half: Ready screen with prices per quality, review toggle. Uncommitted.
+- **Current task:** JET-272 mobile half: guided Direction (chips + one optional special). Uncommitted.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-10T00:10:00+05:30
+- **Last updated:** 2026-11-10T01:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-09T23:56:17+05:30
+
+Session ended while on JET-223. Touched: src/app/(create)/lyrics.tsx, i-want-you-to-piped-harbor.md, product-values-and-flow.md, src/app/(create)/ready.tsx, src/features/create/direction.ts, scripts/direction-check.mts. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-10T01:00:00+05:30 (JET-272, mobile half)
+
+`features/create/direction.ts` (pure, `npm run check:direction`): groups, fallback
+catalogue, `chosen()` (pick > ranked[0]), `directionBody()`, `directionText()`.
+Draft holds picks/special/options instead of answers; answers.ts and its check
+deleted. brief.tsx: chip groups + style + optional special; working saves
+`direction` and the same choices as `prompt`. Not run on a device.
+
 
 ### 2026-11-09T23:40:16+05:30
 
