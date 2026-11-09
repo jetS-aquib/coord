@@ -44,3 +44,4 @@ Spike report with refusal rates; if built, a render with a cast photo shows that
 2026-11-09T03:23:58+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T03:24:30+05:30 aquib N: linked decision D-077 (Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first)
 2026-11-09T23:31:22+05:30 aquib N: status: open -> approved
+2026-11-10T01:09:02+05:30 aquib N: Backend: not started. The ticket is R&D first and the spike needs real face photos and ~90 video clips (~$70-90 at $0.10/s) — both need a person's go-ahead. Skipped for now by aquib N; nothing built. When it resumes: build castRefs/placeRefs behind a flag (stylised portraits only, never raw to the video model) plus the spike script, then run the spike before the flag ships.
