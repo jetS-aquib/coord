@@ -43,3 +43,4 @@ DELETE of another user's id returns 404 and deletes nothing; deleting your own s
 ## Thread
 2026-11-09T03:30:15+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T01:09:31+05:30 aquib N: status: open -> approved
+2026-11-10T01:12:38+05:30 aquib N: Mobile side built (uncommitted): trash glyph on the video screen, destructive Alert confirmation, DELETE /api/music-videos/:id, 404 treated as already gone, inline error otherwise, then back to your videos (reloads on focus).
