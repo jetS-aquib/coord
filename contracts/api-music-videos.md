@@ -102,6 +102,21 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   labels are the app's own wording (story: The artist performing / Performing and story /
   A story with actors; cast: Just one / Two / Three or four / A crowd); ids are the
   contract. JET-272.
+- `POST /api/v1/music-videos/special/understand` — understands the optional special
+  request before a render. Body `{ special (<=300), answer?: { key?, optionId?, text? (<=200) },
+  language? }`. Returns `{ understood, kind: named_title|genre|era|aesthetic|person|brand|plain,
+  reference, wants: title_itself|genre|look|unsure, needs: [{ key, question, options:
+  [{ id, label }], recommended }], recommendation: { ingredients, reason } | null }`.
+  A named title, person or brand whose intent is unclear returns ONE `needs` (3-4
+  options, `recommended` is an option id) and no recommendation; call again with `answer`
+  (an option id or the creator's own words) to get `recommendation`: the reference as
+  filmable ingredients, never containing the name, plus a one-line plain reason. Anything
+  else returns its `recommendation` at once, and `plain` returns neither. `understood:
+  false` means the call failed and nothing was checked: the request goes as written
+  and `promptSafetyV1` still rewrites names. Costs one text call, no render charge.
+  The app stores the accepted text as `direction.ingredients` (<=600); when set it is
+  baked in place of `special`, so the title never reaches a prompt. The brief/treatment
+  `needs[]` and the render review hold are NOT built yet. JET-273.
 - `POST /api/v1/music-videos/estimate` — price per tier before anything is planned.
   Body `{ audioUrl | seconds, aspectRatio? }` (`seconds` wins; `aspectRatio` is
   accepted and changes nothing today). Returns `{ seconds, tiers: [{ tier, floor,
