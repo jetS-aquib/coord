@@ -82,6 +82,13 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   (from video-processing-backend, JET-268). Absent for Latin-script songs, for reads
   made before it, and on any line the caller corrected — a correction replaces both
   `text` and `roman`. Sending a line back as its own `roman` is not a correction. JET-269.
+- `POST /api/v1/music-videos/estimate` — price per tier before anything is planned.
+  Body `{ audioUrl | seconds, aspectRatio? }` (`seconds` wins; `aspectRatio` is
+  accepted and changes nothing today). Returns `{ seconds, tiers: [{ tier, floor,
+  ceiling, currency: 'USD' }] }` for demo, standard and hero. No LLM call, so cheap to
+  call on every screen open. A plan's real range lands inside it for a typical cut; the
+  call sheet's figure remains the one to quote once a plan exists. `202 reading_lyrics`
+  as song-read when `audioUrl` is new; `422` when its length cannot be read. JET-271.
 - `PUT /api/v1/music-videos/lyrics` — the creator's corrections to the read's words.
   Body `{ audioUrl, lines: [{ start, end, text }] }`, 0-400 lines, `text` 0-300 chars.
   Text only: each line carries the `start`/`end` the song read gave it, unchanged, and
