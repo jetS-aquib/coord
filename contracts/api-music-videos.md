@@ -111,7 +111,11 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   options, `recommended` is an option id) and no recommendation; call again with `answer`
   (an option id or the creator's own words) to get `recommendation`: the reference as
   filmable ingredients, never containing the name, plus a one-line plain reason. Anything
-  else returns its `recommendation` at once, and `plain` returns neither. `understood:
+  else returns its `recommendation` at once, and `plain` returns neither. A named
+  reference always gets a question or a recommendation: if the model's question is
+  unusable, a fixed one comes back (`Like <reference> how?`, ids look_and_colour,
+  action_and_pace, genre, all_of_it; English). `reference` is only words from the request.
+  The call is output-capped, low-temperature and retried once on an unparsable answer. `understood:
   false` means the call failed and nothing was checked: the request goes as written
   and `promptSafetyV1` still rewrites names. Costs one text call, no render charge.
   The app stores the accepted text as `direction.ingredients` (<=600); when set it is
