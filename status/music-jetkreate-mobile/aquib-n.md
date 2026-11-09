@@ -1,11 +1,24 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** D-077 P0 mobile-only audit fixes on top of JET-266/269 lyrics work. All uncommitted.
+- **Current task:** JET-271 mobile half: Ready screen with prices per quality, review toggle. Uncommitted.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-09T04:00:00+05:30
+- **Last updated:** 2026-11-10T00:10:00+05:30
 
 ## Handoff notes
+
+### 2026-11-09T23:40:16+05:30
+
+Session ended while on JET-223. Touched: src/app/(create)/lyrics.tsx, i-want-you-to-piped-harbor.md, product-values-and-flow.md, src/app/(create)/ready.tsx. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-10T00:10:00+05:30 (JET-271, mobile half)
+
+New `ready.tsx` between brief and working: shape, quality rows with prices from
+`estimatePrices`, lyrics on/style/position (moved off brief), "Let me review the plan
+first" (draft.reviewFirst, default off). startRender takes `review`; working sends
+reviewFirst, forced true for a resumed project (never saw Ready) or when the price
+failed. Brief's button is now Continue -> ready. Not run on a device.
+
 
 ### 2026-11-09T03:30:58+05:30
 
