@@ -96,7 +96,12 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `POST /api/v1/music-videos/brief` now also returns `ranked: { story, cast, place,
   mood }`, each the group's option ids, best fit for the song and director first (the
   first is the recommendation); always every id, catalogue order if the model did not
-  rank. `questions` and `pitch` are unchanged. JET-272.
+  rank. `questions` and `pitch` are unchanged. When a `pitch` is returned, the first id
+  of each group is the option that pitch describes (the model declares it and we promote
+  it), so a preselection never contradicts the director's sentence. Direction-option
+  labels are the app's own wording (story: The artist performing / Performing and story /
+  A story with actors; cast: Just one / Two / Three or four / A crowd); ids are the
+  contract. JET-272.
 - `POST /api/v1/music-videos/estimate` — price per tier before anything is planned.
   Body `{ audioUrl | seconds, aspectRatio? }` (`seconds` wins; `aspectRatio` is
   accepted and changes nothing today). Returns `{ seconds, tiers: [{ tier, floor,
