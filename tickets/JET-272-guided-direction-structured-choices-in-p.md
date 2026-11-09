@@ -47,3 +47,4 @@ A project saved with a direction object renders with baked prompts (logged); two
 2026-11-09T03:23:39+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T03:24:30+05:30 aquib N: linked decision D-077 (Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first)
 2026-11-09T23:31:08+05:30 aquib N: status: open -> approved
+2026-11-09T23:55:56+05:30 aquib N: Mobile half built (uncommitted): Direction screen is four chip groups from GET direction-options (shipped fallback with the same ids), preselected from brief.ranked[0], a tap always wins; one optional 'Anything special?' (<=300). Save sends direction { directorId?, story, cast, place, mood, look: visual style id, special? } plus directionPrompt as the same choices in words for the first storyboard call. The who/where/story/look/note free-text fields and answers.ts are gone.
