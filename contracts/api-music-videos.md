@@ -121,6 +121,13 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   The app stores the accepted text as `direction.ingredients` (<=600); when set it is
   baked in place of `special`, so the title never reaches a prompt. The brief/treatment
   `needs[]` and the render review hold are NOT built yet. JET-273.
+- **Ownership (JET-278).** The legacy project routes (`GET /`, `GET /characters`, `GET /:id`,
+  `POST /`, `DELETE /:id`) act only on the signed-in caller's projects. The caller is the
+  token's user; a `userId` in the query or body is ignored. Someone else's project id answers
+  `404` (like a missing one) on get, save and delete, and nothing is changed or removed; a
+  save to another user's id is a `404`, not a takeover. `GET /` and `GET /characters` no
+  longer accept `?userId=` for another user. Missing token is `401` (was `400 userId is
+  required`). The share routes were already owner-only.
 - `POST /api/v1/music-videos/estimate` — price per tier before anything is planned.
   Body `{ audioUrl | seconds, aspectRatio? }` (`seconds` wins; `aspectRatio` is
   accepted and changes nothing today). Returns `{ seconds, tiers: [{ tier, floor,

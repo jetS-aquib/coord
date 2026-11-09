@@ -4,9 +4,9 @@ title: DELETE /api/music-videos/:id deletes any user's project: it checks no own
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T03:30:15+05:30
-updated: 2026-11-09T03:30:15+05:30
+updated: 2026-11-10T01:09:31+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ DELETE of another user's id returns 404 and deletes nothing; deleting your own s
 
 ## Thread
 2026-11-09T03:30:15+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T01:09:31+05:30 aquib N: status: open -> approved
