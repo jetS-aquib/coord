@@ -45,3 +45,4 @@ For a 3:30 song all three tiers return a floor/ceiling; a real plan for that son
 2026-11-09T03:23:38+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T03:24:30+05:30 aquib N: linked decision D-077 (Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first)
 2026-11-09T23:31:05+05:30 aquib N: status: open -> approved
+2026-11-09T23:40:04+05:30 aquib N: Mobile consumes it (uncommitted): new Ready screen (src/app/(create)/ready.tsx) calls estimate with { seconds } from the song read, or { audioUrl } when there is none, and shows each tier's floor-to-ceiling range next to Draft/Standard/Best. If the estimate fails, the render is forced through the call sheet so nobody pays unseen.
