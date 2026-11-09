@@ -4,9 +4,9 @@ title: Song-read lines should carry the romanized text the captions already burn
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-09T01:27:40+05:30
-updated: 2026-11-09T02:13:43+05:30
+updated: 2026-11-09T23:29:28+05:30
 decisions: 
 ---
 
@@ -48,3 +48,4 @@ A Hindi song's song-read lines carry roman in the same spelling its captions bur
 2026-11-09T02:05:01+05:30 aquib N: status: open -> approved
 2026-11-09T02:13:43+05:30 aquib N: status: approved -> in_progress
 2026-11-09T02:14:05+05:30 aquib N: Built (uncommitted). lines_from adds roman = segment romanized_text when non-empty and != text; SongLine.roman serialized only when present (absent, not null, for English). READ_VERSION 6. Contract video-song-read.md updated. No new Gemini call.
+2026-11-09T23:29:28+05:30 aquib N: status: in_progress -> review — Committed in 26895f7.

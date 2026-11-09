@@ -4,9 +4,9 @@ title: Burn the creator's corrected lyric lines instead of the transcript's word
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-09T01:05:35+05:30
-updated: 2026-11-09T02:13:43+05:30
+updated: 2026-11-09T23:29:28+05:30
 decisions: 
 ---
 
@@ -51,3 +51,4 @@ A lyrics stitch with lyric_lines changing one line burns the new words in that l
 2026-11-09T02:04:59+05:30 aquib N: status: open -> approved
 2026-11-09T02:13:43+05:30 aquib N: status: approved -> in_progress
 2026-11-09T02:14:05+05:30 aquib N: Built (uncommitted). lyric_lines on LyricsOptions (both calls, v1+v2), threaded routes -> job_service -> video_service -> StitchPipeline. Applied in process_captions to a COPY (lyrics_corrected.json), so the shared transcript cache is never edited. Module app/processors/lyrics/creator_lines.py (not lyric_corrections.py, which is the Whisper word table). Unchanged words keep their sung times; changed words fill the slot between neighbours; '' drops the line; match on start/end +-0.1s; unmatched line burnt at its own times. Burnt as given (no transliteration), confirmed for display roman and hindi. Job metadata records only the count. Contracts: video-stitching.md, video-segments.md.
+2026-11-09T23:29:28+05:30 aquib N: status: in_progress -> review — Committed in c5ca4e1.
