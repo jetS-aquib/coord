@@ -193,6 +193,7 @@ parser.
               "seamScore": 5.4, "seamScores": [8.1, 5.4], "attempts": 2,
               "error": "" }],
   "warnings": [{ "sceneIndex": 3, "reason": "…", "rewritten": "…" }],
+  "stage": "filming", "stageCount": 12, "stageTotal": 31,
   "updatedAt": "2026-10-23T…" }
 ```
 
@@ -267,6 +268,21 @@ similar across a cut", and picking a threshold before measuring one is what the 
 `warnings` lists scene prompts that were **rewritten before rendering** because the
 provider would have refused them. Show them: a storyboard silently rewritten on
 someone's behalf is worse than the refusal it prevented.
+
+`warnings` is on every state (not only `blocked`) and is `[]` until the direction pass
+has run.
+
+`stage`, `stageCount`, `stageTotal` say what the render is doing right now, for a
+one-line narration (JET-274). `stage` is one of `reading_song`, `writing_shots`,
+`casting`, `drawing_frames`, `filming`, `checking`, `cutting`, `lyrics`, `polishing`,
+`uploading`; the names are ours and the app words them. A fresh render moves
+`reading_song` → `casting` → `writing_shots` → `drawing_frames` → `filming` → `checking`
+→ `lyrics` → `cutting`. `polishing` and `uploading` are reserved and never sent today:
+the stitch is one remote call we cannot see inside. `stageCount` / `stageTotal` are
+derived from the plan on every read: filming = clips done / clips, drawing_frames =
+frames drawn / frames, writing_shots = null / shots; otherwise null. `stage` is `""` when
+the render is `completed`, `failed`, `cancelled`, `review`, `blocked` or `paused`. Old
+clients ignore all three.
 
 ### `blocked` — a song with holes is not a shorter song
 
