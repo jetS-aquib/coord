@@ -82,6 +82,21 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   (from video-processing-backend, JET-268). Absent for Latin-script songs, for reads
   made before it, and on any line the caller corrected — a correction replaces both
   `text` and `roman`. Sending a line back as its own `roman` is not a correction. JET-269.
+- `GET /api/v1/music-videos/direction-options` — the guided choices the app draws:
+  `{ story, cast, place, mood }`, each `[{ id, label }]`. The prompt text behind an id
+  is ours and never sent. `look` is not here: it is the app's own visual-style id. JET-272.
+- Guided direction on the project (`POST /api/music-videos`, the save). Optional
+  `direction: { directorId?, story: performance|mixed|story, cast: solo|duo|band|crowd,
+  place: city_night|nature|stage|home|road|fantasy, mood: euphoric|romantic|dark|
+  nostalgic|defiant|calm, look: string<=64, special?: string<=300 }`; `null` clears it,
+  absent keeps it, an unknown id is a 400. When present it replaces `directionPrompt`
+  in the treatment, shot list, script and casting prompts, as fixed text per id (same
+  object, same text); `story` sets the performance share and `cast` the cast size, over
+  the director's defaults. A project with only `directionPrompt` renders as before. JET-272.
+- `POST /api/v1/music-videos/brief` now also returns `ranked: { story, cast, place,
+  mood }`, each the group's option ids, best fit for the song and director first (the
+  first is the recommendation); always every id, catalogue order if the model did not
+  rank. `questions` and `pitch` are unchanged. JET-272.
 - `POST /api/v1/music-videos/estimate` — price per tier before anything is planned.
   Body `{ audioUrl | seconds, aspectRatio? }` (`seconds` wins; `aspectRatio` is
   accepted and changes nothing today). Returns `{ seconds, tiers: [{ tier, floor,
