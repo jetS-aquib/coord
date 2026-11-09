@@ -4,9 +4,9 @@ title: Guided direction: structured choices in, prompts baked from templates, br
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T03:23:39+05:30
-updated: 2026-11-09T03:24:30+05:30
+updated: 2026-11-09T23:31:08+05:30
 decisions: D-077
 ---
 
@@ -46,3 +46,4 @@ A project saved with a direction object renders with baked prompts (logged); two
 ## Thread
 2026-11-09T03:23:39+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T03:24:30+05:30 aquib N: linked decision D-077 (Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first)
+2026-11-09T23:31:08+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Report planning stages and prompt rewrites in the render state, so the ap
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T03:23:57+05:30
-updated: 2026-11-09T03:24:30+05:30
+updated: 2026-11-09T23:31:16+05:30
 decisions: D-077
 ---
 
@@ -43,3 +43,4 @@ Polling a fresh render shows stage moving reading_song -> writing_shots -> filmi
 ## Thread
 2026-11-09T03:23:57+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T03:24:30+05:30 aquib N: linked decision D-077 (Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first)
+2026-11-09T23:31:16+05:30 aquib N: status: open -> approved
