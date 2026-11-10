@@ -4,9 +4,9 @@ title: A restart resumes every unfinished render with no owner, so two instances
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-10T01:57:36+05:30
-updated: 2026-11-10T14:04:48+05:30
+updated: 2026-11-10T14:29:04+05:30
 decisions: 
 ---
 
@@ -40,8 +40,14 @@ Two instances started against one database with an unfinished render: exactly on
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/renderV1.test.ts`: passes, including "reclaimInFlightClipsV1".
+2. Restart mid-render (one instance): start a render, wait until clips are generating, stop the server with Ctrl+C, start it again. The log shows "released N render lease(s) on shutdown", then "resuming mvr_…" and "N clip(s) were mid-generation in a run that died — back to pending". The render finishes; no clip ends failed because of the restart.
+3. Hard kill (no graceful shutdown): same as 2 but `kill -9` the process. On start the log says "is leased by … — trying again in ~90s"; about 90s later the render resumes by itself.
+4. Two instances: run a second server on another port (`PORT=5007 npm run dev`) against the same database while a render runs on the first, then restart the second. Its log says the render "is leased by …" and it does not start a second run; in Mongo the plan's `leaseOwner` stays the first server's.
+5. In Mongo, while a render runs, `leaseUntil` moves forward about every 30s; after it finishes, `leaseOwner` is empty.
 
 ## Thread
 2026-11-10T01:57:36+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T14:04:48+05:30 aquib N: status: open -> approved
+2026-11-10T14:29:04+05:30 aquib N: status: approved -> in_progress
+2026-11-10T14:29:04+05:30 aquib N: Built. Lease on the plan (leaseOwner + leaseUntil, 90s, heartbeat every 30s; flags.render.leaseMs). runPlanV1 claims it before running and releases it on the way out; graceful shutdown releases all of this process's leases so a restart resumes at once; a hard-killed process's renders resume when the lease lapses (startup sweep retries once then). rerender/fix/resume guards check the lease, not only the in-memory set. Clips left 'generating' by a dead run go back to pending without spending the attempt (the provider call is still made again; we cannot re-attach to one in flight). Clip, still and plate URLs go through durableUrl(): a failed GCS upload is retried once from the local file and otherwise fails the clip, so a /temp/ path never lands on a plan (unchanged when GCS is not configured, i.e. dev). Not covered: SSE progress and finish callbacks are still per-process (JET-254); a resume tapped while the run drains on the OTHER instance now gets a 409 'try again in a minute' instead of being queued.
