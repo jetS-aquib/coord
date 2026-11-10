@@ -82,3 +82,4 @@
 | D-078 | Feature flags and tuning live in config/flags.ts, not env | 2026-11-10 | active | music-jetkreate-backend | JET-279 |
 | D-079 | Two job lanes instead of cancelling leftover segments | 2026-11-10 | active | video-processing-backend music-jetkreate-backend | JET-280 |
 | D-080 | Each render makes one search-grounded call to name the song's region before casting | 2026-11-10 | active | music-jetkreate-backend | JET-288 |
+| D-081 | Renders use Omni 1.2 at $0.07/s and keep 4-8s shots; 10s and 15s clips are not worth it | 2026-11-10 | active | music-jetkreate-backend | JET-292 |
