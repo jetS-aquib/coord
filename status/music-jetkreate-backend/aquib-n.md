@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-10T23:56:03+05:30
+
+Session ended while on JET-304. Touched: scripts/generate-director-avatars.ts. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-10T20:44:44+05:30
 
 Session ended while on JET-288. Touched: src/services/render/songContextV1.ts. Nothing committed. (written automatically — no one said what is next)

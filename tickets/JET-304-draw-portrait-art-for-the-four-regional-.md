@@ -4,9 +4,9 @@ title: Draw portrait art for the four regional directors (Jassi, Rohan, Gauri, N
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-10T23:50:38+05:30
-updated: 2026-11-10T23:53:07+05:30
+updated: 2026-11-10T23:55:54+05:30
 decisions: 
 ---
 
@@ -48,3 +48,5 @@ All seven directors return a real avatarUrl, each image loads on a device, and t
 2026-11-10T23:50:38+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T23:53:07+05:30 aquib N: status: open -> approved
 2026-11-10T23:55:54+05:30 aquib N: Drawn with the committed generator (scripts/generate-director-avatars.ts), same style block as the older three, four new subjects. Rohan redrawn once: dark blazer on plum was one blob at 56pt, now a cream blazer. Uploaded to the bucket with scripts/upload-director-avatars.ts; all four answer 200. No code change to serving: avatarUrlV1 already returns a URL for any director with a file. Contract note updated.
+2026-11-10T23:55:54+05:30 aquib N: status: approved -> in_progress
+2026-11-10T23:55:54+05:30 aquib N: status: in_progress -> review
