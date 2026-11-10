@@ -43,3 +43,4 @@ A blocked render opens with the suggested prompt already in the box, and the sen
 
 ## Thread
 2026-11-10T01:57:40+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T15:11:12+05:30 aquib N: Backend side is built (JET-286). Every missing clip (failed or refused) now carries failure: { cause: refused|timeout|no_video|quota|error, likelyReason, prompt, sentPrompt, suggestedPrompt }. In blocked-decision.tsx: prefill the wording box from failure.suggestedPrompt (falls back to failure.prompt when null), show failure.likelyReason as the line under the shot, and put failure.sentPrompt behind a 'What we asked for' disclosure (read-only, never sent back). For timeout/quota/error, suggestedPrompt is the shot itself, so the button is enabled straight away. See the failure section of api-music-videos.md.
