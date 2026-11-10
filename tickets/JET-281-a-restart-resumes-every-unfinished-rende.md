@@ -4,9 +4,9 @@ title: A restart resumes every unfinished render with no owner, so two instances
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T01:57:36+05:30
-updated: 2026-11-10T01:57:36+05:30
+updated: 2026-11-10T14:04:48+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Two instances started against one database with an unfinished render: exactly on
 
 ## Thread
 2026-11-10T01:57:36+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T14:04:48+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: One busy job lane: a running transcription stalls every stitch, and segme
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T01:57:35+05:30
-updated: 2026-11-10T01:57:35+05:30
+updated: 2026-11-10T14:04:35+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Two renders stitched at once: the second one's concat starts without waiting for
 
 ## Thread
 2026-11-10T01:57:35+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T14:04:35+05:30 aquib N: status: open -> approved
