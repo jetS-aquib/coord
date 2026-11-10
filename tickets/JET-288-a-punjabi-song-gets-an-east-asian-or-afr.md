@@ -4,10 +4,10 @@ title: A Punjabi song gets an East Asian or African cast: ground casting and eve
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-10T01:57:41+05:30
-updated: 2026-11-10T20:28:09+05:30
-decisions: 
+updated: 2026-11-10T20:44:16+05:30
+decisions: D-080
 ---
 
 ## Request
@@ -41,8 +41,15 @@ A Punjabi song with no casting choice produces a Punjabi cast, wardrobe and sett
 
 ## Test steps
 
-—
+1. In the app, open a Punjabi song (e.g. "Lutt Putt Gaya"), pick no characters, start a render with the call sheet on.
+2. On the call sheet: the cast are Punjabi (turbans, salwar kameez, phulkari) and the places are Punjab (bazaar, mohalla, haveli). Server log shows `crew casting: Set in Malwa, Punjab`.
+3. Start a render of the same kind of song with "Three or four" people chosen: three or four cast cards come back.
+4. Start a render of an English song: no "Set in" line, cast as before.
+5. Script check (no video spend): `npx ts-node --transpile-only scripts/rnd/songContext.ts` prints the region and the block for the latest songs.
 
 ## Thread
 2026-11-10T01:57:41+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T20:28:09+05:30 aquib N: status: open -> approved
+2026-11-10T20:44:10+05:30 aquib N: linked decision D-080 (Each render makes one search-grounded call to name the song's region before casting)
+2026-11-10T20:44:16+05:30 aquib N: status: approved -> in_progress
+2026-11-10T20:44:16+05:30 aquib N: status: in_progress -> review — Built and checked live: a Punjabi song now casts Sikh/Punjabi people in pagri, salwar kameez and phulkari in Malwa bazaars (before: 'Hardy' in a denim jacket). Band of four gets 4; an English song gets no block. songContext is on the summary (D-080).

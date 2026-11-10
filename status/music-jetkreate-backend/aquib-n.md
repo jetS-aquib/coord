@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-10T20:44:44+05:30
+
+Session ended while on JET-288. Touched: src/services/render/songContextV1.ts. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-10T19:00
 
 Worked the audit requests one at a time, each committed after review: JET-279 (one Gemini call gate: lane caps, 429 waits, timeouts; flags moved to src/config/flags.ts, D-078), 281 (render lease, restart reclaim, durable URLs), 282 (no mouthing on performance shots), 283 (planning timing study: thinking was 55-65% of planning), 284 (LOW thinking on planning, 84s to 38s; checks no longer hold video slots), 286 (failure object per missing shot, fix redraws the changed shot's still), 298 (still check LOW, clip check stays default; checks fail 90%/81% of stills/clips on noise kinds), 296 (stills and shots overlap). Filed mobile JET-295, 297 (with notes), 287 (note with field names). Next: JET-285 once approved; possibly a request to stop asking the noise questions in the vision checks. Board still not pushing (owner knows).

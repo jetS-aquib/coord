@@ -266,6 +266,19 @@ other clip). It is the one object a fix screen needs, for both kinds. JET-286:
   before re-rendering it. Only the shots listed in `…/clips/fix` are retried; a failed
   shot left out of the list stays failed.
 
+### Where the song is from
+
+The render summary carries `songContext` (JET-288): where the planner decided the song
+comes from, researched once before casting. The cast, wardrobe and places are chosen to
+fit it. Null until casting, or when nothing could be worked out (most English pop).
+
+```jsonc
+"songContext": { "language": "Punjabi", "region": "Malwa, Punjab", "community": "…", "confidence": "high" }
+```
+
+Show it on the call sheet ("Set in Malwa, Punjab"), only when `confidence` is not `low`.
+If it is wrong, the fix is the creator's own direction text: what they ask for always wins.
+
 ### Pictures before there is video
 
 A render draws every anchor still before it renders a single clip, which is minutes of
