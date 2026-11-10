@@ -4,9 +4,9 @@ title: R&D: the vision checks think at full depth: re-judge stored stills and cl
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T15:04:54+05:30
-updated: 2026-11-10T15:14:26+05:30
+updated: 2026-11-10T15:28:51+05:30
 decisions: 
 ---
 
@@ -50,3 +50,4 @@ Stills (60): default re-run 88% same decision, 7/8 redraws kept, 10.4s; LOW 88%,
 Clips (30, run twice): below default only 15-19/30 answered ('fetch failed' on the 3-image call, reproducible; default answered 30/30 in the same session, run last), and LOW invented 3 'wrong people' fails (each buys a re-render). Default 93-97% same decision, ~17s.
 DONE: flags.render.thinking.frameGate = 'LOW' (readFramesV1 takes a thinking level; only the still check passes one). Clip check stays at default.
 ALSO FOUND: on these renders the checks fail 164/182 stills (90%) and 180/223 clips (81%); most failures are anatomy, continuity and wardrobe, which are recorded but never acted on. The verdict is noise as a quality signal; worth a decision on whether to keep asking those questions at all (shorter question = faster check).
+2026-11-10T15:28:51+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
