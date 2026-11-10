@@ -4,9 +4,9 @@ title: Shots wait for every still: start filming a shot as soon as its two still
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T15:04:37+05:30
-updated: 2026-11-10T15:31:15+05:30
+updated: 2026-11-10T15:33:02+05:30
 decisions: 
 ---
 
@@ -50,3 +50,4 @@ On the same song, the time from the first still to the last clip done drops by r
 2026-11-10T15:06:44+05:30 aquib N: status: open -> approved
 2026-11-10T15:31:15+05:30 aquib N: status: approved -> in_progress
 2026-11-10T15:33:02+05:30 aquib N: Built. runPlanV1 runs renderAnchorsV1 and renderClipsV1 together. anchorReadinessV1 gives each still a 'ready' promise (released after its draw and check, redraw included, or when it fails); a clip lane waits for stills i and i+1 before taking a video slot, so waiting lanes hold no slot. settleAll on any exit of the stills phase (stop, error) so no shot waits forever. Status turns 'rendering' when the first shot starts; anchor progress never moves the bar backwards. Plate still first. Not measured on a real render (it costs one): Test steps 2-3 do that. Contract: note that anchoring and rendering overlap. Mobile follow-up: JET-297 (approved).
+2026-11-10T15:33:02+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
