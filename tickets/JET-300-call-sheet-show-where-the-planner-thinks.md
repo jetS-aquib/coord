@@ -4,9 +4,9 @@ title: Call sheet: show where the planner thinks the song is from ("Set in Malwa
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T20:44:29+05:30
-updated: 2026-11-10T20:44:29+05:30
+updated: 2026-11-10T21:12:49+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ A Punjabi song's call sheet shows 'Set in Malwa, Punjab'; an English song shows 
 
 ## Thread
 2026-11-10T20:44:29+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T21:12:49+05:30 aquib N: status: open -> approved

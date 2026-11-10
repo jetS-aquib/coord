@@ -60,6 +60,20 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `POST /api/v1/music-videos/render/:jobId/clips/:idx/rerender` — `202`; re-renders
   that one clip and re-stitches. Body `{ prompt? }` replaces that clip's prompt — the
   only way out of a refusal, since the provider refuses the same words again.
+  **Or `{ action }` (JET-301)**: the creator's own line for what the shot shows, in the
+  words the call sheet's `row.action` uses (cast names are fine, max 400 chars). Works
+  on a `completed` render, for a shot that came out wrong: the shot's size, move and
+  framing are kept, the line goes through the safety pass, its opening still is redrawn
+  from the new words, then only that shot renders and the song is re-stitched. Costs one
+  still and one clip. The render goes `queued` → … → `completed` with a new
+  `finalVideoUrl`; the cut into that shot becomes a hard cut, since the previous shot
+  still ends on the old still. Recorded as an override; no other shot changes.
+- `PATCH /api/v1/music-videos/render/:jobId/clips/:idx` — `200`; changes one call-sheet
+  row before filming, free. Body: any of `{ action, shotSize, lane, musicalSeconds }`.
+  `action` (JET-301) replaces what the shot shows with the creator's words, as above,
+  but nothing is drawn yet. If the safety pass had to rewrite it, the change is in
+  `warnings` for that shot. `409` once filming has started: use `…/rerender` then.
+  `GET …/call-sheet` rows carry `action` (the current line, in names) to pre-fill the box.
 - `POST /api/v1/music-videos/render/:jobId/clips/fix` — `202`; fixes several missing
   shots of a `blocked` render in one go. Body `{ clips: [{ index, prompt }] }` (1–100).
   Sets each prompt, re-renders only those shots, then stitches as usual. `409` unless
