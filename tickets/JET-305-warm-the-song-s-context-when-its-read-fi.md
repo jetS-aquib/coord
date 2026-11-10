@@ -4,9 +4,9 @@ title: Warm the song's context when its read finishes, so GET /directors answers
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-11T00:00:37+05:30
-updated: 2026-11-11T00:00:37+05:30
+updated: 2026-11-11T00:18:13+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ On a song just read, GET /directors?audioUrl=... answers in well under a second 
 
 ## Thread
 2026-11-11T00:00:37+05:30 aquib N: created ticket, status: - -> open
+2026-11-11T00:18:13+05:30 aquib N: status: open -> approved
