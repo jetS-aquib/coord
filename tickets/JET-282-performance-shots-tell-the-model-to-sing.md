@@ -4,7 +4,7 @@ title: Performance shots tell the model to sing, so every singer mouths words th
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T01:57:37+05:30
 updated: 2026-11-10T14:39:16+05:30
 decisions: 
@@ -49,3 +49,4 @@ A render with "artist performing" has no shot where a face visibly mouths words;
 2026-11-10T14:37:36+05:30 aquib N: status: open -> approved
 2026-11-10T14:39:16+05:30 aquib N: status: approved -> in_progress
 2026-11-10T14:39:16+05:30 aquib N: Built. Shot-list rule for the performance lane now says nobody sings or mouths words on camera and offers framings (closed mouth, turned away, silhouette, behind a mic, wide/side-on/back-lit). Every performance clip's prompt gets NO_MOUTHING_V1 appended (renderOrchestratorV1.ts), including re-renders and refusal salvage. Done as one rule for every director rather than passing Mira's voice through: it is a limit of the model, not a style. No API change, so nothing for mobile.
+2026-11-10T14:39:16+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
