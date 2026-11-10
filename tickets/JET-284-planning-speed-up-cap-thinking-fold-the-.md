@@ -4,9 +4,9 @@ title: Planning speed-up: cap thinking, fold the safety pass, start stills and c
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T01:57:38+05:30
-updated: 2026-11-10T14:58:03+05:30
+updated: 2026-11-10T15:02:11+05:30
 decisions: 
 ---
 
@@ -54,3 +54,4 @@ On the study's 3 songs, time from POST render to first clip started drops by the
 (1) Thinking per planning call (flags.render.thinking): LOW for casting, script, treatment, shot list; MINIMAL for the safety pass. Shot lists at default vs LOW read side by side on the Punjabi song: same story progression, same lane and lyric-mode obedience, no mouthing; LOW slightly more varied in light. Re-measured: 38s to the call sheet (was 84s).
 (2) Video slots split from clip lanes: only generation holds one of the render's 6 video slots; lanes = 2 x slots (flags.render.clipLanesPerVideoSlot), so a finished clip's seam score (~6s) and clip check (~19s) overlap the next clip's generation. Measured cost of the old way on 5 recent renders: clipcheck 500-690s + seam 87-211s of work held inside the 6 lanes per render.
 Not done, with reasons: folding the safety pass into the shot list (it is 1.8s at MINIMAL now, not worth the risk); drawing the plate during the shot list (~5s); overlapping anchoring with rendering (up to ~2 min per render, but the app shows anchoring and rendering as separate stages, so it needs an app change: worth its own request); thinking on the vision checks (gate.vision ~12s per still, clipcheck ~19s per clip at default thinking: the next biggest lever, but they are quality gates and need their own judged comparison).
+2026-11-10T15:02:11+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
