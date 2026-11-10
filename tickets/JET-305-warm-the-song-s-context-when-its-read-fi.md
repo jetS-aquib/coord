@@ -4,9 +4,9 @@ title: Warm the song's context when its read finishes, so GET /directors answers
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-11T00:00:37+05:30
-updated: 2026-11-11T00:18:13+05:30
+updated: 2026-11-11T00:20:13+05:30
 decisions: 
 ---
 
@@ -48,3 +48,5 @@ On a song just read, GET /directors?audioUrl=... answers in well under a second 
 2026-11-11T00:00:37+05:30 aquib N: created ticket, status: - -> open
 2026-11-11T00:18:13+05:30 aquib N: status: open -> approved
 2026-11-11T00:20:13+05:30 aquib N: Built. sharedSongReadV1 (the one place a read is stored) starts the context call in the background after a new read, and also for a stored read with no context yet (reads from before JET-289). Not awaited: read returned in 6ms, context cached ~5s later, then the directors ranking took 2ms (Lutt Putt Gaya -> bollywood). songContextForAudioV1 now shares one in-flight call per song, so the warm, the director screen and a render never ask twice. A failed call is not stored and is asked again next time; any real answer is stored, even one with no region.
+2026-11-11T00:20:13+05:30 aquib N: status: approved -> in_progress
+2026-11-11T00:20:13+05:30 aquib N: status: in_progress -> review
