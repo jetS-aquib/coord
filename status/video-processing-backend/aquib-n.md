@@ -1,13 +1,17 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-264 + JET-265 committed (769d6bf) and in review; JET-270 lyric eval harness committed (638af64), waiting on approval and on 40+ checked .lrc references. JET-256 should bump the music side's song-read cache (READ_VERSION is now 5)
+- **Current task:** JET-280 (two job lanes) done and handed back, not committed yet. Earlier: JET-264/265 in review, JET-270 waiting on approval and .lrc references, JET-256 should bump the music song-read cache (READ_VERSION 5)
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-09T01:00:00+05:30
+- **Last updated:** 2026-11-10T14:35:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-10T14:35:00+05:30
+
+**JET-280.** Segments now run in their own pool (SEGMENT_WORKERS=2); the concat, whole-song stitches and fallbacks stay on MAX_CONCURRENT_JOBS. A transcript cache hit is read without transcription.lock. FFmpegEngine._run adds `-threads cores//(both pools)` (FFMPEG_THREADS overrides). Segments call back under their own attemptId (callback_attempt_id, which settles nothing). Cancel step dropped: D-079. Contracts video-segments.md and video-stitching-v2.md corrected. On the 2-vCPU prod box this means -threads 1 and up to 3 encodes at once, so watch RAM; SEGMENT_WORKERS=1 is the safe setting if it struggles. Next: commit, then the person who filed it checks the Test steps. test_golden_script fails before this change too.
+
 ### 2026-11-09T01:00:00+05:30
 
 **JET-265** (on top of uncommitted JET-264). Lutt Putt Gaya went blank because the whole-song transcribe call heard 56-63 words and JET-264 threw the sheet away under 80% agreement. Now: with a stem, the clock is the stem in ~30s pieces (gemini_transcriber._cuts/_transcribe_pieces; D-073's mix+stem merge and _fill_silences deleted); the sheet carries line start/end and is the source (_pin: transcript times within 5s of the line, else the sheet's window spread over sung frames, silent lines dropped, transcript-only lines kept). Roman for any script via transliterate(known=) by word core. Lutt 220 words, Oye Hoye chorus 81-87%, Stay With Me 329/333. Scripts: scratchpad s265/ (not kept). Next: commit (264+265 together), `coord review 264` and `265`, JET-256 on the music side, test a Tamil/Punjabi song.
