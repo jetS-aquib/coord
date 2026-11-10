@@ -4,7 +4,7 @@ title: song-read answers 404 and drops the tempo when the read has no sections (
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T15:54:36+05:30
 updated: 2026-11-10T15:57:41+05:30
 decisions: 
@@ -50,3 +50,4 @@ A track whose read has bpm but no sections answers 200 with sections: []; a trac
 2026-11-10T15:54:54+05:30 aquib N: status: open -> approved
 2026-11-10T15:57:41+05:30 aquib N: status: approved -> in_progress
 2026-11-10T15:57:41+05:30 aquib N: Root cause confirmed: the stored read for the 19s track is valid (bpm 99.98, 8 downbeats, 7 energy, language unknown, sections 0; Gemini heard no words, so nothing to section). Only sendSongReadV1's guard was wrong (404 on empty sections). Now 404 only when there is no read or no beat (bpm > 0 and at least one downbeat); otherwise 200 with sections: []. Assumption (3) in the request holds. Checked: cutPlanV1 returns [] for no sections, so the render packs by duration as before; the brief already has a no-sections fallback. Contract updated. Mobile half is theirs as planned.
+2026-11-10T15:57:41+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
