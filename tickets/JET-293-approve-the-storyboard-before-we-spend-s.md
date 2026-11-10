@@ -45,3 +45,4 @@ A creator sees every shot's prompt and the price before paying, can change one, 
 ## Thread
 2026-11-10T01:57:45+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T20:30:41+05:30 aquib N: status: open -> approved
+2026-11-10T21:05:23+05:30 aquib N: Most of this is already built (plan screen, price, ShotOverride, accept). The two missing routes are filed for the backend as the request just created. Failed-shots-free needs a decision from the person.
