@@ -4,10 +4,11 @@ title: Five people rendering at once fail each other: no limit across renders, a
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-11-10T01:56:02+05:30
-updated: 2026-11-10T14:20:23+05:30
+updated: 2026-11-10T14:23:26+05:30
 decisions: D-078
+closed: 2026-11-10
 ---
 
 ## Request
@@ -56,3 +57,4 @@ src/services/ai/shared.ts, src/services/render/videoModelsV1.ts, src/services/re
 2026-11-10T14:12:18+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
 2026-11-10T14:20:23+05:30 aquib N: linked decision D-078 (Feature flags and tuning live in config/flags.ts, not env)
 2026-11-10T14:20:31+05:30 aquib N: Follow-up on review: all flags and tuning moved into src/config/flags.ts (D-078). The GEMINI_* env knobs from the first pass are gone; caps and timeouts are flags.gemini. Also moved: RENDER_IMAGE_CONCURRENCY, RENDER_PLATE_SPRITE, RENDER_PLATE_DEADLINE_MS, RENDER_FRAME_GATE, RENDER_CLIP_CHECK, STITCH_API_VERSION, LYRIC_ENGINE, GENERATION_LIMIT, RECAPTCHA_MIN_SCORE, and the hard-coded SCRIPT_WRITER_V1 / LOCATION_PLATES_V1. Those lines were removed from the local .env.
+2026-11-10T14:23:26+05:30 aquib N: status: review -> done
