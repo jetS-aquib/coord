@@ -4,9 +4,9 @@ title: Director screen: send the picked song so the right regional director come
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T22:18:53+05:30
-updated: 2026-11-10T22:18:53+05:30
+updated: 2026-11-10T22:22:52+05:30
 decisions: 
 ---
 
@@ -41,3 +41,4 @@ Picking 'Lutt Putt Gaya' shows Rohan or Jassi first and pre-selected; an English
 
 ## Thread
 2026-11-10T22:18:53+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T22:22:52+05:30 aquib N: status: open -> approved
