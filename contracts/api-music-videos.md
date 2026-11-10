@@ -285,8 +285,9 @@ other clip). It is the one object a fix screen needs, for both kinds. JET-286:
 `GET /api/v1/music-videos/directors?language=&audioUrl=&title=` → `{ defaultId, directors: [{ id, name, intro, knownFor, avatarUrl, traits }] }`.
 Seven directors since JET-289: the three general ones (`stays-close`, `fills-floor`,
 `holds-frame`) and four regional ones (`punjabi-pop` Jassi, `bollywood` Rohan,
-`devotional` Gauri, `indie-hindi` Neel). Ids are stable; `avatarUrl` is `''` for the
-regional four until their art ships (draw the monogram).
+`devotional` Gauri, `indie-hindi` Neel). Ids are stable. All seven have a portrait since JET-304
+(512x512 webp); keep the monogram for `avatarUrl: ''`, which a future director may
+still send before its art ships.
 
 With `audioUrl` (the song picked, as sent to song-read; `title` optional), the list is
 ordered for that song: the regional directors whose music it is first, then the general

@@ -40,8 +40,11 @@ All seven directors return a real avatarUrl, each image loads on a device, and t
 
 ## Test steps
 
-—
+1. Open the director screen in the app: all seven cards show a drawn portrait, no letter circles.
+2. Jassi (turban, blue), Rohan (cream blazer, plum), Gauri (dupatta, sage), Neel (t-shirt, terracotta) look like the same illustrator as Mira, Dev and Kabir, and each is tellable apart at the small circle size.
+3. `GET /api/v1/music-videos/directors`: every `avatarUrl` is non-empty, and each opens as a 512x512 image (they are on the bucket: storage.googleapis.com/jetkreate/project_live/directors/<id>.webp).
 
 ## Thread
 2026-11-10T23:50:38+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T23:53:07+05:30 aquib N: status: open -> approved
+2026-11-10T23:55:54+05:30 aquib N: Drawn with the committed generator (scripts/generate-director-avatars.ts), same style block as the older three, four new subjects. Rohan redrawn once: dark blazer on plum was one blob at 56pt, now a cream blazer. Uploaded to the bucket with scripts/upload-director-avatars.ts; all four answer 200. No code change to serving: avatarUrlV1 already returns a URL for any director with a file. Contract note updated.
