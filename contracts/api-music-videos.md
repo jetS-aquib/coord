@@ -209,6 +209,10 @@ parser.
   "updatedAt": "2026-10-23T…" }
 ```
 
+`anchoring` and `rendering` overlap (JET-296): a shot starts as soon as the two key
+frames it is pinned to are drawn and checked, so the status turns `rendering` while
+`anchorsDone < anchorsTotal`. Keep showing key-frame progress until they are equal.
+
 Clip status is `pending | generating | done | regenerating | failed | refused`, and
 `state` is what to actually put on a tile: `queued | generating | checking |
 regenerating | finalized | failed | refused`. Use `state`, not `status` — `done` means
