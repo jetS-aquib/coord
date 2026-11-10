@@ -4,9 +4,9 @@ title: Starting a render on a song not read yet now answers 202 reading_lyrics: 
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T14:33:41+05:30
-updated: 2026-11-10T14:33:41+05:30
+updated: 2026-11-10T14:36:22+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ Starting a render on a song never read before shows the listening message, then 
 
 ## Thread
 2026-11-10T14:33:41+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T14:36:22+05:30 aquib N: status: open -> approved

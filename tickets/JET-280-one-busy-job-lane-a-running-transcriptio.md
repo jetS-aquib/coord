@@ -4,10 +4,11 @@ title: One busy job lane: a running transcription stalls every stitch, and segme
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: review
+status: done
 created: 2026-11-10T01:57:35+05:30
-updated: 2026-11-10T14:29:10+05:30
+updated: 2026-11-10T14:37:11+05:30
 decisions: D-079
+closed: 2026-11-10
 ---
 
 ## Request
@@ -53,3 +54,4 @@ Two renders stitched at once: the second one's concat starts without waiting for
 2026-11-10T14:29:03+05:30 aquib N: Done in video-processing-backend: (1) cache hit read without the lock; (2) segment lane (SEGMENT_WORKERS=2) apart from main lane; (3) -threads on every stitch encode; (4) segments call back under their own attemptId (music side already sends callback_requested); (6) contracts video-segments.md and video-stitching-v2.md corrected. Step 5 (cancel leftover segments) dropped: the fallback now runs in the main lane, so leftovers no longer delay it — see the decision. No music-backend change needed.
 2026-11-10T14:29:10+05:30 aquib N: status: approved -> in_progress
 2026-11-10T14:29:10+05:30 aquib N: status: in_progress -> review — ready: see Test steps
+2026-11-10T14:37:11+05:30 aquib N: status: review -> done
