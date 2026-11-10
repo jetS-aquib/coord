@@ -31,6 +31,9 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   behaves exactly as it did before tiers existed. `modelKey` stays an engineer's
   control and still wins over the tier; no client needs to know a model id or a price
   per second. JET-243.
+  **Also `202 { status: 'reading_lyrics', message }` with no `jobId`** when the song
+  has not been read yet and the read takes more than 20s: no render was started, ask
+  again (same as brief and song-read, JET-258). Tell the two apart by `jobId`. JET-279.
 - `GET /api/v1/music-videos/:id/render` — **the render running for this project, or
   the most recent one that could be picked back up**; `404` when there is neither.
   Same state payload, with `resumable` saying which of the two it is. Added for

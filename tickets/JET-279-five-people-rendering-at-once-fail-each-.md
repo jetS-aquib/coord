@@ -42,8 +42,13 @@ src/services/ai/shared.ts, src/services/render/videoModelsV1.ts, src/services/re
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/ai/callGateV1.test.ts`: 4 pass (lane cap holds, 429 waits then succeeds, quota ceiling gives up, hung call aborted at its timeout).
+2. Hung planning call: start the server with `GEMINI_TEXT_TIMEOUT_MS=5000`, start a render. The log shows `generateContent(...) timed out after 5s` and the render carries on with its fallback (storyboard prompts); it does not freeze on "writing the shot list". Remove the env var afterwards.
+3. Stop during planning: start a render, press Stop while it says "writing the shot list". It shows cancelled after the call in flight returns, not after all four.
+4. New song: create a project with a song never read before and press Render straight away. Within ~20s you get `202 {status: 'reading_lyrics'}` with no jobId (not a 504); pressing again later starts the render.
+5. Load: with 3+ projects, `BASE_URL=… TOKEN=… npx ts-node scripts/rnd/concurrentRenders.ts <id1> <id2> <id3> …` (demo tier). No render ends blocked with quota errors; `grep "\[gate\]"` in the server log shows any 429s it absorbed.
 
 ## Thread
 2026-11-10T01:56:02+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T14:04:02+05:30 aquib N: status: open -> approved
+2026-11-10T14:12:13+05:30 aquib N: Built. Gate lives in shared.ts's proxy, which every render Gemini call already goes through (src/services/ai/callGateV1.ts). Differences from the plan: (1) timeouts are more generous than proposed until JET-283 measures the calls: text 5 min, image 3 min, video create 10 min, all env-tunable (GEMINI_*_TIMEOUT_MS); caps GEMINI_VIDEO/IMAGE/TEXT_CONCURRENCY default 12/12/8, halve them with two instances. (2) src/modules/image/image.service.ts makes its own client and is NOT gated; render does not use it. (3) POST /:id/render can now answer 202 reading_lyrics with no jobId (contract updated); mobile should treat it like brief/song-read (JET-258). (4) Pre-existing failure, not from this change: captchaBypass.test.ts fails on a clean tree too (local env flag, JET-244).
