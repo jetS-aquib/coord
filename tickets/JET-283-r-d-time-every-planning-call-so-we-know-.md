@@ -4,9 +4,9 @@ title: R&D: time every planning call, so we know why "writing the shot list" tak
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T01:57:37+05:30
-updated: 2026-11-10T14:55:07+05:30
+updated: 2026-11-10T14:55:08+05:30
 decisions: 
 ---
 
@@ -58,3 +58,4 @@ POST render to call sheet: 84 / 90 / 71* s at default -> 40 / 40 / 42 at LOW -> 
 *Timeless measured 233s at default, but 160s of that was a song RE-READ: its stored read was cache generation 2 and we want 3, so render start re-read the whole song synchronously. Planning itself was 71s.
 Findings: (1) thinking is ~55-65% of planning time; LOW and MINIMAL are equally fast, output length unchanged. (2) No 429s, no retries, no queueing. (3) The four images at planning run one after another (~5s each). (4) A stale song read costs minutes at render start. (5) Thinking tokens are billed as output but tokenLogger's cost ignores them, so logged text cost is understated by roughly 2-3x at default.
 Recommendation for JET-284: LOW for casting, script, treatment and shot list (keeps some reasoning where a call wants it; same speed as MINIMAL here), MINIMAL for the safety pass; accept only after a side-by-side read of the shot lists at default vs LOW on these 3 songs. Then: draw plate and portraits in parallel; start the plate after the treatment. Separately worth a request: count thinking tokens in logged cost; and decide whether a stale song read should block a render (it now returns 202 reading_lyrics through the route, JET-279).
+2026-11-10T14:55:08+05:30 aquib N: status: in_progress -> review — Results in the thread; script uncommitted.
