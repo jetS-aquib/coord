@@ -4,9 +4,9 @@ title: R&D: time every planning call, so we know why "writing the shot list" tak
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T01:57:37+05:30
-updated: 2026-11-10T01:57:37+05:30
+updated: 2026-11-10T14:37:39+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ A table for 3 songs x 3 thinking settings with seconds and tokens per call, and 
 
 ## Thread
 2026-11-10T01:57:37+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T14:37:39+05:30 aquib N: status: open -> approved

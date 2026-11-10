@@ -4,9 +4,9 @@ title: Performance shots tell the model to sing, so every singer mouths words th
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T01:57:37+05:30
-updated: 2026-11-10T01:57:37+05:30
+updated: 2026-11-10T14:37:36+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A render with "artist performing" has no shot where a face visibly mouths words;
 
 ## Thread
 2026-11-10T01:57:37+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T14:37:36+05:30 aquib N: status: open -> approved
