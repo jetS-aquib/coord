@@ -38,9 +38,15 @@ A table of verdict agreement and seconds per thinking level over at least 60 sti
 
 ## Test steps
 
-—
+1. With the video-processing service running: `npx ts-node --transpile-only scripts/rnd/visionThinking.ts` (defaults: 8 latest completed renders, 60 stills, 30 clips, levels default,LOW,MINIMAL). Prints agreement with the stored verdicts per level and every disagreement.
+2. A demo render: the log's per-still frame check is about 3s (was ~10s); the timing line's gate.vision total drops by roughly two thirds. Clip check unchanged.
 
 ## Thread
 2026-11-10T15:04:54+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T15:06:50+05:30 aquib N: status: open -> approved
 2026-11-10T15:14:26+05:30 aquib N: status: approved -> in_progress
+2026-11-10T15:28:51+05:30 aquib N: RESULTS (2026-11-10, 8 latest completed local renders, half stored fails / half passes; 'same redraw decision' = whether the verdict would buy a redraw or re-render, the decision that costs money).
+Stills (60): default re-run 88% same decision, 7/8 redraws kept, 10.4s; LOW 88%, 7/8, 2.9s; MINIMAL 88%, 7/8, 2.5s. Default disagrees with its own stored answer 12% of the time, so LOW is inside the noise. LOW passes more hand/continuity fails, which never buy a redraw.
+Clips (30, run twice): below default only 15-19/30 answered ('fetch failed' on the 3-image call, reproducible; default answered 30/30 in the same session, run last), and LOW invented 3 'wrong people' fails (each buys a re-render). Default 93-97% same decision, ~17s.
+DONE: flags.render.thinking.frameGate = 'LOW' (readFramesV1 takes a thinking level; only the still check passes one). Clip check stays at default.
+ALSO FOUND: on these renders the checks fail 164/182 stills (90%) and 180/223 clips (81%); most failures are anatomy, continuity and wardrobe, which are recorded but never acted on. The verdict is noise as a quality signal; worth a decision on whether to keep asking those questions at all (shorter question = faster check).
