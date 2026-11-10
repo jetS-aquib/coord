@@ -280,6 +280,21 @@ other clip). It is the one object a fix screen needs, for both kinds. JET-286:
   before re-rendering it. Only the shots listed in `…/clips/fix` are retried; a failed
   shot left out of the list stays failed.
 
+### Directors
+
+`GET /api/v1/music-videos/directors?language=&audioUrl=&title=` → `{ defaultId, directors: [{ id, name, intro, knownFor, avatarUrl, traits }] }`.
+Seven directors since JET-289: the three general ones (`stays-close`, `fills-floor`,
+`holds-frame`) and four regional ones (`punjabi-pop` Jassi, `bollywood` Rohan,
+`devotional` Gauri, `indie-hindi` Neel). Ids are stable; `avatarUrl` is `''` for the
+regional four until their art ships (draw the monogram).
+
+With `audioUrl` (the song picked, as sent to song-read; `title` optional), the list is
+ordered for that song: the regional directors whose music it is first, then the general
+three, then the other regional ones, and `defaultId` is the best match (pre-select it).
+Only a song the server has already read is ranked; otherwise, or if working out where
+the song is from takes over 8s the first time, the plain order and `stays-close` come
+back. The answer is cached per song, so asking again is instant.
+
 ### Where the song is from
 
 The render summary carries `songContext` (JET-288): where the planner decided the song
