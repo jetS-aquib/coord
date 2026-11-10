@@ -4,7 +4,7 @@ title: Let the creator type a shot's prompt before approving, and re-render one 
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-10T21:05:23+05:30
 updated: 2026-11-10T21:18:10+05:30
 decisions: 
@@ -50,3 +50,4 @@ A typed prompt on a reviewed plan shows in the call sheet and is what the shot i
 2026-11-10T21:12:52+05:30 aquib N: status: open -> approved
 2026-11-10T21:18:10+05:30 aquib N: status: approved -> in_progress
 2026-11-10T21:18:10+05:30 aquib N: Backend done. For mobile: (1) call-sheet rows now carry `action` (the shot's line, in cast names); pre-fill the edit box with it. (2) Before Accept: PATCH …/render/:jobId/clips/:idx { action } — free, 200, row comes back overridden; 409 once filming started. (3) After render: POST …/render/:jobId/clips/:idx/rerender { action } — 202, costs one still + one clip, render goes queued -> … -> completed with a new finalVideoUrl; show it like any running render. Names are fine in the typed text; the server maps them to the cast. A safety rewrite shows up in `warnings` for that shot. Contract updated (api-music-videos.md). Assumption (c) changed: not clips/fix (that stays for blocked renders) but the existing …/rerender, which already re-stitches.
+2026-11-10T21:18:10+05:30 aquib N: status: in_progress -> review — Both routes built. Call-sheet edit checked live on a Punjabi plan (names -> tags, size/move/framing kept, still re-queued, override recorded). The finished-shot re-render was not run live because it spends a clip; it reuses the existing rerender path plus the JET-286 still redraw.
