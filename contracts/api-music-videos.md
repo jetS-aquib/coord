@@ -292,7 +292,9 @@ still send before its art ships.
 With `audioUrl` (the song picked, as sent to song-read; `title` optional), the list is
 ordered for that song: the regional directors whose music it is first, then the general
 three, then the other regional ones, and `defaultId` is the best match (pre-select it).
-Only a song the server has already read is ranked; otherwise, or if working out where
+Only a song the server has already read is ranked. Since JET-305 the server works out
+where the song is from as soon as it reads it, so this is normally instant once song-read
+has answered (a few seconds after, the first time); otherwise, or if working out where
 the song is from takes over 8s the first time, the plain order and `stays-close` come
 back. The answer is cached per song, so asking again is instant.
 
