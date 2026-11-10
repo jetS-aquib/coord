@@ -68,11 +68,12 @@ left to choose.
 
 ## What is NOT different yet
 
-v2 still encodes the material three times — once per trimmed clip, once for
-the transitions, once to burn the captions. Collapsing those into a single
-filter graph is the larger half of the available speedup and is not in the
-first release. When it lands, nothing in this file changes: it is faster, not
-different.
+This section used to say v2 encodes three times. It no longer does (JET-280
+corrected the wording): a v2 lyrics render burns the captions and muxes the
+master audio in the same encode as the transitions, so it is one encode, not
+two (v1 still encodes the transitions to an intermediate and then encodes
+again to burn). Nothing in this file changed when that landed: it is faster,
+not different.
 
 ## Which to call
 

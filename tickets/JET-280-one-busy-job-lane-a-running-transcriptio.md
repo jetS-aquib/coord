@@ -41,7 +41,10 @@ Two renders stitched at once: the second one's concat starts without waiting for
 
 ## Test steps
 
-—
+1. `.venv/bin/python -m pytest -q tests/test_job_manager.py tests/test_transcription_cache.py`: all pass, including the three JET-280 tests (lanes, segment callback, cache hit with the lock held).
+2. Restart the service and start two music-video renders about 10s apart. In the log, render B's `segment-concat` job goes to `running` while render A's segments are still running.
+3. Start a `/api/v1/lyric-transcription` for a new song, then stitch a song whose transcript is cached. The stitch logs `[TRANSCRIPT] cache hit` right away and does not wait for the transcription to finish.
+4. In the music backend log, each segment wakes from its callback within about a second of finishing, with no 15s poll gap.
 
 ## Thread
 2026-11-10T01:57:35+05:30 aquib N: created ticket, status: - -> open

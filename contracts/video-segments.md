@@ -22,6 +22,17 @@ Both endpoints are jobs, like the stitch endpoints they are made of: `202`
 with a job id, settled by polling `/api/v1/jobs/{job_id}`. Both require
 `X-Service-Assertion` and both bodies are `extra="forbid"`.
 
+**Callback (JET-280).** Send `callback_requested: true` and a settled job is
+also posted to the music-video callback, under the `attemptId` of the
+assertion the call was made with — for a segment too, so each segment can
+wake its own waiter instead of being polled. A segment's callback settles no
+attempt; the concat's does. Polling still works and is still the fallback.
+
+**Lanes (JET-280).** Segments run in their own worker pool
+(`SEGMENT_WORKERS`, default 2). Everything else — the concat, and the
+single-call fallback — runs in the main lane (`MAX_CONCURRENT_JOBS`), so it
+never waits behind segments still queued, its own or another render's.
+
 ## `POST /api/v1/segment-stitch`
 
 ```jsonc
