@@ -4,9 +4,9 @@ title: R&D: the vision checks think at full depth: re-judge stored stills and cl
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-10T15:04:54+05:30
-updated: 2026-11-10T15:06:50+05:30
+updated: 2026-11-10T15:14:26+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A table of verdict agreement and seconds per thinking level over at least 60 sti
 ## Thread
 2026-11-10T15:04:54+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T15:06:50+05:30 aquib N: status: open -> approved
+2026-11-10T15:14:26+05:30 aquib N: status: approved -> in_progress
