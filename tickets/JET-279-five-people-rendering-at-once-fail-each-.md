@@ -4,9 +4,9 @@ title: Five people rendering at once fail each other: no limit across renders, a
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-10T01:56:02+05:30
-updated: 2026-11-10T14:04:02+05:30
+updated: 2026-11-10T14:12:18+05:30
 decisions: 
 ---
 
@@ -52,3 +52,5 @@ src/services/ai/shared.ts, src/services/render/videoModelsV1.ts, src/services/re
 2026-11-10T01:56:02+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T14:04:02+05:30 aquib N: status: open -> approved
 2026-11-10T14:12:13+05:30 aquib N: Built. Gate lives in shared.ts's proxy, which every render Gemini call already goes through (src/services/ai/callGateV1.ts). Differences from the plan: (1) timeouts are more generous than proposed until JET-283 measures the calls: text 5 min, image 3 min, video create 10 min, all env-tunable (GEMINI_*_TIMEOUT_MS); caps GEMINI_VIDEO/IMAGE/TEXT_CONCURRENCY default 12/12/8, halve them with two instances. (2) src/modules/image/image.service.ts makes its own client and is NOT gated; render does not use it. (3) POST /:id/render can now answer 202 reading_lyrics with no jobId (contract updated); mobile should treat it like brief/song-read (JET-258). (4) Pre-existing failure, not from this change: captchaBypass.test.ts fails on a clean tree too (local env flag, JET-244).
+2026-11-10T14:12:18+05:30 aquib N: status: approved -> in_progress
+2026-11-10T14:12:18+05:30 aquib N: status: in_progress -> review — Ready to review; uncommitted.
