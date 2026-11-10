@@ -4,9 +4,9 @@ title: song-read answers 404 and drops the tempo when the read has no sections (
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-10T15:54:36+05:30
-updated: 2026-11-10T15:54:54+05:30
+updated: 2026-11-10T15:57:41+05:30
 decisions: 
 ---
 
@@ -39,8 +39,14 @@ A track whose read has bpm but no sections answers 200 with sections: []; a trac
 
 ## Test steps
 
-—
+1. `npx vitest run src/modules/musicVideo/songRead.test.ts`: passes.
+2. `POST /api/v1/music-videos/song-read` with the 19s Hindi track's audioUrl (…Chai_Ki_Tapri_Pe__-_RaagTune.mp3, already read): 200 with bpm ≈ 99.98, 8 downbeats, 7 energy values, sections: [] (was 404).
+3. `GET /api/v1/music-videos/:id/song-read` for a project on that track: same 200.
+4. A normal song: unchanged 200 with its sections. An audioUrl the processing service cannot read: still 404.
+5. Start a render on the short track: it starts and cuts by duration (log: no "cut to the song" line).
 
 ## Thread
 2026-11-10T15:54:36+05:30 aquib N: created ticket, status: - -> open
 2026-11-10T15:54:54+05:30 aquib N: status: open -> approved
+2026-11-10T15:57:41+05:30 aquib N: status: approved -> in_progress
+2026-11-10T15:57:41+05:30 aquib N: Root cause confirmed: the stored read for the 19s track is valid (bpm 99.98, 8 downbeats, 7 energy, language unknown, sections 0; Gemini heard no words, so nothing to section). Only sendSongReadV1's guard was wrong (404 on empty sections). Now 404 only when there is no read or no beat (bpm > 0 and at least one downbeat); otherwise 200 with sections: []. Assumption (3) in the request holds. Checked: cutPlanV1 returns [] for no sections, so the render packs by duration as before; the brief already has a no-sections fallback. Contract updated. Mobile half is theirs as planned.

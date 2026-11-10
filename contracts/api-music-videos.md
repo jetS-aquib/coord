@@ -73,9 +73,12 @@ whole song from one call, instead of the client calling a clip endpoint per scen
 - `GET /api/v1/music-videos/:id/song-read` — what the song is doing: `bpm`,
   `beatsPerBar`, `downbeats[]`, `energy[]` (one per bar, 0-1) and `sections[]` with
   their timed lines. The same read the planner cuts to, so a screen showing it and a
-  render using it cannot disagree. `404` for an instrumental or when the read is
-  unavailable — there is nothing to draw, and the render falls back to duration
-  packing. JET-206.
+  render using it cannot disagree. `sections` may be `[]` (JET-299): a short or wordless
+  track where no words were heard still has a tempo, and answers `200` with its `bpm`,
+  `downbeats` and `energy` — draw the tempo, and say plainly that no words were heard.
+  `404` only when there is no read at all (no tempo found, or the read is unavailable).
+  Either way the render falls back to duration packing when there are no sections.
+  JET-206, JET-299.
 - `POST /api/v1/music-videos/song-read` — the same read keyed on the audio instead of
   a project. Body `{ audioUrl }`. For the screen between upload and the brief, where
   no project exists yet and creating a draft one would put a row in the Library for
