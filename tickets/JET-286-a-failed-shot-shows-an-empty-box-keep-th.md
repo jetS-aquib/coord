@@ -4,9 +4,9 @@ title: A failed shot shows an empty box: keep the prompt we actually sent, why i
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-10T01:57:39+05:30
-updated: 2026-11-10T01:57:39+05:30
+updated: 2026-11-10T15:11:05+05:30
 decisions: 
 ---
 
@@ -41,7 +41,14 @@ A blocked render's summary shows, for each bad shot, both prompts, a cause and a
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/renderV1.test.ts`: passes, including "failure transparency (JET-286)".
+2. Force a missing shot: set `flags.gemini.timeoutMs.video = 5000` in src/config/flags.ts, restart, start a demo render. Shots time out, retry once, then fail and the render ends blocked. Put the flag back to 600_000.
+3. `GET /api/v1/music-videos/render/:jobId` on that render: each failed clip has `failure` with cause `timeout`, a plain `likelyReason`, `prompt`, `sentPrompt` (longer than `prompt`, with location/cast/look) and `suggestedPrompt` equal to `prompt`. `error` is the plain sentence, not a raw provider message.
+4. `POST …/clips/fix` with ONE of the failed shots and a changed prompt: the log says "redrawing 1 still(s) from the new words"; only that shot re-renders; the others stay failed and the render blocks again.
+5. A refused shot (if you have a prompt that gets refused): its `failure.cause` is `refused` and `suggestedPrompt` is a rewrite once the render is blocked.
 
 ## Thread
 2026-11-10T01:57:39+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T15:06:27+05:30 aquib N: status: open -> approved
+2026-11-10T15:11:05+05:30 aquib N: status: approved -> in_progress
+2026-11-10T15:11:05+05:30 aquib N: Built. Per clip: sentPrompt (what the model got) and failure {cause refused|timeout|no_video|quota|error, rawReason (server only), provider, at, suggestedPrompt}. Summary adds failure {cause, likelyReason, prompt, sentPrompt, suggestedPrompt} on every failed/refused clip; refusal stays as it was. error on a failed clip is now a plain sentence instead of the raw provider message. Suggestions: refused AND no_video (usually a silent safety filter) get a rewrite at the blocked gate, one call; timeout/quota/error get the shot itself (nothing to change). Fix: only listed shots are retried; a shot whose words changed has its opening still (and the closing one, if it is the last shot) redrawn from the new words before rendering. Deviation from the plan: suggestions rewrite the editable shot line, not sentPrompt, because a fix replaces the shot line and the server composes the rest again; rewriting sentPrompt would double it. Checked mobile: BlockedDecision already sends every missing shot and requires text for each, so retry-only-listed changes nothing for the current app. Contract updated. Mobile follow-up is JET-287.

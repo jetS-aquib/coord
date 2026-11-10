@@ -4,9 +4,9 @@ title: While shots film, the key frames may still be drawing: show both on the p
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T15:04:53+05:30
-updated: 2026-11-10T15:04:53+05:30
+updated: 2026-11-10T15:06:47+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ During a render, the progress line shows key frame progress until the last still
 
 ## Thread
 2026-11-10T15:04:53+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T15:06:47+05:30 aquib N: status: open -> approved

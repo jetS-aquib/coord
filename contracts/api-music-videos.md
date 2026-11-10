@@ -65,7 +65,9 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   Sets each prompt, re-renders only those shots, then stitches as usual. `409` unless
   the render is `blocked`; `400` naming the shot if one is listed twice, does not exist,
   or is not missing (`refused`/`failed`) — re-doing a rendered shot is `…/rerender`.
-  Any `failed` shot is retried on the way through too. JET-250.
+  Only the listed shots are retried; a missing shot left out stays missing (JET-286,
+  it used to retry every `failed` shot too). A listed shot whose words changed gets its
+  opening still redrawn from the new words first. JET-250, JET-286.
 - `POST /api/v1/music-videos/render/:jobId/stitch` — `202`; assembles a `blocked`
   render as it is, missing shots and all. Deliberate opt-in; `409` on any other status.
 - `GET /api/v1/music-videos/:id/song-read` — what the song is doing: `bpm`,
@@ -231,6 +233,31 @@ to get past the provider — pre-fill an editable field with it, never send it u
 It is written when the render goes `blocked` (one text call for all refused shots), so
 it may be null for a moment on a clip still refusing mid-render, and stays null when
 no rewrite could be had: fall back to the current `prompt` then.
+
+Every **missing** shot (`failed` or `refused`) also carries `failure` (null on every
+other clip). It is the one object a fix screen needs, for both kinds. JET-286:
+
+```jsonc
+"failure": {
+  "cause": "no_video",       // refused | timeout | no_video | quota | error
+  "likelyReason": "The video service sent nothing back for this shot. …",  // show it
+  "prompt": "close shot, slow push in. @image1 looks up at the rain. …",    // the line to edit
+  "sentPrompt": "… the line, plus location, cast, look and fixed instructions",  // what the model got
+  "suggestedPrompt": "close shot, slow push in. A young woman looks up …"   // or null
+}
+```
+
+- `prompt` is what a fix replaces; pre-fill the editable box with `suggestedPrompt`.
+- `sentPrompt` is read-only context ("what we asked for"); never send it back as the fix,
+  it already contains text the server adds again.
+- `suggestedPrompt`: for `refused` and `no_video` (usually a silent safety filter) a
+  rewrite, or null while none has been written yet or none could be had; for `timeout`,
+  `quota` and `error` the shot was fine as written, so it is `prompt` itself.
+- On a `failed` clip `error` is now the same plain sentence as `likelyReason` (it used to
+  be the provider's raw message). The raw message stays on the server.
+- A fix that changes a shot's words also redraws its opening still from the new words
+  before re-rendering it. Only the shots listed in `…/clips/fix` are retried; a failed
+  shot left out of the list stays failed.
 
 ### Pictures before there is video
 

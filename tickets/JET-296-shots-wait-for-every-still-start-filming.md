@@ -4,9 +4,9 @@ title: Shots wait for every still: start filming a shot as soon as its two still
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T15:04:37+05:30
-updated: 2026-11-10T15:04:37+05:30
+updated: 2026-11-10T15:06:44+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ On the same song, the time from the first still to the last clip done drops by r
 
 ## Thread
 2026-11-10T15:04:37+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T15:06:44+05:30 aquib N: status: open -> approved
