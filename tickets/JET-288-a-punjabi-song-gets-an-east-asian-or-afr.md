@@ -4,9 +4,9 @@ title: A Punjabi song gets an East Asian or African cast: ground casting and eve
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T01:57:41+05:30
-updated: 2026-11-10T01:57:41+05:30
+updated: 2026-11-10T20:28:09+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ A Punjabi song with no casting choice produces a Punjabi cast, wardrobe and sett
 
 ## Thread
 2026-11-10T01:57:41+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T20:28:09+05:30 aquib N: status: open -> approved

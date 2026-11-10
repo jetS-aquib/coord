@@ -4,9 +4,9 @@ title: R&D: Omni 1.1 is rerouted to 1.2 on 3 Dec; check its price and whether 15
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-10T01:57:44+05:30
-updated: 2026-11-10T01:57:44+05:30
+updated: 2026-11-10T20:28:45+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ A table 8s vs 15s for one song, and the model pinned before 3 Dec with correct c
 
 ## Thread
 2026-11-10T01:57:44+05:30 aquib N: created ticket, status: - -> open
+2026-11-10T20:28:45+05:30 aquib N: status: open -> approved
