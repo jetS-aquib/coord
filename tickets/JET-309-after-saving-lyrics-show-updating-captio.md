@@ -4,9 +4,9 @@ title: After saving lyrics, show 'Updating captions' on a finished video and swa
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-11T16:24:06+05:30
-updated: 2026-11-11T16:24:06+05:30
+updated: 2026-11-11T16:28:28+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ Change a word in the lyrics of a song with a finished video: the video screen sa
 
 ## Thread
 2026-11-11T16:24:06+05:30 aquib N: created ticket, status: - -> open
+2026-11-11T16:28:28+05:30 aquib N: status: open -> approved
