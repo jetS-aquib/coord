@@ -1,13 +1,17 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-280 (two job lanes) done and handed back, not committed yet. Earlier: JET-264/265 in review, JET-270 waiting on approval and .lrc references, JET-256 should bump the music song-read cache (READ_VERSION 5)
+- **Current task:** JET-276 (stitch timing R&D): queue_wait log line added; waiting on a v2 then v1 local render of the same 31+ clip song. JET-280 still uncommitted.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-10T14:35:00+05:30
+- **Last updated:** 2026-11-11T18:00:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-11T17:36:41+05:30
+
+Session ended while on JET-306. Touched: start-on-jet-276-replicated-goblet.md, app/infrastructure/jobs/manager.py. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-10T14:35:00+05:30
 
 **JET-280.** Segments now run in their own pool (SEGMENT_WORKERS=2); the concat, whole-song stitches and fallbacks stay on MAX_CONCURRENT_JOBS. A transcript cache hit is read without transcription.lock. FFmpegEngine._run adds `-threads cores//(both pools)` (FFMPEG_THREADS overrides). Segments call back under their own attemptId (callback_attempt_id, which settles nothing). Cancel step dropped: D-079. Contracts video-segments.md and video-stitching-v2.md corrected. On the 2-vCPU prod box this means -threads 1 and up to 3 encodes at once, so watch RAM; SEGMENT_WORKERS=1 is the safe setting if it struggles. Next: commit, then the person who filed it checks the Test steps. test_golden_script fails before this change too.
