@@ -4,9 +4,9 @@ title: R&D: measure where a real render's stitch time goes, stage by stage
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-09T03:24:16+05:30
-updated: 2026-11-09T03:24:30+05:30
+updated: 2026-11-11T17:32:05+05:30
 decisions: D-077
 ---
 
@@ -44,3 +44,4 @@ A per-stage table for v1 and v2 on the same song, with measured vs estimated mar
 ## Thread
 2026-11-09T03:24:16+05:30 aquib N: created ticket, status: - -> open
 2026-11-09T03:24:30+05:30 aquib N: linked decision D-077 (Create flow: lyrics checked before direction, guided choices over free text, one review toggle for pros, rendering R&D server-first)
+2026-11-11T17:32:05+05:30 aquib N: status: open -> approved
