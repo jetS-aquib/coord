@@ -36,7 +36,10 @@ Save a changed lyric on a song with a finished video; GET /api/music-videos/:id 
 
 ## Test steps
 
-—
+1. On a song with a finished, captioned video, change one word in the lyrics editor and save (`restitching: 1`).
+2. `GET /api/music-videos/:id` for that project: `captionsUpdating: true`, and `finalVideoUrl` is still the old video.
+3. A few minutes later the same call shows `captionsUpdating: false` and a new `finalVideoUrl` with the corrected word in its captions.
 
 ## Thread
 2026-11-11T16:39:05+05:30 aquib N: created ticket, status: - -> open
+2026-11-11T16:40:51+05:30 aquib N: Checked: legit. GET /:id/render only returns running or resumable renders (findResumablePlanV1), so a finished one is 404, and the project GET returns the stored record with no such field. Built differently from the plan: the flag is written onto the MusicVideo record next to finalVideoUrl (which the re-stitch already updates), so GET /api/music-videos/:id returns it with no extra lookup on every poll. Same field name and meaning; absent on old records = false.

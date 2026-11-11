@@ -172,6 +172,9 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   whose words did not change returns at once). No shot is re-filmed. The current
   `finalVideoUrl` stays until the new one lands, and stays if the re-stitch fails;
   the render state shows `captionsUpdating: true` meanwhile, then a new `finalVideoUrl`.
+  So does the project, `GET /api/music-videos/:id` → `captionsUpdating` (JET-310), which
+  is the one to poll from the video screen: the render route answers 404 once a render
+  has finished. Absent on projects saved before it, which means false.
 - `DELETE /api/v1/music-videos/lyrics` — body `{ audioUrl }`; back to what was heard.
   Returns `{ success, edited: false, restitching }`, re-stitching as above. JET-266, JET-308.
 - `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
