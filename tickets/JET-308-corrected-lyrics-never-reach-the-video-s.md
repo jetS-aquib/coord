@@ -4,9 +4,9 @@ title: Corrected lyrics never reach the video's captions: send them on every sti
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-11T16:23:40+05:30
-updated: 2026-11-11T16:28:23+05:30
+updated: 2026-11-11T16:41:35+05:30
 decisions: 
 ---
 
@@ -50,3 +50,5 @@ A word changed in the lyrics editor shows in the captions of a new render, and o
 2026-11-11T16:23:40+05:30 aquib N: created ticket, status: - -> open
 2026-11-11T16:24:14+05:30 aquib N: Built ahead of approval at the user's direct ask (staging bug). Root cause: the stitcher accepted lyricLines since JET-267 but nothing on our side sent them; the contract still said 'waits on JET-267'. Checked: both stitch calls now carry the changed lines (and only those), an uncorrected request is byte-for-byte the old one, and the stitcher reads lyricLines on both v2 routes. Could not reproduce on staging data from here: this machine's database is not staging's.
 2026-11-11T16:28:23+05:30 aquib N: status: open -> approved
+2026-11-11T16:41:35+05:30 aquib N: status: approved -> in_progress
+2026-11-11T16:41:35+05:30 aquib N: status: in_progress -> review

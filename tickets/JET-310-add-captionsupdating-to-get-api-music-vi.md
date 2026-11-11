@@ -4,9 +4,9 @@ title: Add captionsUpdating to GET /api/music-videos/:id so a finished video can
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-11T16:39:05+05:30
-updated: 2026-11-11T16:39:05+05:30
+updated: 2026-11-11T16:41:36+05:30
 decisions: 
 ---
 
@@ -43,3 +43,6 @@ Save a changed lyric on a song with a finished video; GET /api/music-videos/:id 
 ## Thread
 2026-11-11T16:39:05+05:30 aquib N: created ticket, status: - -> open
 2026-11-11T16:40:51+05:30 aquib N: Checked: legit. GET /:id/render only returns running or resumable renders (findResumablePlanV1), so a finished one is 404, and the project GET returns the stored record with no such field. Built differently from the plan: the flag is written onto the MusicVideo record next to finalVideoUrl (which the re-stitch already updates), so GET /api/music-videos/:id returns it with no extra lookup on every poll. Same field name and meaning; absent on old records = false.
+2026-11-11T16:41:19+05:30 aquib N: status: open -> approved
+2026-11-11T16:41:35+05:30 aquib N: status: approved -> in_progress
+2026-11-11T16:41:36+05:30 aquib N: status: in_progress -> review
