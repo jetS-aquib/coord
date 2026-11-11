@@ -164,10 +164,16 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   heard. Stored on the song read as one entry per user (a library track is shared between people), so it
   never changes anyone else's read. From then on that user's song-read, brief and
   render (planner lines, `MusicVideo.lyrics`) use the corrected words. `lines: []`
-  clears them. `404` if the song has not been read yet. Returns `{ success, edited }`.
-  The caption burn does not use them yet — it waits on JET-267. JET-266.
+  clears them. `404` if the song has not been read yet. Returns `{ success, edited, restitching }`.
+  JET-266. Since JET-308 the captions burn them too: every render reads this user's
+  corrections when it stitches, so a correction saved while it films is in the video.
+  And every **finished**, captioned render of this user on that song is stitched again
+  in the background with the new words (`restitching` = how many were queued; a render
+  whose words did not change returns at once). No shot is re-filmed. The current
+  `finalVideoUrl` stays until the new one lands, and stays if the re-stitch fails;
+  the render state shows `captionsUpdating: true` meanwhile, then a new `finalVideoUrl`.
 - `DELETE /api/v1/music-videos/lyrics` — body `{ audioUrl }`; back to what was heard.
-  JET-266.
+  Returns `{ success, edited: false, restitching }`, re-stitching as above. JET-266, JET-308.
 - `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
   `{ audioUrl }`. Not project-scoped, because the point is that it is called at
   **upload**, before a project exists. Fire and forget: nothing depends on it, nothing
@@ -204,6 +210,7 @@ parser.
                                 // | stitching | blocked | paused
                                 // | completed | failed | cancelled
   "progress": 62,               // 0-100
+  "captionsUpdating": false,     // true while a finished video is re-stitched with corrected lyrics (JET-308)
   "modelKey": "omni", "tier": "standard",   // demo | standard | hero
   "aspectRatio": "9:16", "concurrency": 6,
   "clipsTotal": 33, "clipsDone": 20, "clipsRefused": 0,
