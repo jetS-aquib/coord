@@ -4,9 +4,9 @@ title: POST /api/v2/segment-concat answers 422 on callback_requested, so every s
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-11T14:01:34+05:30
-updated: 2026-11-11T14:01:34+05:30
+updated: 2026-11-11T14:06:10+05:30
 decisions: 
 ---
 
@@ -40,8 +40,14 @@ POST /api/v2/segment-concat with callback_requested: true answers 202, and a seg
 
 ## Test steps
 
-—
+1. `.venv/bin/python -m pytest -q tests/test_segments.py`: all pass, including `test_a_finalise_takes_callback_requested_and_keeps_it` for v1 and v2.
+2. Deploy to staging and render a music video long enough to segment (2+ scenes).
+3. Video service log: `POST /api/v2/segment-concat` answers `202 Accepted`, not 422.
+4. Node log: no `segment stitching failed ... falling back`, and no `clip-stitching-with-lyrics` call for that render; the concat job finishes and the render completes.
 
 ## Thread
 2026-11-11T14:01:34+05:30 aquib N: created ticket, status: - -> open
 2026-11-11T14:04:32+05:30 aquib N: Checked against the code and the 08:22:36 logs: confirmed, 422 extra_forbidden on body.callback_requested. Fix is smaller than the plan: add callback_requested to SegmentConcatRequest and pass it into ClipStitchingRequest in both concat routes (v1 segments.py, v2 stitching.py). The finish callback needs no new code: _report_outcome already posts it for attempt-scoped jobs whose state has callback_requested. deferred.py is not involved. Plus one test, plus a line in contracts/video-segments.md.
+2026-11-11T14:05:12+05:30 aquib N: status: open -> approved
+2026-11-11T14:06:10+05:30 aquib N: status: approved -> in_progress
+2026-11-11T14:06:10+05:30 aquib N: status: in_progress -> review — ready: see Test steps

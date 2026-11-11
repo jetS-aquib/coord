@@ -27,6 +27,8 @@ also posted to the music-video callback, under the `attemptId` of the
 assertion the call was made with — for a segment too, so each segment can
 wake its own waiter instead of being polled. A segment's callback settles no
 attempt; the concat's does. Polling still works and is still the fallback.
+`segment-concat` accepts the same `callback_requested` field (JET-306; before
+that it answered `422 extra_forbidden`).
 
 **Lanes (JET-280).** Segments run in their own worker pool
 (`SEGMENT_WORKERS`, default 2). Everything else — the concat, and the
