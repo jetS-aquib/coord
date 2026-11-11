@@ -44,3 +44,4 @@ POST /api/v2/segment-concat with callback_requested: true answers 202, and a seg
 
 ## Thread
 2026-11-11T14:01:34+05:30 aquib N: created ticket, status: - -> open
+2026-11-11T14:04:32+05:30 aquib N: Checked against the code and the 08:22:36 logs: confirmed, 422 extra_forbidden on body.callback_requested. Fix is smaller than the plan: add callback_requested to SegmentConcatRequest and pass it into ClipStitchingRequest in both concat routes (v1 segments.py, v2 stitching.py). The finish callback needs no new code: _report_outcome already posts it for attempt-scoped jobs whose state has callback_requested. deferred.py is not involved. Plus one test, plus a line in contracts/video-segments.md.
