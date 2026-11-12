@@ -4,9 +4,9 @@ title: R&D: measure where a real render's stitch time goes, stage by stage
 from: music-jetkreate-mobile
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-09T03:24:16+05:30
-updated: 2026-11-11T17:32:05+05:30
+updated: 2026-11-12T12:08:41+05:30
 decisions: D-077
 ---
 
@@ -39,7 +39,9 @@ A per-stage table for v1 and v2 on the same song, with measured vs estimated mar
 
 ## Test steps
 
-—
+1. Read the RESULTS note in the Thread: one per-stage table for v1 and v2 on the same project (36 clips, 243s song), each number marked measured or estimated.
+2. Run the video service, start any segmented render, and check the log has `[API3-TIMING] queue_wait[<job>]=` once per job and `clip_trims=` once per job; the second segment's queue_wait should be higher than the first's.
+3. Confirm no behaviour changed: the render finishes and plays as before.
 
 ## Thread
 2026-11-09T03:24:16+05:30 aquib N: created ticket, status: - -> open
@@ -54,3 +56,5 @@ RESOURCES (sampled every 2s): up to 14 ffmpeg processes at once, peak ~2.5-2.7GB
 ANSWERS: (1) Stitching is not 4-5 min on this box: 73s v2. The biggest stage is trimming, not xfade or download. (2) JET-236 is in code (05ea905): the concat pulls 15 segment files in 1.4-2.8s. Live on the VM: unverified (need the deployed image commit). (3) MAX_CONCURRENT_JOBS=1 no longer serialises segments (JET-280 gave them their own pool). Raising SEGMENT_WORKERS 2->4 would save ~10-15s of slot wait here (ESTIMATED) but on the 2-vCPU VM it adds contention; the uncapped 15-way trim burst is the bigger VM risk (ESTIMATED: ~15x0.4GB=6GB RSS spike, all on 2 cores).
 NOT INSTRUMENTED before this: queue_wait, clip_trims (both added, log-only). 
 SUGGESTED NEXT (not done): run trims inside the pool, or with -threads cap / -preset ultrafast; or skip the re-encode when a stream copy is close enough. Repeat these numbers on the VM before any mobile-stitch work.
+2026-11-12T12:08:19+05:30 aquib N: status: approved -> in_progress
+2026-11-12T12:08:41+05:30 aquib N: status: in_progress -> review — per-stage v1/v2 table is in the thread

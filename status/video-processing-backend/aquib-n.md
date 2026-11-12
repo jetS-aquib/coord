@@ -1,13 +1,17 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-276 (stitch timing R&D): queue_wait log line added; waiting on a v2 then v1 local render of the same 31+ clip song. JET-280 still uncommitted.
+- **Current task:** JET-276 handed back (waiting on the requester to check the v1/v2 table). JET-280 is committed (c3dffd4). JET-276 log lines are uncommitted.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-11T18:00:00+05:30
+- **Last updated:** 2026-11-12T12:20:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-12T12:20:00+05:30
+
+**JET-276.** Measured one 36-clip, 243s, 9:16 project locally (Mac, 10 cores) on v2 then v1: wall 73s v2 vs 163s v1. Per segment the biggest stage is the JET-207 trim re-encode (~24s median), not download (~4s) or xfade (2.6s v2 / 5.2s v1). The v1 concat burns at 1080x1920 (62.8s) vs v2 720x1280 (19.7s). Trims run before the pool, so all 15 run at once: 14 ffmpeg, ~2.7GB, ~7 cores, no FFMPEG_THREADS cap. Added two log-only timers: queue_wait (manager._run) and clip_trims (job_service._download_clips). Full table is a note on the request. music-jetkreate-backend flags.ts was flipped to v1 for the run and reverted (no diff left). Next: commit both log lines; on the VM, rerun to get real numbers; worth a request to cap or pool the trims.
+
 ### 2026-11-11T17:36:41+05:30
 
 Session ended while on JET-306. Touched: start-on-jet-276-replicated-goblet.md, app/infrastructure/jobs/manager.py. Nothing committed. (written automatically — no one said what is next)
