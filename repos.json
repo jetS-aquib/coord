@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-27T15:22:29+05:30",
+  "updated": "2026-11-12T17:29:26+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -70,8 +70,9 @@
         "creater-ai-frontend"
       ],
       "onboarded": "2026-10-14",
-      "status": "active",
-      "remote": "git@github.com:jet-ai-task-force/iris.git"
+      "status": "offboarded",
+      "remote": "git@github.com:jet-ai-task-force/iris.git",
+      "offboarded": "2026-11-12"
     },
     {
       "name": "music-jetkreate-backend",
