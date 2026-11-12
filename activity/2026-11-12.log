@@ -50,3 +50,6 @@
 2026-11-12T17:29:26+05:30	iris	offboarded	aquib N
 2026-11-12T17:31:26+05:30	video-processing-backend	session-stop	aquib N
 2026-11-12T17:31:26+05:30	video-processing-backend	context	aquib N	together-music-jetkreate-backend-video-processing-backend-2026-11-12
+2026-11-12T17:31:40+05:30	iris	iris: discovered, not onboarded	aquib N
+2026-11-12T17:40:02+05:30	video-processing-backend	session-stop	aquib N
+2026-11-12T17:40:02+05:30	video-processing-backend	context	aquib N	together-music-jetkreate-backend-video-processing-backend-2026-11-12
