@@ -58,3 +58,76 @@ NOT INSTRUMENTED before this: queue_wait, clip_trims (both added, log-only).
 SUGGESTED NEXT (not done): run trims inside the pool, or with -threads cap / -preset ultrafast; or skip the re-encode when a stream copy is close enough. Repeat these numbers on the VM before any mobile-stitch work.
 2026-11-12T12:08:19+05:30 aquib N: status: approved -> in_progress
 2026-11-12T12:08:41+05:30 aquib N: status: in_progress -> review — per-stage v1/v2 table is in the thread
+2026-11-12T12:12:32+05:30 aquib N: PAUSED 2026-11-12, picking up later.
+DONE: local v1 vs v2 measurement on one project (table in the RESULTS note above). music-jetkreate-backend stitch flag flipped to v1 for the run and reverted.
+NOT DONE: (1) the same measurement on the VM, which is what decides any mobile-stitch work; (2) checking JET-236 is deployed there (needs the deployed image commit); (3) a request to move the JET-207 clip trims into the worker pool or cap their ffmpeg threads.
+CODE: the two log-only timers (queue_wait in JobManager._run, clip_trims in JobService._download_clips) were reverted, since the request is research only. To re-apply them for the VM run, save the patch below as jet-276-timers.patch at the repo root and run: git apply jet-276-timers.patch
+```diff
+diff --git a/app/infrastructure/jobs/manager.py b/app/infrastructure/jobs/manager.py
+index 2eb526f..02efa9e 100644
+--- a/app/infrastructure/jobs/manager.py
++++ b/app/infrastructure/jobs/manager.py
+@@ -6,6 +6,7 @@ from datetime import datetime, timezone
+ from pathlib import Path
+ from typing import Any, Callable
+ 
++from app.core.timing import log_timing
+ from app.infrastructure.jobs.store import FileJobStore, JobStore
+ 
+ 
+@@ -102,6 +103,16 @@ class JobManager:
+         fn: Callable[[], Any],
+         on_settled: Callable[[dict[str, Any]], None] | None = None,
+     ) -> None:
++        # JET-276. Time spent waiting for a pool slot, which nothing else
++        # measured. Observational only: a bad created_at never stops the job.
++        try:
++            created = datetime.fromisoformat(self.get(job_id)["created_at"])
++            log_timing(
++                f"queue_wait[{job_id[:8]}]",
++                (datetime.now(timezone.utc) - created).total_seconds(),
++            )
++        except Exception:  # noqa: BLE001
++            pass
+         self.update(job_id, status="running", stage="queued")
+         try:
+             output_url = str(fn())
+diff --git a/app/services/job_service.py b/app/services/job_service.py
+index 977fce3..4f70345 100644
+--- a/app/services/job_service.py
++++ b/app/services/job_service.py
+@@ -439,6 +439,7 @@ class JobService:
+                 await self._download_clips(
+                     clips,
+                     clips_dir,
++                    job_id,
+                 )
+             finally:
+                 self._log_timing(
+@@ -867,6 +868,7 @@ class JobService:
+         self,
+         clips: Sequence[ClipInput],
+         clips_dir: Path,
++        job_id: str,
+     ) -> None:
+ 
+         ordered = sorted(
+@@ -933,6 +935,9 @@ class JobService:
+         # Serial and off the event loop. These are short ffmpeg encodes and
+         # this deployment runs one job at a time anyway (MAX_CONCURRENT_JOBS),
+         # so running them concurrently would contend for the same cores.
++        # JET-276. Timed apart from the download it sits inside, so
++        # `download_clips` minus `clip_trims` is the network.
++        _t_trims = time.perf_counter()
+         for destination, clip in trims:
+             if not clip.trimmed:
+                 continue
+@@ -942,6 +947,7 @@ class JobService:
+                 in_seconds=clip.in_seconds,
+                 out_seconds=clip.out_seconds,
+             )
++        self._log_timing(job_id, "clip_trims", time.perf_counter() - _t_trims)
+ 
+     async def _download_audio(
+         self,
+```
