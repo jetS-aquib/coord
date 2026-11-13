@@ -4,9 +4,9 @@ title: Two instances can run the same render: saves don't check the lease owner,
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-13T13:07:25+05:30
-updated: 2026-11-13T13:28:07+05:30
+updated: 2026-11-13T13:42:57+05:30
 decisions: 
 ---
 
@@ -47,3 +47,5 @@ A render whose lease is taken by another owner stops within one save. A render l
 2026-11-13T13:07:25+05:30 aquib N: created ticket, status: - -> open
 2026-11-13T13:28:07+05:30 aquib N: status: open -> approved
 2026-11-13T13:42:57+05:30 aquib N: Scaled to one server (user, 2026-11-13: app runs on one server today). Built: heartbeat that finds its lease taken marks the run lease-lost; stoppedSince() then says stop, so no new clips are dispatched; moveStatusV1 also filters on leaseOwner = this process, so a run that lost its lease writes no status. SKIPPED plan step 2 (periodic takeover): on one server the startup sweep + afterLease retry already is the takeover; add a timer when a second instance can die alone (ponytail comment in code). Checked on local Mongo: a status write on a plan leased by another owner is refused, own lease writes.
+2026-11-13T13:42:57+05:30 aquib N: status: approved -> in_progress
+2026-11-13T13:42:57+05:30 aquib N: status: in_progress -> review
