@@ -4,9 +4,9 @@ title: Every deploy brings cancelled videos back: the startup sweep re-queues us
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-13T13:07:26+05:30
-updated: 2026-11-13T13:29:28+05:30
+updated: 2026-11-13T13:30:31+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ After a restart, a cancelled render stays cancelled. A failed fully-filmed rende
 2026-11-13T13:28:10+05:30 aquib N: status: open -> approved
 2026-11-13T13:29:28+05:30 aquib N: status: approved -> in_progress
 2026-11-13T13:30:31+05:30 aquib N: Built. The startup stitch sweep now takes status 'failed' only (cancelled is always the user's word), and skips any render whose song has a newer render, finished or not, so an old stitch can't replace a newer video. That also covers renders JET-311's boot cleanup marked failed. Verified on local Mongo: cancelled stays cancelled, a failed latest render is picked up, a failed render with a newer completed one stays failed. No mobile change: a cancelled render already shows as stopped.
+2026-11-13T13:30:31+05:30 aquib N: status: in_progress -> review
