@@ -4,9 +4,9 @@ title: 'Start filming' and 'Try again' do nothing: they reload the render screen
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:29+05:30
-updated: 2026-11-13T13:07:29+05:30
+updated: 2026-11-13T15:25:41+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Start filming on an idle project starts a render; Try again on a failed one star
 
 ## Thread
 2026-11-13T13:07:29+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T15:25:41+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Library and video screen show the wrong state: failed, blocked and paused
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:31+05:30
-updated: 2026-11-13T13:07:31+05:30
+updated: 2026-11-13T15:25:52+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ A blocked render shows 'Needs you' in the Library; a failed one shows Failed; th
 
 ## Thread
 2026-11-13T13:07:31+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T15:25:52+05:30 aquib N: status: open -> approved
