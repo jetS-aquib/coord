@@ -4,9 +4,9 @@ title: The project's status lies: in_production is never reset, and a client sav
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:27+05:30
-updated: 2026-11-13T13:07:27+05:30
+updated: 2026-11-13T13:44:49+05:30
 decisions: 
 ---
 
@@ -45,3 +45,5 @@ A failed or cancelled render no longer leaves its project in_production. Saving 
 
 ## Thread
 2026-11-13T13:07:27+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T13:44:49+05:30 aquib N: status: open -> approved
+2026-11-13T13:47:35+05:30 aquib N: Built. (1) saveMusicVideo ignores body status; empty/missing finalVideoUrl keeps the stored one; a non-empty one (web's own pipeline) is saved and marks completed - kept because music-jetkreate-frontend MusicToVideo.tsx:322 saves its own finalVideoUrl. (2) settleProjectV1: on cancel and on run failure, project in_production -> completed if it has a video, else draft (one pipeline updateOne). Blocked/paused untouched. (3) Restitch only replaces MusicVideo.finalVideoUrl where it still equals the old one. (4) Contract note under POST /api/music-videos. Checked settle on local Mongo (video->completed, none->draft, completed untouched). Mobile: no change needed for this; reading renderStatus for blocked/paused is JET-320. Side effect: web projects with a storyboard but no video now show draft instead of in_production.

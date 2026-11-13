@@ -14,6 +14,12 @@ truth — and their shapes remain undocumented.
 - `GET /api/music-videos`
 - `GET /api/music-videos/:id`
 - `POST /api/music-videos`
+  `status` and `finalVideoUrl` are the server's (JET-315). `status` in the body is
+  ignored; a new project is `draft`, and the render moves it (`in_production` while a
+  render runs, `completed` with a video, back to `completed`/`draft` when a render
+  fails or is cancelled). An empty or missing `finalVideoUrl` keeps the stored one; a
+  non-empty one (a video the client made itself) is saved and marks it `completed`.
+  A blocked or paused render leaves the project `in_production` — read `renderStatus`.
 - `DELETE /api/music-videos/:id`
 
 Also mounted at `/api/v1/music-videos`.
