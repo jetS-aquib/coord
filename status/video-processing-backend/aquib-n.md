@@ -1,9 +1,9 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-323 (lyric timing from a forced aligner, behind LYRIC_FORCED_ALIGNMENT) built and uncommitted, waiting on the requester's ear test. JET-321/322 committed (b8cf497, 5a00afc), waiting on the requester. JET-276 paused.
+- **Current task:** JET-323 paused, committed off (25d13c2). JET-321/322 committed (b8cf497, 5a00afc), waiting on the requester. JET-276 paused.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-13T16:20:00+05:30
+- **Last updated:** 2026-11-13T17:10:00+05:30
 
 ## Handoff notes
 
