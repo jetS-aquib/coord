@@ -4,9 +4,9 @@ title: A deploy fails live stitches: the boot sweep fails every unfinished job i
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:31+05:30
-updated: 2026-11-13T13:07:31+05:30
+updated: 2026-11-13T15:14:28+05:30
 decisions: 
 ---
 
@@ -46,3 +46,5 @@ Restarting one instance does not fail a job another instance is running. Every j
 
 ## Thread
 2026-11-13T13:07:31+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T15:14:28+05:30 aquib N: status: open -> approved
+2026-11-13T15:24:10+05:30 aquib N: Done, uncommitted. Not quite plan step 2: no instance id. A heartbeat replaces it. Every process refreshes alive_at on its own live jobs every 30s (job_service.keep_jobs_alive, a daemon thread started in main.lifespan). The sweep runs at boot and every 30s, and fails only jobs silent > 180s. Two instances on one Mac would share a hostname, so an owner id could not tell them apart. A killed process's jobs are failed within ~3 min of its last beat, by whichever instance is up. Sweep and pre-worker failures now call _report_outcome. Store updates refuse a job already completed/failed (file + Mongo filter). JobManager._run skips running and skips on_settled when the job was already settled. Caveat: during the ONE deploy that ships this, the old instance does not heartbeat, so its jobs are judged by updated_at; one stuck in a stage > 3 min could be swept. Tests: tests/test_queued_forever.py (3 sweep tests), tests/test_mongo_job_store.py; full suite 698 passed.

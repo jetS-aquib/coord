@@ -4,9 +4,9 @@ title: One hung transcription blocks every lyrics render: the transcription lock
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:32+05:30
-updated: 2026-11-13T13:07:32+05:30
+updated: 2026-11-13T15:14:31+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ A transcription that runs past the limit fails its own job and the next lyrics r
 
 ## Thread
 2026-11-13T13:07:32+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T15:14:31+05:30 aquib N: status: open -> approved
