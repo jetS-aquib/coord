@@ -4,9 +4,9 @@ title: 'Updating captions' can stay on forever: the restitch queue lives in memo
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:28+05:30
-updated: 2026-11-13T13:07:28+05:30
+updated: 2026-11-13T15:11:03+05:30
 decisions: 
 ---
 
@@ -44,3 +44,5 @@ After a crash mid-restitch, the flag is cleared within 15 minutes of restart or 
 
 ## Thread
 2026-11-13T13:07:28+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T15:11:03+05:30 aquib N: status: open -> approved
+2026-11-13T15:12:35+05:30 aquib N: Scaled to one server: no captionsUpdatingSince field and no timer. At boot nothing can be restitching in this process, so resumeRestitchesV1 (called from resumeRendersOnStartupV1) clears every captionsUpdating flag on plans and projects, then re-queues each flagged render — restitchOneV1 compares the words and does nothing if they already match, so a cut-off correction is finished rather than dropped. Model files untouched. Checked on local Mongo: plan and project flags cleared, render re-queued. A second instance would need the timestamp + sweep (ponytail comment in code).
