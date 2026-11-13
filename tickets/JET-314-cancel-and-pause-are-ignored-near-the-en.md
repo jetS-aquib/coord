@@ -4,9 +4,9 @@ title: Cancel and pause are ignored near the end: the run writes stitching/compl
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-13T13:07:26+05:30
-updated: 2026-11-13T13:28:12+05:30
+updated: 2026-11-13T13:38:16+05:30
 decisions: 
 ---
 
@@ -47,3 +47,5 @@ Cancel or pause at any point, including during stitching, is the final status. N
 2026-11-13T13:07:26+05:30 aquib N: created ticket, status: - -> open
 2026-11-13T13:28:12+05:30 aquib N: status: open -> approved
 2026-11-13T13:38:12+05:30 aquib N: Built: moveStatusV1 writes the run's status only while stored status is not cancelled/paused (updateOne with filter), then unmarks those paths so a later queued plan.save() never resends status. setPhase, completed, blocked and the failed catch all go through it; on false the run exits quietly (no MusicVideo completed write). Blocked fix suggestions are now saved separately before the blocked write. Checked on local Mongo: cancelled and paused stay put under a 'completed' write, an unstopped one moves. Tests: only the known captchaBypass failure.
+2026-11-13T13:38:16+05:30 aquib N: status: approved -> in_progress
+2026-11-13T13:38:16+05:30 aquib N: status: in_progress -> review
