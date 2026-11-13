@@ -1,13 +1,17 @@
 # video-processing-backend — aquib N
 
-- **Current task:** Bhojpuri lyrics (no request): Gemini lyric sheet no longer vetoed by a transcript that heard <50% of the singing; transcript cache 5, read cache 7. Uncommitted. Music backend SONG_READ_CACHE_V1 still 3, needs bumping for old songs to refresh. JET-276 paused.
+- **Current task:** JET-321 (sweep fails only jobs with no heartbeat for 3 min; callbacks on every failure) and JET-322 (transcription time limit, default 1200s) done, uncommitted, both waiting on the requester. JET-276 paused.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-12T17:00:00+05:30
+- **Last updated:** 2026-11-13T16:30:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-13T16:30:00+05:30
+
+**JET-321 + JET-322**, one working tree, uncommitted, 698 tests pass. 321: each process heartbeats `alive_at` on its live jobs every 30s (daemon thread from lifespan). The sweep runs at boot and every 30s and fails only jobs silent > 180s, then calls `_report_outcome`. Pre-worker failures report too. A completed/failed job can no longer be written (store filter), and `_run` skips the callback if it lost. No instance id: a heartbeat covers both cases. 322: `transcription.within_limit` (daemon thread, TRANSCRIPTION_TIMEOUT_SECONDS=1200). A hang fails its job and releases the lock; the thread is abandoned, not killed (ponytail comment). Bhojpuri fix committed (4e690bc); music backend bumped to cache 4 by the user and verified. Next: commit as two commits; the requester runs the Test steps.
+
 ### 2026-11-12T17:00:00+05:30
 
 **Bhojpuri lyrics ("Sent Gamkauwa", no request).** The read showed DJ tags, "Ready." and Bengali. Cause: Gemini's transcription model heard only the tags (30% of the singing); the lyric sheet had the real lines but `_pin` vetoed it because it held under half the transcript's (tag) words. Fix: the veto only applies when the transcript covered >= 50% of the stem's singing (MIN_COVERAGE_TO_VETO). Song: 0% -> 41% word recall, no Bengali. Eval set: rule never fires (coverage 71-92%), no change. Tried and dropped: sheet without the transcript hint (35%), a regional-dialect prompt line (31%). Cleared `coord on` (was JET-276). Next: commit; bump music backend SONG_READ_CACHE_V1 3 -> 4; Bhojpuri still ~40%, the model's hearing is the ceiling.

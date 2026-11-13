@@ -4,9 +4,9 @@ title: One hung transcription blocks every lyrics render: the transcription lock
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-13T13:07:32+05:30
-updated: 2026-11-13T15:14:31+05:30
+updated: 2026-11-13T15:24:13+05:30
 decisions: 
 ---
 
@@ -46,3 +46,5 @@ A transcription that runs past the limit fails its own job and the next lyrics r
 2026-11-13T13:07:32+05:30 aquib N: created ticket, status: - -> open
 2026-11-13T15:14:31+05:30 aquib N: status: open -> approved
 2026-11-13T15:24:10+05:30 aquib N: Done, uncommitted. Not a subprocess, which would reload the 2.9 GB Whisper model every render. transcription.within_limit runs the work on a daemon thread and gives up after TRANSCRIPTION_TIMEOUT_SECONDS (default 1200): it raises TranscriptionTimeout, the job fails with 'transcription exceeded Ns and was abandoned', and the lock and the job lane are released. A hung thread cannot be killed; it is abandoned and its result dropped (ponytail comment in transcription.py names the subprocess upgrade). v2 early-lyrics not cancelled: it is bounded by the same limit and its result is cached for the resubmit. Gemini's per-call 300s timeouts unchanged; the overall budget is this limit. Test: tests/test_transcription_limit.py; full suite 698 passed.
+2026-11-13T15:24:13+05:30 aquib N: status: approved -> in_progress
+2026-11-13T15:24:13+05:30 aquib N: status: in_progress -> review
