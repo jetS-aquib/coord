@@ -10,7 +10,7 @@
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
 ### 2026-11-13T16:20:00+05:30
 
-**JET-323.** New app/processors/lyrics/aligner.py (torchaudio MMS_FA, whole song, 30s emission chunks, model loaded per song and dropped). `gemini_transcriber._retime`: aligner times per line when confidence >= 0.3, else Gemini's fitted between sure neighbours; no overlaps; words held to the next start (<1s gap), min 0.3s. Behind LYRIC_FORCED_ALIGNMENT (off); flag is in both cache keys, so no version bump. Oye Hoye: overlaps 13->0, uncaptioned singing 11s->4.6s. Previews in the scratchpad (oye/ab_final.mp4). Open: Docker prefetch of the 1.2GB MMS weights; music backend SONG_READ_CACHE_V1 bump when the flag is turned on; the 'lut-put' repeats moved 1.7s, need an ear. Next: user renders with the flag on, then commit.
+**JET-323.** New app/processors/lyrics/aligner.py (torchaudio MMS_FA, whole song, 30s emission chunks, model loaded per song and dropped). `gemini_transcriber._retime`: aligner times per line when confidence >= 0.3, else Gemini's fitted between sure neighbours; no overlaps; words held to the next start (<1s gap), min 0.3s. LYRIC_FORCED_ALIGNMENT now defaults on (config.py, not .env); flag is in both cache keys, so no version bump. Oye Hoye: overlaps 13->0, uncaptioned singing 11s->4.6s. Previews in the scratchpad (oye/ab_final.mp4). Open: Docker prefetch of the 1.2GB MMS weights; music backend SONG_READ_CACHE_V1 bump when the flag is turned on; the 'lut-put' repeats moved 1.7s, need an ear. Next: user renders with the flag on, then commit.
 
 ### 2026-11-13T16:30:00+05:30
 

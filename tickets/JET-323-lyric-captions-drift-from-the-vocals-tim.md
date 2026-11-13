@@ -42,7 +42,7 @@ On Oye Hoye Kya Scene Hai: no overlapping lines, no sung stretch >1s without a c
 
 ## Test steps
 
-1. Add `LYRIC_FORCED_ALIGNMENT=true` to the video service `.env` and restart it (vocal separation must be on).
+1. Restart the video service (forced alignment is on by default; vocal separation must be on).
 2. Render "Oye Hoye Kya Scene Hai" with lyrics from the app. The log shows `[LYRICS] aligned 47/47 lines` and `aligner timed N/47 lines`.
 3. Watch 20-30s, 70-85s and 94-102s: each line appears as it is sung, no two lines on screen at once, and the opening chorus no longer flashes past.
 4. Render one more song you know (e.g. Lutt Putt Gaya): no worse than before; check the repeated "lut-put gaya" stretch around 53-61s.
