@@ -4,9 +4,9 @@ title: Going back and tapping Go again starts a second paid render: the start ch
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:28+05:30
-updated: 2026-11-13T13:07:28+05:30
+updated: 2026-11-13T13:09:33+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ From Ready, any back/forward path ends with one project and one render.
 
 ## Thread
 2026-11-13T13:07:28+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T13:09:33+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: One song, two paid renders: a double tap or retry starts a second render 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-13T13:07:24+05:30
-updated: 2026-11-13T13:07:24+05:30
+updated: 2026-11-13T13:10:09+05:30
 decisions: 
 ---
 
@@ -46,3 +46,5 @@ Two simultaneous POST /:id/render for one project: one 202, one 409 with the sam
 
 ## Thread
 2026-11-13T13:07:24+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T13:09:28+05:30 aquib N: status: open -> approved
+2026-11-13T13:10:09+05:30 aquib N: status: approved -> in_progress
