@@ -4,9 +4,9 @@ title: Cancel and pause are ignored near the end: the run writes stitching/compl
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:26+05:30
-updated: 2026-11-13T13:07:26+05:30
+updated: 2026-11-13T13:28:12+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Cancel or pause at any point, including during stitching, is the final status. N
 
 ## Thread
 2026-11-13T13:07:26+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T13:28:12+05:30 aquib N: status: open -> approved

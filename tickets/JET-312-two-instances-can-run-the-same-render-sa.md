@@ -4,9 +4,9 @@ title: Two instances can run the same render: saves don't check the lease owner,
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-13T13:07:25+05:30
-updated: 2026-11-13T13:07:25+05:30
+updated: 2026-11-13T13:28:07+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ A render whose lease is taken by another owner stops within one save. A render l
 
 ## Thread
 2026-11-13T13:07:25+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T13:28:07+05:30 aquib N: status: open -> approved
