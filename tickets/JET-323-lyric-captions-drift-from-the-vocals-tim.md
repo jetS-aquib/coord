@@ -4,9 +4,9 @@ title: Lyric captions drift from the vocals: time each word with a forced aligne
 from: video-processing-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-13T16:03:40+05:30
-updated: 2026-11-13T16:03:40+05:30
+updated: 2026-11-13T16:05:03+05:30
 decisions: 
 ---
 
@@ -46,3 +46,6 @@ On Oye Hoye Kya Scene Hai: no overlapping lines, no sung stretch >1s without a c
 
 ## Thread
 2026-11-13T16:03:40+05:30 aquib N: created ticket, status: - -> open
+2026-11-13T16:04:49+05:30 aquib N: status: open -> approved
+2026-11-13T16:05:03+05:30 aquib N: status: approved -> in_progress
+2026-11-13T16:14:04+05:30 aquib N: Built, uncommitted, behind LYRIC_FORCED_ALIGNMENT (off). Changes vs plan: no +-3s window (Gemini was off by up to 6.6s on Oye Hoye, a window misses); one global MMS_FA alignment in 30s chunks instead (in order by construction, 3.4GB->2.9GB peak, ~11-20s/song on the Mac). Per line: aligner's times if mean confidence >= 0.3, else Gemini's, fitted between sure neighbours; no overlaps; a word lasts to the next word's start (CTC ends are early), min 0.3s. No version bumps: the flag is lyric_* so it is in the transcript key, and it was added to the song-read key. Measured (Gemini -> new): Oye Hoye overlaps 13->0, sung>=1s uncaptioned 11.0s->4.6s, words<150ms 18%->6%, 30/47 lines aligned. Lutt Putt: starts median 0.03s apart, 48/58 aligned, lines tighter (v2 holds them to the next line); lines 12-14 moved ~1.7s inside a repeated 'lut-put' stretch, needs an ear. La Bamba 14/19 aligned. Sent Gamkauwa (Bhojpuri+DJ tags) 4/51 aligned, i.e. almost unchanged. Not done: Docker prefetch of the 1.2GB MMS weights (downloaded on first use, like Demucs); music backend cache bump when the flag goes on.
