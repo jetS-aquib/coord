@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-16T18:00:48+05:30
+
+Session ended while on JET-316. Touched: ui.tsx, scenes.tsx. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-13T13:07:47+05:30
 
 Session ended while on JET-310. Touched: file-sm-tickets.sh. Nothing committed. (written automatically — no one said what is next)
