@@ -1,13 +1,21 @@
 # video-processing-backend — aquib N
 
-- **Current task:** Zaaya lyrics (no request): transcript words stamped out of time order are dropped (Gemini put 'ki thi zaaya' 9s early); transcript cache 6, read cache 7->8. Uncommitted. Music backend SONG_READ_CACHE_V1 4->5 needed. JET-323 paused (committed off), JET-321/322 with the requester, JET-276 paused.
+- **Current task:** Lyrics accuracy (no request): lyric sheet now given the whole-mix AND stem-pieces transcripts (HINT_SOURCE='both'); transcript cache 7, read cache 9. Plus the out-of-order fix and eval worst-run/consistency/untimed + Zaaya. Uncommitted. Music backend SONG_READ_CACHE_V1 bump needed. JET-323 paused, JET-321/322 with requester, JET-324 open, JET-276 paused.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-16T12:30:00+05:30
+- **Last updated:** 2026-11-16T13:40:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-16T13:06:41+05:30
+
+Session ended while on JET-323. Touched: app/processors/lyrics/aligner.py, start-on-jet-276-replicated-goblet.md. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-16T13:40:00+05:30
+
+**Lyrics accuracy (Zaaya).** Root cause: JET-265 made the stem-in-pieces read the clock, and the lyric sheet's hint (SHEET_HINT, measured in JET-264 on the whole-mix read) silently followed it. The pieces mishear ("ya khud ko paaya", "itani"), and the sheet copies its hint (9/12). The transcribe model is deterministic per input; all run-to-run variance is the sheet. Fix: HINT_SOURCE='both' (whole mix read in parallel, both labelled, SHEET_HINT_BOTH). Eval 5 songs x 5 reads: word acc 0.72->0.74, worst read 0.68->0.72, consistency 66%->78%, recall 0.66->0.71, timing 0.93->0.92. 'whole' alone lost timing (0.87). Zaaya: kitni/thi zaaya/kya khoya 5/5 in eval, 3/3 fresh. 'barq' still misheard ("ban ke"). Eval now reports worst read and consistency, supports untimed refs; Zaaya added; Sent Gamkauwa dropped (romanization mismatch makes it unscoreable). Not run: E3 (hint wording), E4 (sheet chosen by agreement) — next if consistency needs more. Next: commit; music backend cache bump.
+
 ### 2026-11-16T12:54:30+05:30
 
 Session ended while on JET-323. Touched: app/processors/lyrics/aligner.py, start-on-jet-276-replicated-goblet.md. Nothing committed. (written automatically — no one said what is next)
