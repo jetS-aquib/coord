@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-16T12:33:30+05:30
+
+Session ended while on JET-323. Touched: app/processors/lyrics/aligner.py. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-16T12:28:55+05:30
 
 Session ended while on JET-323. Touched: app/processors/lyrics/aligner.py. Nothing committed. (written automatically — no one said what is next)
