@@ -1,13 +1,21 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-323 paused, committed off (25d13c2). JET-321/322 committed (b8cf497, 5a00afc), waiting on the requester. JET-276 paused.
+- **Current task:** Zaaya lyrics (no request): transcript words stamped out of time order are dropped (Gemini put 'ki thi zaaya' 9s early); transcript cache 6, read cache 7->8. Uncommitted. Music backend SONG_READ_CACHE_V1 4->5 needed. JET-323 paused (committed off), JET-321/322 with the requester, JET-276 paused.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-13T17:10:00+05:30
+- **Last updated:** 2026-11-16T12:30:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-16T12:22:30+05:30
+
+Session ended while on JET-323. Touched: app/processors/lyrics/aligner.py. Nothing committed. (written automatically — no one said what is next)
+
+### 2026-11-16T12:30:00+05:30
+
+**Zaaya (Epidemic, Kanika; no request).** Gemini's piece transcription stamped "ki thi zaaya" at 10.2s, after "tujhpe"@19.4 (and gave tujhpe end 10.2). `_pin` trusted it, so the line showed before "kitni baatein". Fix: `_in_time_order` keeps the longest forward-in-time run of transcript words and repairs an end before its start. Zaaya 3/3 reruns correct. Eval 3x4 songs: word accuracy 0.71->0.74, within 1s 0.90->0.91, no song worse; it fired only on Lutt Putt (1 word). Not fixable here: "barq" heard as "palkein" and "kya khoya kya paaya" as "ya khud ko paaya" by every sheet. Next: commit; music backend SONG_READ_CACHE_V1 4->5.
+
 ### 2026-11-13T16:20:00+05:30
 
 **JET-323.** Round 2 (star between lines, unsure lines may move at confidence >=0.5, lines ordered by where found): eval lines within 1s 92%->96%, no song worse; replay harness at scratchpad sync/replay.py. New app/processors/lyrics/aligner.py (torchaudio MMS_FA, whole song, 30s emission chunks, model loaded per song and dropped). `gemini_transcriber._retime`: aligner times per line when confidence >= 0.3, else Gemini's fitted between sure neighbours; no overlaps; words held to the next start (<1s gap), min 0.3s. LYRIC_FORCED_ALIGNMENT now defaults on (config.py, not .env); flag is in both cache keys, so no version bump. Oye Hoye: overlaps 13->0, uncaptioned singing 11s->4.6s. Previews in the scratchpad (oye/ab_final.mp4). Open: Docker prefetch of the 1.2GB MMS weights; music backend SONG_READ_CACHE_V1 bump when the flag is turned on; the 'lut-put' repeats moved 1.7s, need an ear. Next: user renders with the flag on, then commit.
