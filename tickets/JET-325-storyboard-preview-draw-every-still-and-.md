@@ -4,9 +4,9 @@ title: Storyboard preview: draw every still and stop, so the user approves the r
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T15:35:49+05:30
-updated: 2026-11-17T15:40:08+05:30
+updated: 2026-11-17T15:56:01+05:30
 decisions: D-083
 ---
 
@@ -42,9 +42,15 @@ A preview render ends in review with every row showing its stills and no clip sp
 
 ## Test steps
 
-—
+1. Start a render with `POST /api/v1/music-videos/:id/render` body `{ "review": true }`, wait for status `review`.
+2. `POST /api/v1/music-videos/render/:jobId/accept` body `{ "mode": "preview" }` → status goes `previewing` then back to `review`.
+3. `GET …/render/:jobId/call-sheet` → every row has `openingStillUrl`/`closingStillUrl` and `stillStatus: "drawn"`; `stillsDone == stillsTotal`. Clips are all still `pending` on the poll (no clip spend).
+4. `PATCH …/render/:jobId/clips/3` body `{ "action": "she walks away in the rain" }` → only row 3's opening still goes `pending`, is redrawn, and the plan returns to `review`.
+5. `POST …/accept` (empty body) → filming starts; `anchorsDone` already equals `anchorsTotal` and no new stills are drawn for the untouched shots.
 
 ## Thread
 2026-11-17T15:35:49+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
 2026-11-17T15:40:08+05:30 aquib N: status: open -> approved
+2026-11-17T15:56:00+05:30 aquib N: status: approved -> in_progress
+2026-11-17T15:56:01+05:30 aquib N: status: in_progress -> review — Built in music-jetkreate-backend (uncommitted). Contract api-music-videos updated. Render tests green.

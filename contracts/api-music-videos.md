@@ -74,6 +74,43 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   still and one clip. The render goes `queued` → … → `completed` with a new
   `finalVideoUrl`; the cut into that shot becomes a hard cut, since the previous shot
   still ends on the old still. Recorded as an override; no other shot changes.
+- **Stills preview (JET-325).** `POST …/render` takes `preview: true` (implies `review`),
+  and `POST …/render/:jobId/accept` takes `{ mode: 'preview' | 'film' }` (empty body =
+  `film`, as before). `preview` draws every still and no clip: status `previewing` →
+  `review`, with each call-sheet row carrying `openingStillUrl`, `closingStillUrl` and
+  `stillStatus` (`drawn|pending|failed|none`), and the sheet `preview`, `stillsDone`,
+  `stillsTotal`. The poll has `preview`. Any edit before filming (PATCH row, regenerate
+  shot, recast, plain-words edit) marks only the stills it touched stale; on a previewed
+  plan those are redrawn at once and it waits at `review` again. `film` afterwards reuses
+  every drawn still. `400` on a model with no stills. Edits during `previewing` are `409`.
+- `POST /api/v1/music-videos/render/:jobId/clips/rerender` — `202`; re-films several
+  shots of a finished (or stopped) render in one run, one re-stitch (JET-327). Body
+  `{ indices: number[], smoothIn?: boolean }`. `smoothIn` also re-films the shot before
+  each run of shots so it ends on the new still (never across a section change, never a
+  locked shot); off by default, so the edit starts with a hard cut. `400` naming a
+  locked, missing or repeated shot; `409` while running. Answers `editId` and
+  `refilmed`. The single-shot `…/clips/:idx/rerender` answers `editId` too.
+- `POST /api/v1/music-videos/render/:jobId/edits/:editId/undo` — `202`; puts back every
+  take, line and still an edit replaced and re-stitches; nothing is filmed (JET-327).
+  `409` if a later edit changed one of those shots (undo that first). The poll's
+  `undoableEdits: [{ editId, indexes, at }]` (newest first) lists what can be undone.
+- `POST /api/v1/music-videos/render/:jobId/clips/:idx/lock` and `/unlock` — `200`; any
+  time. A locked shot is skipped by every edit wider than one shot (JET-327).
+- Poll additions (JET-327): `clipMap: [{ index, startSeconds, endSeconds }]` — where each
+  stitched shot sits in the final video, ±a crossfade per boundary; per clip `locked` and
+  `takes` (count of earlier takes kept).
+- `POST /api/v1/music-videos/render/:jobId/edits` — `200`; the **dry run** of a
+  plain-words edit (JET-326). Body `{ instruction, scope, smoothIn? }`, scope one of
+  `{ indices: [...] }`, `{ from: N }`, `{ section: i }`, `{ all: true }`; locked shots
+  drop out of every scope but a single chosen shot (that one is `400`). Answers `edit`:
+  `{ id, summary, diffs: [{ index, timeOfDay?, place?, dropCast?, addCast?, action?,
+  summary }], notDone, phase: 'prespend'|'refilm', refilm: [...], stills, clips,
+  costUsd, status: 'proposed' }`. Spends nothing (one text call). `409` while busy.
+- `POST /api/v1/music-videos/render/:jobId/edits/:editId/apply` — `202`; runs the
+  proposal as shown. Before filming it changes the plan and redraws only the touched
+  stills (free unless previewed); after filming it re-films those shots under `editId`,
+  so `…/undo` takes it back. `409` if already applied or the render moved on since the
+  dry run (ask again); `400` if the proposal changes nothing (`notDone` says why).
 - `PATCH /api/v1/music-videos/render/:jobId/clips/:idx` — `200`; changes one call-sheet
   row before filming, free. Body: any of `{ action, shotSize, lane, musicalSeconds }`.
   `action` (JET-301) replaces what the shot shows with the creator's words, as above,

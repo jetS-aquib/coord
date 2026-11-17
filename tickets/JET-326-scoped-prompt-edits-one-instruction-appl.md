@@ -4,9 +4,9 @@ title: Scoped prompt edits: one instruction applied to a shot, a selection, a se
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T15:36:21+05:30
-updated: 2026-11-17T15:40:15+05:30
+updated: 2026-11-17T15:56:01+05:30
 decisions: D-083
 ---
 
@@ -41,9 +41,15 @@ src/services/render/renderOrchestratorV1.ts, src/services/render/renderPromptsV1
 
 ## Test steps
 
-—
+1. On a finished render: `POST /api/v1/music-videos/render/:jobId/edits` body `{ "instruction": "make it night", "scope": { "from": 10 } }` → `edit.diffs` lists only shots 10+ (minus locked), each with `timeOfDay`, plus `costUsd`. Nothing is filmed.
+2. `POST …/edits/:editId/apply` → 202; the render re-films only those shots and finishes with a new `finalVideoUrl` where shots 10+ are at night.
+3. Repeat with `{ "instruction": "remove <cast name>", "scope": { "indices": [4,5] } }` → after apply those stills/clips no longer show that person.
+4. Before filming (render in `review`): propose and apply an edit → the call sheet rows change and no clip is filmed; on a previewed plan only those stills redraw.
+5. Lock shot 12 (`POST …/clips/12/lock`), propose `{ from: 10 }` → shot 12 is not in the diffs.
 
 ## Thread
 2026-11-17T15:36:21+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
 2026-11-17T15:40:15+05:30 aquib N: status: open -> approved
+2026-11-17T15:56:01+05:30 aquib N: status: approved -> in_progress
+2026-11-17T15:56:01+05:30 aquib N: status: in_progress -> review — Built in music-jetkreate-backend (uncommitted). Contract api-music-videos updated. Render tests green.
