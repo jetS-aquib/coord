@@ -4,9 +4,9 @@ title: Shots open on a split-panel grid, the still check passes it, and the edit
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T18:19:29+05:30
-updated: 2026-11-17T18:19:29+05:30
+updated: 2026-11-17T18:23:27+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A render's stills are single frames (a panel still is redrawn by the gate); typi
 
 ## Thread
 2026-11-17T18:19:29+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T18:23:27+05:30 aquib N: status: open -> approved

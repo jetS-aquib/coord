@@ -4,9 +4,9 @@ title: The director's pitch and the brief ignore the song window: a 32s hook is 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T18:19:30+05:30
-updated: 2026-11-17T18:19:30+05:30
+updated: 2026-11-17T18:23:32+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ With a 32s window the pitch describes a short piece around that part; without on
 ## Thread
 2026-11-17T18:19:30+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T18:19:51+05:30 aquib N: Mobile half (send trim to /brief) is item 5 on the UX request just filed to music-jetkreate-mobile.
+2026-11-17T18:23:32+05:30 aquib N: status: open -> approved

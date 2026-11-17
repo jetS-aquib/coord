@@ -4,9 +4,9 @@ title: Typed requests fail at random: the special-request and edit calls get cut
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T18:19:28+05:30
-updated: 2026-11-17T18:19:28+05:30
+updated: 2026-11-17T18:23:21+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Five runs each of the long DDLJ request and of 'Make it night with fireflies' al
 
 ## Thread
 2026-11-17T18:19:28+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T18:23:21+05:30 aquib N: status: open -> approved
