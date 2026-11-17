@@ -4,9 +4,9 @@ title: Almost every Hindi/Punjabi song is shot as two people in a yellow-flower 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T18:23:49+05:30
-updated: 2026-11-17T18:23:49+05:30
+updated: 2026-11-17T18:34:18+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Five different Hindi/Punjabi songs rendered with defaults land in places drawn f
 
 ## Thread
 2026-11-17T18:23:49+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T18:34:18+05:30 aquib N: status: open -> approved

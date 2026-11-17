@@ -4,9 +4,9 @@ title: UX fixes from the end-to-end run: stale title, invisible selection, jumpi
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T18:19:51+05:30
-updated: 2026-11-17T18:19:51+05:30
+updated: 2026-11-17T18:33:51+05:30
 decisions: 
 ---
 
@@ -56,3 +56,4 @@ Each of the 9 items, re-walked on the emulator, no longer happens.
 
 ## Thread
 2026-11-17T18:19:51+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T18:33:51+05:30 aquib N: status: open -> approved
