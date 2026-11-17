@@ -4,9 +4,9 @@ title: Call sheet you can approve at a glance: section filmstrips with stills, A
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T15:36:50+05:30
-updated: 2026-11-17T15:37:03+05:30
+updated: 2026-11-17T16:06:14+05:30
 decisions: D-083
 ---
 
@@ -46,3 +46,4 @@ A 40-shot plan can be approved in one tap; changing three shots to night takes: 
 2026-11-17T15:36:50+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:03+05:30 aquib N: Needs backend JET-325 (stills on rows) and JET-326 (edit API).
 2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
+2026-11-17T16:06:14+05:30 aquib N: status: open -> approved

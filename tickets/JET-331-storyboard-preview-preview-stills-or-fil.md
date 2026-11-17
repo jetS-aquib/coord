@@ -4,9 +4,9 @@ title: Storyboard preview: 'Preview stills' or 'Film now', then an animatic of t
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T15:36:51+05:30
-updated: 2026-11-17T15:37:03+05:30
+updated: 2026-11-17T16:06:21+05:30
 decisions: D-083
 ---
 
@@ -46,3 +46,4 @@ Choosing Preview shows every still, the animatic plays in sync with the song, an
 2026-11-17T15:36:51+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:02+05:30 aquib N: The 'call sheet request' referenced in the plan is JET-330 (shared EditBar). Needs backend JET-325.
 2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
+2026-11-17T16:06:21+05:30 aquib N: status: open -> approved
