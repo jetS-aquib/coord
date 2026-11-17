@@ -4,9 +4,9 @@ title: Late lyric callbacks get '404 Assembly job not found' after the 60s re-as
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-16T12:34:50+05:30
-updated: 2026-11-16T12:34:50+05:30
+updated: 2026-11-17T13:32:23+05:30
 decisions: 
 ---
 
@@ -42,3 +42,5 @@ Reading a new song's lyrics produces no '404 Assembly job not found' and no 'cre
 
 ## Thread
 2026-11-16T12:34:50+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T13:32:23+05:30 aquib N: status: open -> approved
+2026-11-17T13:36:25+05:30 aquib N: Music half done (uncommitted): postWithCallback now leaves a no-op waiter for 10 min after it stops waiting, so a late lyric/song-read callback gets 202 {accepted} instead of 404 'Assembly job not found'. Wrong workspace still falls through; unknown assembly jobs still 404. Test added in jobWaiter.test.ts. VIDEO HALF, for the video-processing session — app/infrastructure/callbacks/creator.py, post_measurement: before the retry loop add  who = 'music backend' if audience == MUSIC_VIDEO_AUDIENCE else 'creator'  and use it in the three log lines instead of the hardcoded 'creator' (line ~144 becomes '%s refused the callback for attempt %s: %s %s', plus the 'failed with' and 'raised' lines). No new param needed — audience already tells you who. Keep the 4xx at warning: with the music side fixed, a 404 from music now means a really unknown job, so it should stay visible (this drops plan step 2's 'info' downgrade).
