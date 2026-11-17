@@ -4,9 +4,9 @@ title: Let people pick where the video is set: place cards on the Direction scre
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T18:23:50+05:30
-updated: 2026-11-17T18:38:53+05:30
+updated: 2026-11-17T18:39:50+05:30
 decisions: D-087
 ---
 
@@ -45,3 +45,4 @@ A person picks 'a dhaba at night' on the Direction screen and the call sheet and
 2026-11-17T18:23:59+05:30 aquib N: Needs backend JET-342 (place suggestions on /brief, place per part on the call sheet).
 2026-11-17T18:38:53+05:30 aquib N: linked decision D-087 (Places come from the lyrics; a picked place is a commitment)
 2026-11-17T18:38:53+05:30 aquib N: Backend half is built (JET-342): /brief returns places [{place, why}], first is the director's pick; send the tapped card's place (or typed text) as direction.where on the project; 'change this part's place' = POST …/edits with scope {section: sections[i].index}. Contract updated.
+2026-11-17T18:39:50+05:30 aquib N: status: open -> approved
