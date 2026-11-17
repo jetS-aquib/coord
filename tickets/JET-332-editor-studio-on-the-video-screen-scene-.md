@@ -44,3 +44,4 @@ On a finished video, selecting shots 10+ and typing 'make it night' shows a dry 
 
 ## Thread
 2026-11-17T15:36:51+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T15:37:03+05:30 aquib N: The 'call sheet request' referenced is JET-330 (EditBar + selection). Needs backend JET-326 and JET-327.
