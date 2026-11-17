@@ -194,6 +194,14 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   (end > start, else 400), the same window `/estimate` and `/render` take. With it, the
   pitch and suggestions are written about that stretch only and the lyric sample comes
   from inside it; without it the brief is exactly as before. JET-340.
+- `POST /api/v1/music-videos/brief` also returns `places: [{ place, why }]` — 0 to 4
+  concrete places read from the lyrics, the director's pick first; never a place this
+  person's last 3 renders used. `[]` when the call failed. The place a person taps (or
+  types) goes on the project as `direction.where` (string ≤ 200, optional): it replaces
+  the `place` id's phrase in every prompt and is treated as a commitment. Without it,
+  `place` works as before. Each call-sheet `sections[]` entry's `index` is the scope for
+  "change this part's place": `POST …/edits` with `{ scope: { section: index } }`; the
+  part's `place` then shows the new place. JET-342.
 - `POST /api/v1/music-videos/special/understand` — understands the optional special
   request before a render. Body `{ special (<=300), answer?: { key?, optionId?, text? (<=200) },
   language? }`. Returns `{ understood, kind: named_title|genre|era|aesthetic|person|brand|plain,

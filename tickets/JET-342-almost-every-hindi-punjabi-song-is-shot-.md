@@ -4,10 +4,10 @@ title: Almost every Hindi/Punjabi song is shot as two people in a yellow-flower 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T18:23:49+05:30
-updated: 2026-11-17T18:34:18+05:30
-decisions: 
+updated: 2026-11-17T18:38:53+05:30
+decisions: D-087
 ---
 
 ## Request
@@ -40,8 +40,15 @@ Five different Hindi/Punjabi songs rendered with defaults land in places drawn f
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/placesV1.test.ts src/services/render/callSheetV1.test.ts` — green.
+2. `POST /api/v1/music-videos/brief` for a Punjabi song with `directorId: "jassi"` → `places` has 3-4 different concrete places with a `why` each, not all fields; the first matches the "where" suggestion. Render once, ask again → the places that render used are not suggested.
+3. Save a project with `direction.where: "a roadside dhaba at night"` and render with review on → the server log's "baked direction" says `Where: a roadside dhaba at night — the artist chose this place`, and the call sheet parts are set there.
+4. On that call sheet, `POST …/render/:jobId/edits` `{ instruction: "move this part to a college canteen", scope: { section: 1 } }` then apply → part 1's `place` reads the canteen and only its stills redraw.
+5. Render five Hindi/Punjabi songs with defaults → not all in fields.
 
 ## Thread
 2026-11-17T18:23:49+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T18:34:18+05:30 aquib N: status: open -> approved
+2026-11-17T18:38:53+05:30 aquib N: linked decision D-087 (Places come from the lyrics; a picked place is a commitment)
+2026-11-17T18:38:53+05:30 aquib N: status: approved -> in_progress
+2026-11-17T18:38:53+05:30 aquib N: status: in_progress -> review

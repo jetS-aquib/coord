@@ -88,3 +88,4 @@
 | D-084 | Standard renders drop the middle-of-shot check; hero keeps it | 2026-11-17 | active | music-jetkreate-backend | JET-337 |
 | D-085 | The still gate redraws split-panel stills | 2026-11-17 | superseded by D-086 | music-jetkreate-backend | JET-339 |
 | D-086 | The still gate redraws split-panel stills | 2026-11-17 | active | music-jetkreate-backend | JET-339 |
+| D-087 | Places come from the lyrics; a picked place is a commitment | 2026-11-17 | active | music-jetkreate-backend music-jetkreate-mobile | JET-342 JET-343 |
