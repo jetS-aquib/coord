@@ -61,6 +61,34 @@ so the crossfade at a segment's internal boundaries overlaps surviving frames.
 The **join** between two segments is a hard cut and overlaps nothing, so the
 per-boundary overlap noted further down is unchanged by trimming — the final mux
 still trims to the master audio.
+### Beat cuts: `cutStyle` and per-clip `zoom` (JET-344)
+
+```jsonc
+{
+  "clips": [ { "url": "https://…/clip7.mp4", "order": 1, "inSeconds": 0,   "outSeconds": 1.3 },
+             { "url": "https://…/clip7.mp4", "order": 2, "inSeconds": 1.3, "outSeconds": 2.6, "zoom": 1.25 },
+             { "url": "https://…/clip7.mp4", "order": 3, "inSeconds": 2.6, "outSeconds": 4.0, "zoom": 1.5, "zoomAnchor": "upper" } ],
+  "segmentIndex": 2,
+  "cutStyle": "hard"
+}
+```
+
+- `cutStyle` (or `cut_style`): `"xfade"` (default, today's dissolves) or
+  `"hard"`. Hard joins the clips back to back: no dissolve, and no similarity
+  or transition analysis. The segment is exactly the sum of its pieces'
+  lengths, so every cut lands where you put it. Anything else is a 422.
+- `zoom` on a clip: `1.0`–`1.6`, a punch-in cropped from the clip and scaled
+  back to its own frame, in the same encode as its trim. Absent or `1.0`
+  leaves the clip untouched. Over `1.6` is a 422.
+- `zoomAnchor` (or `zoom_anchor`): `"center"` (default) or `"upper"`, which
+  keeps the crop in the top half of the frame, where the faces are.
+- **Up to 120 clips** per segment-stitch (50 everywhere else), so one clip can
+  go in as several beat-length pieces. The same URL may repeat; each piece is
+  its own download.
+- `segment-concat` takes no `cutStyle`: the join between segments has always
+  been a hard cut.
+- None of the three fields sent is today's request, byte for byte.
+
 `segmentIndex` is your own numbering: it labels the job so a log, or a
 failed segment, can be told from its neighbours. This service never reorders
 by it — the finalise call's list is the order.
