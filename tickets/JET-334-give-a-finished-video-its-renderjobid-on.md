@@ -4,9 +4,9 @@ title: Give a finished video its renderJobId on GET /api/music-videos/:id so the
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T16:19:16+05:30
-updated: 2026-11-17T16:19:16+05:30
+updated: 2026-11-17T16:54:38+05:30
 decisions: 
 ---
 
@@ -40,3 +40,4 @@ A project with a finished render returns renderJobId; GET /render/:jobId for it 
 
 ## Thread
 2026-11-17T16:19:16+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T16:54:38+05:30 aquib N: status: open -> approved
