@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-17T13:24:47+05:30
+
+Session ended while on JET-323. Touched: app/services/song_read.py. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-17T12:49:25+05:30
 
 Session ended while on JET-323. Touched: musetalk_batch.py, NOTES.md. Nothing committed. (written automatically — no one said what is next)
