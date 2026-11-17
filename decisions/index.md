@@ -86,3 +86,5 @@
 | D-082 | Story writer off: a blind judge preferred shot lists without it in 5 of 6 pairs | 2026-11-10 | active | music-jetkreate-backend | JET-285 JET-262 |
 | D-083 | Stills-first preview and one scoped edit model for music videos | 2026-11-17 | active | music-jetkreate-backend music-jetkreate-mobile video-processing-backend | JET-325 JET-326 JET-327 JET-328 JET-329 JET-330 JET-331 JET-332 JET-333 |
 | D-084 | Standard renders drop the middle-of-shot check; hero keeps it | 2026-11-17 | active | music-jetkreate-backend | JET-337 |
+| D-085 | The still gate redraws split-panel stills | 2026-11-17 | superseded by D-086 | music-jetkreate-backend | JET-339 |
+| D-086 | The still gate redraws split-panel stills | 2026-11-17 | active | music-jetkreate-backend | JET-339 |

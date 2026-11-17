@@ -4,10 +4,10 @@ title: Shots open on a split-panel grid, the still check passes it, and the edit
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T18:19:29+05:30
-updated: 2026-11-17T18:23:27+05:30
-decisions: 
+updated: 2026-11-17T18:31:46+05:30
+decisions: D-085, D-086
 ---
 
 ## Request
@@ -39,8 +39,15 @@ A render's stills are single frames (a panel still is redrawn by the gate); typi
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/frameGateV1.test.ts src/services/render/editsV1.test.ts` — green (panels gate + composition edits).
+2. Start a standard render with Preview stills. In the server log any panel still shows `anchor N gate fail: panels …` followed by `redraw fixed 1`; on the call sheet no still is a grid.
+3. On the call sheet (or after filming), pick one shot, type "One full-frame shot, no split screen, no panels" → the dry run lists that shot as "drawn again as one single frame" (not "Nothing would change"). Apply → only that still redraws.
+4. Pick a medium shot, type "make it a wide shot" → dry run says "wide shot"; apply → the row's size is wide and its still is redrawn. Undo → back to medium.
 
 ## Thread
 2026-11-17T18:19:29+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T18:23:27+05:30 aquib N: status: open -> approved
+2026-11-17T18:30:43+05:30 aquib N: linked decision D-085 (The still gate redraws split-panel stills)
+2026-11-17T18:31:02+05:30 aquib N: linked decision D-086 (The still gate redraws split-panel stills)
+2026-11-17T18:31:46+05:30 aquib N: status: approved -> in_progress
+2026-11-17T18:31:46+05:30 aquib N: status: in_progress -> review

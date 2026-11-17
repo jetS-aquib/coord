@@ -4,9 +4,9 @@ title: The director's pitch and the brief ignore the song window: a 32s hook is 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T18:19:30+05:30
-updated: 2026-11-17T18:23:32+05:30
+updated: 2026-11-17T18:31:47+05:30
 decisions: 
 ---
 
@@ -38,9 +38,14 @@ With a 32s window the pitch describes a short piece around that part; without on
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/windowV1.test.ts` — green.
+2. `POST /api/v1/music-videos/brief` with `{ audioUrl, directorId: "rohan", trim: { startSeconds: 174, endSeconds: 206 } }` on a long song → the pitch talks about a short piece around that part, not "the whole romance"; suggestions quote words from inside the window.
+3. Same call without `trim` → reads as before.
+4. `trim` with end ≤ start → 400.
 
 ## Thread
 2026-11-17T18:19:30+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T18:19:51+05:30 aquib N: Mobile half (send trim to /brief) is item 5 on the UX request just filed to music-jetkreate-mobile.
 2026-11-17T18:23:32+05:30 aquib N: status: open -> approved
+2026-11-17T18:31:46+05:30 aquib N: status: approved -> in_progress
+2026-11-17T18:31:47+05:30 aquib N: status: in_progress -> review

@@ -124,8 +124,11 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   `{ indices: [...] }`, `{ from: N }`, `{ section: i }`, `{ all: true }`; locked shots
   drop out of every scope but a single chosen shot (that one is `400`). Answers `edit`:
   `{ id, summary, diffs: [{ index, timeOfDay?, place?, dropCast?, addCast?, action?,
-  summary }], notDone, phase: 'prespend'|'refilm', refilm: [...], stills, clips,
+  shotSize?, redraw?, summary }], notDone, phase: 'prespend'|'refilm', refilm: [...], stills, clips,
   costUsd, status: 'proposed' }`. Spends nothing (one text call). `409` while busy.
+  `shotSize` (wide|medium wide|medium|medium close|close) is a framing ask ("make it a
+  wide shot"); `redraw: true` means only the still is drawn again, for a broken frame
+  ("no split screen") — nothing else on the shot changes. JET-339.
 - `POST /api/v1/music-videos/render/:jobId/edits/:editId/apply` — `202`; runs the
   proposal as shown. Before filming it changes the plan and redraws only the touched
   stills (free unless previewed); after filming it re-films those shots under `editId`,
@@ -187,6 +190,10 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   labels are the app's own wording (story: The artist performing / Performing and story /
   A story with actors; cast: Just one / Two / Three or four / A crowd); ids are the
   contract. JET-272.
+- `POST /api/v1/music-videos/brief` accepts optional `trim: { startSeconds, endSeconds }`
+  (end > start, else 400), the same window `/estimate` and `/render` take. With it, the
+  pitch and suggestions are written about that stretch only and the lyric sample comes
+  from inside it; without it the brief is exactly as before. JET-340.
 - `POST /api/v1/music-videos/special/understand` — understands the optional special
   request before a render. Body `{ special (<=300), answer?: { key?, optionId?, text? (<=200) },
   language? }`. Returns `{ understood, kind: named_title|genre|era|aesthetic|person|brand|plain,
