@@ -4,9 +4,9 @@ title: Undo a typed edit before filming: keep what the edit replaced on the call
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T16:54:07+05:30
-updated: 2026-11-17T16:54:42+05:30
+updated: 2026-11-17T16:57:12+05:30
 decisions: 
 ---
 
@@ -36,8 +36,13 @@ Apply 'make it night' to shot 3 on a call sheet, then undo it: shot 3's action, 
 
 ## Test steps
 
-—
+1. Render with `{ "review": true }`; on the call sheet propose and apply `{ "instruction": "make it night", "scope": { "indices": [3] } }`.
+2. Poll: `undoableEdits` lists that edit. Call sheet shot 3 now reads night.
+3. `POST …/edits/<editId>/undo` → status stays `review`; shot 3's action, light, place, cast and still are as before (with a preview, the old still URL is back, nothing redrawn).
+4. Apply two edits on shot 3, then undo the first → 409 "undo that one first".
 
 ## Thread
 2026-11-17T16:54:07+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T16:54:42+05:30 aquib N: status: open -> approved
+2026-11-17T16:57:12+05:30 aquib N: status: approved -> in_progress
+2026-11-17T16:57:12+05:30 aquib N: status: in_progress -> review — Built in music-jetkreate-backend (uncommitted). Contract updated. Tests green (captchaBypass failure is pre-existing, unrelated).

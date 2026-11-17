@@ -74,6 +74,18 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   still and one clip. The render goes `queued` → … → `completed` with a new
   `finalVideoUrl`; the cut into that shot becomes a hard cut, since the previous shot
   still ends on the old still. Recorded as an override; no other shot changes.
+- **The finished video's render (JET-334).** `GET /api/music-videos/:id` carries
+  `renderJobId` when the project has a finished render (or one being re-filmed or undone
+  from the editor): the newest such, looked up on read, so old projects have it too.
+  Absent = no editor. Use it with `GET …/render/:jobId` for `clipMap`, `undoableEdits`,
+  per-clip `locked`/`takes`, and the edit/undo/lock routes.
+- **Undo before filming (JET-335).** `POST …/edits/:editId/undo` also takes back a typed
+  edit applied on the call sheet (`phase: 'prespend'`): each shot's words, light, place,
+  cast and stills come back as they were — a still that was drawn comes back drawn, no
+  redraw — and the render stays at `review`. While the render is before filming,
+  `undoableEdits` lists those edits (newest first, only the newest on any shot); `409`
+  if a later edit touched the same shots, or during `previewing`. A quick row change
+  (PATCH) made after the edit is put back too.
 - **Song window (JET-328).** `POST …/render` `trim: { startSeconds, endSeconds }` now
   films exactly that stretch: the first shot starts on the window and the last ends on
   it (an edge sliver under 1.5s folds into its neighbour), the director is told it is a

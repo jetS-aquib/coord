@@ -4,9 +4,9 @@ title: Give a finished video its renderJobId on GET /api/music-videos/:id so the
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-17T16:19:16+05:30
-updated: 2026-11-17T16:54:38+05:30
+updated: 2026-11-17T16:57:12+05:30
 decisions: 
 ---
 
@@ -36,8 +36,13 @@ A project with a finished render returns renderJobId; GET /render/:jobId for it 
 
 ## Test steps
 
-—
+1. Open a project with a finished v1 render: `GET /api/music-videos/:id` → has `renderJobId`.
+2. `GET /api/v1/music-videos/render/<renderJobId>` → payload has `clipMap` and `undoableEdits`.
+3. A project that never finished a render → no `renderJobId` field.
+4. Start a re-film from the editor (`…/clips/rerender`); while it runs, `GET /api/music-videos/:id` still returns the same `renderJobId`.
 
 ## Thread
 2026-11-17T16:19:16+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T16:54:38+05:30 aquib N: status: open -> approved
+2026-11-17T16:57:12+05:30 aquib N: status: approved -> in_progress
+2026-11-17T16:57:12+05:30 aquib N: status: in_progress -> review — Built in music-jetkreate-backend (uncommitted). Contract updated. Tests green (captchaBypass failure is pre-existing, unrelated).
