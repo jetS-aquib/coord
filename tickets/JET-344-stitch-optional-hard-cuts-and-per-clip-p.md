@@ -4,9 +4,9 @@ title: Stitch: optional hard cuts and per-clip punch-in zoom, so a song can be c
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-18T01:21:05+05:30
-updated: 2026-11-18T01:21:05+05:30
+updated: 2026-11-18T01:23:06+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ A segment-stitch with cut_style 'hard' and three pieces of one clip at zoom 1.0/
 
 ## Thread
 2026-11-18T01:21:05+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T01:23:06+05:30 aquib N: status: open -> approved

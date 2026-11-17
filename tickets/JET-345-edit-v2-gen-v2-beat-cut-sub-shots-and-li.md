@@ -4,9 +4,9 @@ title: EDIT_V2 + GEN_V2: beat-cut sub-shots and livelier shot prompts for new re
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-18T01:21:25+05:30
-updated: 2026-11-18T01:21:25+05:30
+updated: 2026-11-18T01:23:09+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ With both flags off, npm test passes and the request and prompt snapshots are un
 
 ## Thread
 2026-11-18T01:21:25+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T01:23:09+05:30 aquib N: status: open -> approved
