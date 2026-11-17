@@ -4,9 +4,9 @@ title: Song window end to end: render only part of a song with picture, audio an
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T15:36:22+05:30
-updated: 2026-11-17T15:37:03+05:30
+updated: 2026-11-17T15:40:24+05:30
 decisions: D-083
 ---
 
@@ -45,3 +45,4 @@ A render with trim 60-90s produces a ~30s video whose audio and captions start a
 ## Thread
 2026-11-17T15:36:22+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
+2026-11-17T15:40:24+05:30 aquib N: status: open -> approved

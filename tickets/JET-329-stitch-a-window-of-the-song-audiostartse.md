@@ -4,9 +4,9 @@ title: Stitch a window of the song: audioStartSeconds/audioEndSeconds on the aud
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-17T15:36:23+05:30
-updated: 2026-11-17T15:37:03+05:30
+updated: 2026-11-17T15:40:31+05:30
 decisions: D-083
 ---
 
@@ -45,3 +45,4 @@ A lyrics stitch with audioStartSeconds=60, audioEndSeconds=90 returns a 30s vide
 ## Thread
 2026-11-17T15:36:23+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
+2026-11-17T15:40:31+05:30 aquib N: status: open -> approved
