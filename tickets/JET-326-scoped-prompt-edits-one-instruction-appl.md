@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: open
 created: 2026-11-17T15:36:21+05:30
-updated: 2026-11-17T15:36:21+05:30
-decisions: 
+updated: 2026-11-17T15:37:03+05:30
+decisions: D-083
 ---
 
 ## Request
@@ -45,3 +45,4 @@ src/services/render/renderOrchestratorV1.ts, src/services/render/renderPromptsV1
 
 ## Thread
 2026-11-17T15:36:21+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)

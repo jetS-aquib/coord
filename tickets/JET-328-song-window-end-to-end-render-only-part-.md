@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: open
 created: 2026-11-17T15:36:22+05:30
-updated: 2026-11-17T15:36:22+05:30
-decisions: 
+updated: 2026-11-17T15:37:03+05:30
+decisions: D-083
 ---
 
 ## Request
@@ -44,3 +44,4 @@ A render with trim 60-90s produces a ~30s video whose audio and captions start a
 
 ## Thread
 2026-11-17T15:36:22+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)

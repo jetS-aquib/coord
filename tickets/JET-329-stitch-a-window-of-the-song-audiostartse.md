@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: open
 created: 2026-11-17T15:36:23+05:30
-updated: 2026-11-17T15:36:23+05:30
-decisions: 
+updated: 2026-11-17T15:37:03+05:30
+decisions: D-083
 ---
 
 ## Request
@@ -44,3 +44,4 @@ A lyrics stitch with audioStartSeconds=60, audioEndSeconds=90 returns a 30s vide
 
 ## Thread
 2026-11-17T15:36:23+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)

@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: open
 created: 2026-11-17T15:35:49+05:30
-updated: 2026-11-17T15:35:49+05:30
-decisions: 
+updated: 2026-11-17T15:37:03+05:30
+decisions: D-083
 ---
 
 ## Request
@@ -46,3 +46,4 @@ A preview render ends in review with every row showing its stills and no clip sp
 
 ## Thread
 2026-11-17T15:35:49+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)

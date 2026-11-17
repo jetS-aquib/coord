@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: open
 created: 2026-11-17T15:36:51+05:30
-updated: 2026-11-17T15:36:51+05:30
-decisions: 
+updated: 2026-11-17T15:37:03+05:30
+decisions: D-083
 ---
 
 ## Request
@@ -45,3 +45,4 @@ On a finished video, selecting shots 10+ and typing 'make it night' shows a dry 
 ## Thread
 2026-11-17T15:36:51+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T15:37:03+05:30 aquib N: The 'call sheet request' referenced is JET-330 (EditBar + selection). Needs backend JET-326 and JET-327.
+2026-11-17T15:37:03+05:30 aquib N: linked decision D-083 (Stills-first preview and one scoped edit model for music videos)
