@@ -44,3 +44,4 @@ A 40-shot plan can be approved in one tap; changing three shots to night takes: 
 
 ## Thread
 2026-11-17T15:36:50+05:30 aquib N: created ticket, status: - -> open
+2026-11-17T15:37:03+05:30 aquib N: Needs backend JET-325 (stills on rows) and JET-326 (edit API).
