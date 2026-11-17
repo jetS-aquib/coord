@@ -51,6 +51,26 @@ contracts/video-transcription.md for what Gemini changes and what it does not.
 - `end` before `start` is a 422. The transcript cache is not touched: a
   correction applies to this render only.
 
+## A window of the song
+
+`clip-stitching-with-audio`, `clip-stitching-with-lyrics` and `segment-concat`
+(v1 and v2) take an optional `audioStartSeconds` and `audioEndSeconds` (or
+`audio_start_seconds` / `audio_end_seconds`), in the song's own time (JET-329).
+
+- The video plays `audioStartSeconds`..`audioEndSeconds` of `audioUrl`,
+  starting at 0, and is as long as the window, the same way it is otherwise as
+  long as the song. Send the clips for the window, not for the whole song.
+- Either one alone is fine: no start means 0, no end means the end of the song.
+  Neither is the whole song, as before.
+- `audioEndSeconds` must be after `audioStartSeconds` (422). A start past the
+  end of the song fails the job with that reason. An end past it plays to the end.
+- Send the **whole song** as `audioUrl`, not a cut. The transcript is made
+  from and cached on the whole song, so a window reuses the transcript the
+  song was warmed with (`/api/v1/lyric-transcription`, `/api/v1/song-read`).
+- Captions are moved to the window's clock for you. Lines outside the
+  window are dropped and a line across an edge is cut at it. `lyricLines`
+  keep the song read's times. Send them unchanged; they are applied before the shift.
+
 ## Per-clip in and out points
 
 Each entry of `clips` is `{ "url": ..., "order": ... }` and may also carry

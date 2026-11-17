@@ -109,7 +109,8 @@ job that produced the customer's video.
   "showLyrics": true,
   "captionStyle": "spark", "captionFont": "bebas_neue", …      // as the lyrics stitch
   "lyricEngine": "whisper",             // optional; absent is "whisper" (D-061)
-  "lyricLines": [ { "start": 21.76, "end": 23.4, "text": "…" } ]   // optional; the creator's corrected lines (JET-267)
+  "lyricLines": [ { "start": 21.76, "end": 23.4, "text": "…" } ],  // optional; the creator's corrected lines (JET-267)
+  "audioStartSeconds": 60, "audioEndSeconds": 90   // optional; render only this part of the song (JET-329)
 }
 
 // 202 — a normal job, the one that settles the attempt
@@ -127,7 +128,7 @@ joins and muxes the audio without captions. There is no `quality` — quality
 selects the analysis sample step and vocal separation, and a finalise
 analyses nothing.
 
-`lyricLines` works exactly as on the lyrics stitch; see contracts/video-stitching.md.
+`lyricLines`, `audioStartSeconds` and `audioEndSeconds` work exactly as on the lyrics stitch; see contracts/video-stitching.md.
 
 Refused with `409` if a listed job is not a segment, is not completed, or
 has no stored output; with `422` if a segment is listed twice.
