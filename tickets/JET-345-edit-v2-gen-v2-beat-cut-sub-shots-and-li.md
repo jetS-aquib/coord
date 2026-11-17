@@ -45,3 +45,4 @@ With both flags off, npm test passes and the request and prompt snapshots are un
 ## Thread
 2026-11-18T01:21:25+05:30 aquib N: created ticket, status: - -> open
 2026-11-18T01:23:09+05:30 aquib N: status: open -> approved
+2026-11-18T01:35:44+05:30 aquib N: Built. Deviations from plan: (1) clip-check fails are NOT used to drop clips except kind=continuity — on mvr_1794399372234_80e74c1d 26/33 clips are 'fail' (mostly hands/people count), dropping them would gut the video; seamScore not used for the same reason. (2) GEN_V2 does not ask for an outfit change: the still and clip checks would call it 'wardrobe wrong' and pay for re-renders; moved to JET-347. (3) segment-concat unchanged; MAX_CLIPS raise not needed (40/segment). Dry run on that render: 33 clips -> 155 pieces, median 1.32s, cuts/20s 5..29 following energy, black probe 18s, nothing dropped.
