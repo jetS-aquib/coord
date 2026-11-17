@@ -39,8 +39,12 @@ Five runs each of the long DDLJ request and of 'Make it night with fireflies' al
 
 ## Test steps
 
-—
+1. On the Direction screen type "Make it like DDLJ, the mustard field scene where they run to each other in the train station climax" five times → the "Like … how?" card appears every time; nothing goes through as written.
+2. Type "make it Dhurandhar style" → a card naming Dhurandhar (not an empty reference).
+3. In the studio, pick 3 shots and type "Make it night with fireflies" five times → a dry run listing the shots every time, never "The editor could not read that just now".
+4. Server log: no "Unterminated string" from [SpecialV1] or [EditV1].
 
 ## Thread
 2026-11-17T18:19:28+05:30 aquib N: created ticket, status: - -> open
 2026-11-17T18:23:21+05:30 aquib N: status: open -> approved
+2026-11-17T19:01:13+05:30 aquib N: Live check against gemini after the fix: long DDLJ request 5/5 understood (named_title, question card); 'make it Dhurandhar style' 5/5 with a reference (1x 'Dhurandhar style', 4x 'Dhurandhar' — the model reads it as a person, likely because the film is newer than it knows; the question card still works); 'Make it night with fireflies' 5/5 three-shot diffs. Before: 2/2 and 1/1 failures. No API change, so nothing for mobile. Known leftover: on the long DDLJ phrasing the model copies the whole sentence as the reference, so the card reads 'Like DDLJ, the mustard field scene… how?' — cosmetic.
