@@ -74,6 +74,14 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   still and one clip. The render goes `queued` → … → `completed` with a new
   `finalVideoUrl`; the cut into that shot becomes a hard cut, since the previous shot
   still ends on the old still. Recorded as an override; no other shot changes.
+- **Song window (JET-328).** `POST …/render` `trim: { startSeconds, endSeconds }` now
+  films exactly that stretch: the first shot starts on the window and the last ends on
+  it (an edge sliver under 1.5s folds into its neighbour), the director is told it is a
+  short piece, and the stitch sends `audioStartSeconds`/`audioEndSeconds` (JET-329), so
+  audio and captions start at the window, not 0:00. Snap the edges to `downbeats` or
+  section edges from `…/song-read` on the client. `POST …/estimate` takes the same
+  `trim` and prices only the window (`seconds`, if sent, is the song's length and caps
+  it); `400` if the window starts after the song ends.
 - **Stills preview (JET-325).** `POST …/render` takes `preview: true` (implies `review`),
   and `POST …/render/:jobId/accept` takes `{ mode: 'preview' | 'film' }` (empty body =
   `film`, as before). `preview` draws every still and no clip: status `previewing` →
