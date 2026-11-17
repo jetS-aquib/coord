@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-17T18:39:11+05:30
+
+Session ended while on JET-223. Touched: src/lib/generation.ts, src/app/(create)/brief.tsx, src/features/create/song-window-picker.tsx, src/app/(create)/audio.tsx. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-10T00:42:14+05:30
 
 Session ended while on JET-223. Touched: src/app/(create)/lyrics.tsx, i-want-you-to-piped-harbor.md, product-values-and-flow.md, src/app/(create)/ready.tsx, src/features/create/direction.ts, scripts/direction-check.mts, src/features/create/special-check.tsx, src/features/create/narration.ts, +1 more. Nothing committed. (written automatically — no one said what is next)
