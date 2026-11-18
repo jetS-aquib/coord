@@ -4,9 +4,9 @@ title: Render report: drift, still-check failures and grid stills per clip, and 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-18T15:30:16+05:30
-updated: 2026-11-18T15:30:16+05:30
+updated: 2026-11-18T15:33:56+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ renderReport on mvr_1794989625320_48693f7a reports 10 grid stills, 26/58 failed 
 
 ## Thread
 2026-11-18T15:30:16+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T15:33:56+05:30 aquib N: status: open -> approved
