@@ -4,9 +4,9 @@ title: Performance and the hook move: emotion and intensity per shot from the so
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T17:10:49+05:30
-updated: 2026-11-18T17:10:49+05:30
+updated: 2026-11-18T17:51:54+05:30
 decisions: 
 ---
 
@@ -40,7 +40,12 @@ Eval renders: no staring shots; hook has a clean repeatable move you'd post as a
 
 ## Test steps
 
-—
+1. Shot list rows carry `intensity: quiet|building|PEAK`; loud sections show bigger action, faces show a feeling.
+2. No staring / circling shots in the render.
+3. Spike clips: scratchpad dance/ and ref/ folders (see docs/rnd/02-realism-plan.md); hook move and reference images NOT built — results in the plan.
 
 ## Thread
 2026-11-18T17:10:49+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T17:12:50+05:30 aquib N: status: open -> approved
+2026-11-18T17:51:54+05:30 aquib N: status: approved -> in_progress
+2026-11-18T17:51:54+05:30 aquib N: status: in_progress -> review — Built behind its flag; see docs/rnd/02-realism-plan.md 'Built' section for what was measured.

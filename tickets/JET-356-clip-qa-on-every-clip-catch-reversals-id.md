@@ -4,9 +4,9 @@ title: Clip QA on every clip: catch reversals, identity/size changes, ownerless 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T17:10:44+05:30
-updated: 2026-11-18T17:10:44+05:30
+updated: 2026-11-18T17:51:53+05:30
 decisions: 
 ---
 
@@ -40,7 +40,13 @@ On mvr_1794998373760_2de1c52f's clips, QA flags the 0:32/0:46 reversals and the 
 
 ## Test steps
 
-—
+1. `npx ts-node --transpile-only scripts/rnd/clipQa.ts mvr_1794998373760_2de1c52f` -> about 15/57 failing (baseline).
+2. Render Tu Mil Jaaye with Zoya (all flags as in flags.ts). Logs show `went wrong` re-renders for QA kinds.
+3. `renderReport.ts <jobId>`: qaFails / qaKinds totals; those clips are in the editV2 dropped list.
+4. Watch it: no reversal, vanishing person, ownerless hand or legless figure on screen.
 
 ## Thread
 2026-11-18T17:10:44+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T17:12:20+05:30 aquib N: status: open -> approved
+2026-11-18T17:51:53+05:30 aquib N: status: approved -> in_progress
+2026-11-18T17:51:53+05:30 aquib N: status: in_progress -> review — Built behind its flag; see docs/rnd/02-realism-plan.md 'Built' section for what was measured.

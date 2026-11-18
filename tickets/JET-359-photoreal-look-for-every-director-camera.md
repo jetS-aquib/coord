@@ -4,9 +4,9 @@ title: Photoreal look for every director: camera, lens and film stock per direct
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T17:10:47+05:30
-updated: 2026-11-18T17:10:47+05:30
+updated: 2026-11-18T17:51:54+05:30
 decisions: 
 ---
 
@@ -40,7 +40,12 @@ Side-by-side stills: you judge them closer to real footage than mvr_179499837376
 
 ## Test steps
 
-—
+1. Same render: stills are sent as `## SCENE DESCRIPTION / ## PHOTOGRAPHY` briefs with the director's camera line.
+2. Side by side with mvr_1794998373760_2de1c52f: less glossy neon, real skin, signs blurred, no letterboxing.
+3. JET-362 (grade + grain) is separate, in video-processing.
 
 ## Thread
 2026-11-18T17:10:47+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T17:12:41+05:30 aquib N: status: open -> approved
+2026-11-18T17:51:54+05:30 aquib N: status: approved -> in_progress
+2026-11-18T17:51:54+05:30 aquib N: status: in_progress -> review — Built behind its flag; see docs/rnd/02-realism-plan.md 'Built' section for what was measured.

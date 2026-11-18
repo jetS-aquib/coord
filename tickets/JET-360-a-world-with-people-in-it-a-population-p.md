@@ -4,9 +4,9 @@ title: A world with people in it: a population per place, background extras in s
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T17:10:48+05:30
-updated: 2026-11-18T17:10:48+05:30
+updated: 2026-11-18T17:51:54+05:30
 decisions: 
 ---
 
@@ -39,7 +39,11 @@ Street/market/station stills show believable background people; quiet places sta
 
 ## Test steps
 
-—
+1. Same render: street/market/station stills have soft-focus background people; rooftop/bedroom stills stay empty.
+2. `renderReport.ts`: no rise in anatomy/people failures.
 
 ## Thread
 2026-11-18T17:10:48+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T17:12:47+05:30 aquib N: status: open -> approved
+2026-11-18T17:51:54+05:30 aquib N: status: approved -> in_progress
+2026-11-18T17:51:54+05:30 aquib N: status: in_progress -> review — Built behind its flag; see docs/rnd/02-realism-plan.md 'Built' section for what was measured.

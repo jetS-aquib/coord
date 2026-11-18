@@ -4,9 +4,9 @@ title: Believable stills: no camera words in still prompts, framing rules per sh
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T17:10:46+05:30
-updated: 2026-11-18T17:10:46+05:30
+updated: 2026-11-18T17:51:54+05:30
 decisions: 
 ---
 
@@ -40,7 +40,12 @@ Stills previews of the eval set: no ownerless hands, no legless full shots, no h
 
 ## Test steps
 
-—
+1. Stills preview or render of the eval set. Still prompts (anchors[].prompt) carry no camera move and a `Framing:` line.
+2. `renderReport.ts`: failKinds may now include orphan_limb / missing_legs / scale, redrawn.
+3. Look: no foreground hand, no hand close-ups, wide shots show feet on the ground.
 
 ## Thread
 2026-11-18T17:10:46+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T17:12:38+05:30 aquib N: status: open -> approved
+2026-11-18T17:51:54+05:30 aquib N: status: approved -> in_progress
+2026-11-18T17:51:54+05:30 aquib N: status: in_progress -> review — Built behind its flag; see docs/rnd/02-realism-plan.md 'Built' section for what was measured.
