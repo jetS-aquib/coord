@@ -4,9 +4,9 @@ title: The shot list keeps every shot in its section's place; a vehicle section 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T15:30:15+05:30
-updated: 2026-11-18T15:30:15+05:30
+updated: 2026-11-18T16:00:45+05:30
 decisions: 
 ---
 
@@ -38,7 +38,12 @@ On the Zoya song, no shot's action contradicts its section's place.
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/shotListV1.test.ts` passes.
+2. Render (or preview) Tu Mil Jaaye with Zoya. Logs: no `shot(s) leave their place` line, or only a few.
+3. Read the shot list: a platform section never shows the inside of the train.
 
 ## Thread
 2026-11-18T15:30:15+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T15:52:56+05:30 aquib N: status: open -> approved
+2026-11-18T16:00:45+05:30 aquib N: status: approved -> in_progress
+2026-11-18T16:00:45+05:30 aquib N: status: in_progress -> review — GEN_V2 shot rule: every shot happens in its row's place; vehicle rows stay inside or outside. placeConflictsV1 logs shots that break it. Tested.

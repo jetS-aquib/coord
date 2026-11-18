@@ -4,10 +4,10 @@ title: One clip is one shot: pin each clip to its own opening still and a drawn 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T15:30:12+05:30
-updated: 2026-11-18T15:30:12+05:30
-decisions: 
+updated: 2026-11-18T16:00:45+05:30
+decisions: D-088
 ---
 
 ## Request
@@ -41,7 +41,14 @@ On the same song and director, no clip shows a person or place that its own two 
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/renderV1.test.ts src/services/render/callSheetV1.test.ts` passes.
+2. Stills preview of Tu Mil Jaaye with Zoya: the call sheet shows each shot's closing still as the same shot a few seconds on, not the next shot.
+3. Full render of the same song and director. `renderReport.ts <jobId>`: clips above seam 15 well under 17/57.
+4. Watch it: no clip turns into a different person, place or vehicle partway through.
 
 ## Thread
 2026-11-18T15:30:12+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T15:52:50+05:30 aquib N: status: open -> approved
+2026-11-18T16:00:27+05:30 aquib N: linked decision D-088 (Every shot change is a cut: a clip is pinned to its own opening and closing still, never the next shot's)
+2026-11-18T16:00:45+05:30 aquib N: status: approved -> in_progress
+2026-11-18T16:00:45+05:30 aquib N: status: in_progress -> review — flags.render.shotPins: each clip's closing still is drawn against its opening still, gated, and pinned as the end frame; seam check measures against it; clips no longer wait on the next still; call sheet shows the shot's own closing still. Old plans/flag off = D-029. Decision D-088 supersedes D-029. Needs a preview then a full render.

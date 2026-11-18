@@ -2,8 +2,8 @@
 id: D-029
 title: Scene changes are cuts: no end pin, no seam score, measure the break and do not enforce it
 date: 2026-10-27
-status: active
-superseded_by: 
+status: superseded
+superseded_by: D-088
 repos: music-jetkreate-backend, video-processing-backend
 tickets: JET-210
 ---

@@ -30,7 +30,7 @@
 | D-026 | The output frame is chosen per render by the caller, not by a deployment flag | 2026-10-27 | active | video-processing-backend music-jetkreate-mobile music-jetkreate-backend creater-ai-backend | JET-196 |
 | D-027 | Clips are generated at the model's length and trimmed to the music's length | 2026-10-27 | active | music-jetkreate-backend video-processing-backend |  |
 | D-028 | Beat tracking is numpy and ffmpeg, not librosa | 2026-10-27 | active | video-processing-backend music-jetkreate-backend | JET-206 |
-| D-029 | Scene changes are cuts: no end pin, no seam score, measure the break and do not enforce it | 2026-10-27 | active | music-jetkreate-backend video-processing-backend | JET-210 |
+| D-029 | Scene changes are cuts: no end pin, no seam score, measure the break and do not enforce it | 2026-10-27 | superseded by D-088 | music-jetkreate-backend video-processing-backend | JET-210 |
 | D-030 | The lyrics are stored here, keyed on the audio URL, and fill MusicVideo.lyrics when a project exists | 2026-10-27 | active | music-jetkreate-backend video-processing-backend | JET-211 JET-208 |
 | D-031 | Scenes and clip lengths derive from the song's structure, not from the model's maximum duration | 2026-10-27 | active | music-jetkreate-backend video-processing-backend music-jetkreate-mobile | JET-206 JET-207 JET-212 |
 | D-032 | The song read gates the flow: no brief until the track has been read | 2026-10-29 | active | music-jetkreate-mobile music-jetkreate-backend | JET-213 JET-214 JET-206 |
@@ -89,3 +89,4 @@
 | D-085 | The still gate redraws split-panel stills | 2026-11-17 | superseded by D-086 | music-jetkreate-backend | JET-339 |
 | D-086 | The still gate redraws split-panel stills | 2026-11-17 | active | music-jetkreate-backend | JET-339 |
 | D-087 | Places come from the lyrics; a picked place is a commitment | 2026-11-17 | active | music-jetkreate-backend music-jetkreate-mobile | JET-342 JET-343 |
+| D-088 | Every shot change is a cut: a clip is pinned to its own opening and closing still, never the next shot's | 2026-11-18 | active | music-jetkreate-backend | JET-350 |

@@ -4,9 +4,9 @@ title: Detailed reference before filming: a plate for every place, and inside, o
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-18T15:30:12+05:30
-updated: 2026-11-18T15:30:12+05:30
+updated: 2026-11-18T16:00:45+05:30
 decisions: 
 ---
 
@@ -39,7 +39,13 @@ In a stills preview of a metro or car song, every still in a section shows the s
 
 ## Test steps
 
-—
+1. Start a stills preview (preview: true) of Tu Mil Jaaye with Zoya, 9:16.
+2. Logs: `location plates N over M place(s)`; a vehicle place (e.g. inside the metro carriage) draws 3 plates.
+3. In the plan, `locationPlates` holds `<place>`, `<place> #exterior` and `<place> #interior2` for each vehicle place.
+4. Look at the stills of one metro section: the same carriage throughout, at believable size against the people.
 
 ## Thread
 2026-11-18T15:30:12+05:30 aquib N: created ticket, status: - -> open
+2026-11-18T15:52:53+05:30 aquib N: status: open -> approved
+2026-11-18T16:00:45+05:30 aquib N: status: approved -> in_progress
+2026-11-18T16:00:45+05:30 aquib N: status: in_progress -> review — locationPlates ON, new vehiclePlates flag: a vehicle place draws interior, exterior (people scale) and a second interior angle, the last two against the first. Each still picks a plate from its shot text; interior shots alternate angles. Plates now stored through durableUrl. Needs a stills preview.
