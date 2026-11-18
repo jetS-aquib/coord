@@ -7,11 +7,14 @@ by: aquib N
 
 aquib N changed music-jetkreate-backend, music-jetkreate-mobile and video-processing-backend in the same sitting.
 
-**music-jetkreate-backend** — src/services/render/renderOrchestratorV1.ts, renderOrchestratorV1.ts, pasted-content-id-534e-you-are-tidy-avalanche.md, src/services/render/subShotV1.ts, src/config/flags.ts, src/services/render/subShotV1.test.ts, scripts/rnd/analyzeVideo.ts, docs/rnd/00-architecture.md, docs/rnd/01-director-v2-plan.md, src/modules/video/video-api.service.ts, +6 more
+**music-jetkreate-backend** — src/services/render/renderOrchestratorV1.ts, renderOrchestratorV1.ts, pasted-content-id-534e-you-are-tidy-avalanche.md, src/services/render/subShotV1.ts, src/config/flags.ts, src/services/render/subShotV1.test.ts, scripts/rnd/analyzeVideo.ts, docs/rnd/00-architecture.md, docs/rnd/01-director-v2-plan.md, src/modules/video/video-api.service.ts
 **music-jetkreate-mobile** — src/lib/generation.ts, src/app/(create)/brief.tsx, src/features/create/song-window-picker.tsx, src/app/(create)/audio.tsx, src/features/create/place-picker.tsx, src/features/create/direction.ts
 **video-processing-backend** — tests/test_beat_cuts.py, app/services/song_read.py, app/processors/lyrics/audio_window.py, tests/test_audio_window.py
 
 _Written automatically from the activity log._
+
+Why they moved together is not recorded here. If you know, write it under this line —
+that sentence is the whole point, and the rest is only there so you recognise the change.
 
 Why they moved together is not recorded here. If you know, write it under this line —
 that sentence is the whole point, and the rest is only there so you recognise the change.
