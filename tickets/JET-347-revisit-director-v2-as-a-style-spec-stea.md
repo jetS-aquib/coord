@@ -44,3 +44,4 @@ EDIT_V2/GEN_V2 is the demo-safe slice. This is the rest, kept so it is not lost.
 ## Thread
 2026-11-18T01:21:27+05:30 aquib N: created ticket, status: - -> open
 2026-11-18T13:25:50+05:30 aquib N: status: open -> approved
+2026-11-18T13:39:05+05:30 aquib N: Built (uncommitted, feat/director-rnd, flags.render.directorV2 on locally): DirectorSpecV2 {pace, motifShare, heroColour, paletteArc, banned} on all 7 directors; 3 new directors (street-pulse/Zoya, coastal-getaway/Ira, neon-chase/Kian) in catalogueV1() only under the flag; BANNED_V2 in treatment + shot list; director pace drives EDIT_V2; motif thread as the cheap B-story; planScoreV1 + scripts/rnd/evalPlans.ts (requires --budget-usd, not run); scripts/rnd/stealStyle.ts run on the reference -> docs/rnd/steal-tu-mil-jaaye.json. Graphic layer + cold open filed as JET-349. Not built: B-story with its own place, wardrobe changes, place as a user choice.
