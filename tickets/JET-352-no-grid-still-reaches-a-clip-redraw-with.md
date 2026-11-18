@@ -4,9 +4,9 @@ title: No grid still reaches a clip: redraw without the six-panel plate, then cr
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-18T15:30:13+05:30
-updated: 2026-11-18T15:33:50+05:30
+updated: 2026-11-18T15:46:56+05:30
 decisions: 
 ---
 
@@ -38,8 +38,14 @@ In a stills preview, zero stills whose final verdict includes panels; no split f
 
 ## Test steps
 
-—
+1. `npx vitest run src/services/render/panelCropV1.test.ts src/services/render/frameGateV1.test.ts` passes.
+2. Start a stills preview (preview: true) of Tu Mil Jaaye with Zoya, 9:16.
+3. Logs: a `panels` gate fail is followed by redraws (up to 3), and if still a grid, `grid replaced by one of its panels`.
+4. renderReport on that job: gridStills 0 (the final verdict on no still includes panels).
+5. Look at the stills: no split screens.
 
 ## Thread
 2026-11-18T15:30:13+05:30 aquib N: created ticket, status: - -> open
 2026-11-18T15:33:50+05:30 aquib N: status: open -> approved
+2026-11-18T15:46:56+05:30 aquib N: status: approved -> in_progress
+2026-11-18T15:46:56+05:30 aquib N: Built: grid redrawn up to 3x without the six-panel plate, then up to 3 panel crops, each checked; best kept. Panel detection verified on all 10 grids of mvr_1794989625320_48693f7a. Also raised the still-check budget to 2N under flags.render.gridFix (the Zoya render ran out at anchor 45). Needs a stills preview before review.
