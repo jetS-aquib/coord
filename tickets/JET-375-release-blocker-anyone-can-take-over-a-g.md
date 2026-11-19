@@ -41,8 +41,16 @@ Logging in or registering with a Google-created account's email and any password
 
 ## Test steps
 
-1. Sign up with Continue with Google. 2. Sign out; on email login enter that email and any password -> 'This account uses Google sign-in', not logged in. 3. Same on Create account -> same message, no account change. 4. Continue with Google -> signs in. 5. Forgot password on that email -> reset link -> new password works for email login.
+Web app (music-jetkreate-frontend) against this backend; the mobile app has no Google sign-in or Forgot password yet (JET-376).
+1. Sign up with Continue with Google, then sign out.
+2. Email login with that email and any password -> 409 "This account signs in with Google or an email link…" (code password_not_set); not logged in. In Mongo the user still has no password field.
+3. Create account with the same email and any password -> the same 409; no tokens, the user is unchanged.
+4. Continue with Google -> signs in as before.
+5. Forgot password on that email -> open the emailed link -> set a password -> email login with it works.
+6. A Firebase ID token whose email is not verified, POSTed to /api/auth/firebase-verify or /api/auth/reset-password -> 401 / 400, nothing written (covered by src/modules/auth/accountTakeover.test.ts).
+Regression sheet rows TC-084 to TC-086.
 
 ## Thread
 2026-11-19T17:01:15+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:02:16+05:30 aquib N: status: open -> approved
+2026-11-19T17:07:33+05:30 aquib N: Built. login() and register() refuse an account with no password: 409 code password_not_set (renamed from use_google_sign_in — email-link accounts have no password either, so the message names both), nothing written, no tokens. Found while tracing: /firebase-verify and /reset-password never checked the Firebase token's email_verified, so an unverified Firebase account made with someone's email could sign in as them or set their password. Both now require it; the web's email-link and reset flows both yield verified tokens. auth.service.ts imports firebaseAdmin at the top instead of require() inside the functions, so it can be tested. Read-only count: the local DB has no Google accounts; run on production before launch: db.users.countDocuments({authProvider:'google', password:{$exists:true}}). Mobile has no Google sign-in or Forgot password, so Google-created accounts are locked out of the app until JET-376.
