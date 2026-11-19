@@ -4,9 +4,9 @@ title: Special request 'road trip with friends' answers 'could not work out what
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T13:11:35+05:30
-updated: 2026-11-19T18:39:04+05:30
+updated: 2026-11-19T18:42:04+05:30
 decisions: 
 ---
 
@@ -48,3 +48,5 @@ Regression sheet row TC-093.
 2026-11-19T13:11:35+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T18:39:04+05:30 aquib N: status: open -> approved
 2026-11-19T18:42:04+05:30 aquib N: Built. normalizeSpecialV1: a reading that is not a name (aesthetic, genre, era) and came back with neither a question nor a recommendation now returns kind 'plain', which the app already treats as 'go on as written' (brief.tsx settle('')). Named titles, people and brands are unchanged and still get their question or the failure card. Step 3, why the model writes nothing: the prompt's recommendation 'reason' explains why we describe a NAME instead of using it; a look in plain words has no name, so the model often writes no recommendation at all. Left the prompt alone: the normaliser guarantees the outcome whatever the model does. Live-checked: 'road trip with friends' and 'golden hour, 90s film look' -> plain; 'make it Dhurandhar style' -> 1 question. No mobile change needed.
+2026-11-19T18:42:04+05:30 aquib N: status: approved -> in_progress
+2026-11-19T18:42:04+05:30 aquib N: status: in_progress -> review — Built and tested. Not committed.
