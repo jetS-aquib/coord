@@ -4,9 +4,9 @@ title: Release: PostHog on the backend — AI observability, evals, runtime flag
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-19T13:31:01+05:30
-updated: 2026-11-19T13:31:16+05:30
+updated: 2026-11-19T14:45:06+05:30
 decisions: D-089
 ---
 
@@ -47,3 +47,4 @@ One Draft render is a single PostHog trace with every Gemini call, Omni clips wi
 ## Thread
 2026-11-19T13:31:01+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T13:31:16+05:30 aquib N: linked decision D-089 (PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits)
+2026-11-19T14:45:06+05:30 aquib N: status: open -> approved
