@@ -42,3 +42,4 @@ Deleting signs the user out and they cannot sign back in with the same account.
 
 ## Thread
 2026-11-19T12:27:10+05:30 aquib N: created ticket, status: - -> open
+2026-11-19T17:21:34+05:30 aquib N: Backend is built (JET-364, committed when approved). Call: POST /api/auth/refresh first, then DELETE /api/users/me, signed, no body, within 5 minutes of the refresh. 200 {success:true} -> clear tokens, go to welcome. 401 code REAUTH_REQUIRED -> refresh and retry once. See .coord/contracts/api-users.md.
