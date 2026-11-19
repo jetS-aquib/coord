@@ -4,9 +4,9 @@ title: Release: a Delete account button in settings that calls DELETE /api/users
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-19T12:27:10+05:30
-updated: 2026-11-19T17:27:00+05:30
+updated: 2026-11-19T17:27:25+05:30
 decisions: 
 ---
 
@@ -51,3 +51,4 @@ Backend on JET-364. Use a throwaway account.
 2026-11-19T17:21:34+05:30 aquib N: Backend is built (JET-364, committed when approved). Call: POST /api/auth/refresh first, then DELETE /api/users/me, signed, no body, within 5 minutes of the refresh. 200 {success:true} -> clear tokens, go to welcome. 401 code REAUTH_REQUIRED -> refresh and retry once. See .coord/contracts/api-users.md.
 2026-11-19T17:22:49+05:30 aquib N: status: open -> approved
 2026-11-19T17:27:00+05:30 aquib N: status: approved -> in_progress
+2026-11-19T17:27:25+05:30 aquib N: status: in_progress -> review — Settings → Account → Delete account (red), Alert confirm stating it is permanent, DELETE /api/users/me, then tokens cleared, PostHog reset, back to sign-in. No separate pre-refresh: api() already refreshes and retries once on a 401, which covers REAUTH_REQUIRED. Failure shows inline and keeps the account. Uncommitted.
