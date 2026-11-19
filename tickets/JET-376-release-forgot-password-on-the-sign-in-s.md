@@ -4,9 +4,9 @@ title: Release: Forgot password on the sign-in screen, and a clear message for a
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-19T17:07:07+05:30
-updated: 2026-11-19T17:07:07+05:30
+updated: 2026-11-19T17:10:09+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A Google-created account can set a password from the app and then sign in on the
 
 ## Thread
 2026-11-19T17:07:07+05:30 aquib N: created ticket, status: - -> open
+2026-11-19T17:10:09+05:30 aquib N: status: open -> approved
