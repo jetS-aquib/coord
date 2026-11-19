@@ -48,3 +48,4 @@ One Draft render is a single PostHog trace with every Gemini call, Omni clips wi
 2026-11-19T13:31:01+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T13:31:16+05:30 aquib N: linked decision D-089 (PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits)
 2026-11-19T14:45:06+05:30 aquib N: status: open -> approved
+2026-11-19T14:57:59+05:30 aquib N: A1+A5 built (uncommitted), behind flags.posthog.{events,limits,remote}, all off. 429 render_limit / 503 capacity / 503 renders_off / 403 signups_closed; allowance on /estimate. Also gated /accept from review (start filming spends too). Handed back before A2.
