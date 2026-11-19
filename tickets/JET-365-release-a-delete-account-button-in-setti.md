@@ -4,9 +4,9 @@ title: Release: a Delete account button in settings that calls DELETE /api/users
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-19T12:27:10+05:30
-updated: 2026-11-19T12:27:10+05:30
+updated: 2026-11-19T17:27:00+05:30
 decisions: 
 ---
 
@@ -38,8 +38,16 @@ Deleting signs the user out and they cannot sign back in with the same account.
 
 ## Test steps
 
-—
+Backend on JET-364. Use a throwaway account.
+
+1. Settings → Account → "Delete account" (red). A confirmation says it is permanent; Cancel leaves everything as it was.
+2. Tap it again → "Delete account": a spinner shows, then you land on sign-in.
+3. Sign in with the same email and password: refused. The account is gone.
+4. Stale token: sign in, leave the app idle 6+ minutes, then delete. It still works (the 401 REAUTH_REQUIRED is refreshed and retried once by the API layer).
+5. Failure: turn off Wi-Fi and delete. A red message shows under the button, you stay signed in, and the account still works once back online.
 
 ## Thread
 2026-11-19T12:27:10+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:21:34+05:30 aquib N: Backend is built (JET-364, committed when approved). Call: POST /api/auth/refresh first, then DELETE /api/users/me, signed, no body, within 5 minutes of the refresh. 200 {success:true} -> clear tokens, go to welcome. 401 code REAUTH_REQUIRED -> refresh and retry once. See .coord/contracts/api-users.md.
+2026-11-19T17:22:49+05:30 aquib N: status: open -> approved
+2026-11-19T17:27:00+05:30 aquib N: status: approved -> in_progress
