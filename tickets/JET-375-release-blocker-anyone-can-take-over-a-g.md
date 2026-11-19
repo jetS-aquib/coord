@@ -4,9 +4,9 @@ title: Release blocker: anyone can take over a Google-created account by logging
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T17:01:15+05:30
-updated: 2026-11-19T17:02:16+05:30
+updated: 2026-11-19T17:07:34+05:30
 decisions: 
 ---
 
@@ -54,3 +54,5 @@ Regression sheet rows TC-084 to TC-086.
 2026-11-19T17:01:15+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:02:16+05:30 aquib N: status: open -> approved
 2026-11-19T17:07:33+05:30 aquib N: Built. login() and register() refuse an account with no password: 409 code password_not_set (renamed from use_google_sign_in — email-link accounts have no password either, so the message names both), nothing written, no tokens. Found while tracing: /firebase-verify and /reset-password never checked the Firebase token's email_verified, so an unverified Firebase account made with someone's email could sign in as them or set their password. Both now require it; the web's email-link and reset flows both yield verified tokens. auth.service.ts imports firebaseAdmin at the top instead of require() inside the functions, so it can be tested. Read-only count: the local DB has no Google accounts; run on production before launch: db.users.countDocuments({authProvider:'google', password:{$exists:true}}). Mobile has no Google sign-in or Forgot password, so Google-created accounts are locked out of the app until JET-376.
+2026-11-19T17:07:33+05:30 aquib N: status: approved -> in_progress
+2026-11-19T17:07:34+05:30 aquib N: status: in_progress -> review — Built and tested; see the note above. Not committed.
