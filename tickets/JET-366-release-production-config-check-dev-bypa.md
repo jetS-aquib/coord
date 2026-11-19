@@ -4,9 +4,9 @@ title: Release: production config check — dev bypasses, R&D flags and dead rou
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T12:27:11+05:30
-updated: 2026-11-19T17:31:22+05:30
+updated: 2026-11-19T17:34:49+05:30
 decisions: 
 ---
 
@@ -51,3 +51,5 @@ Boot log shows every bypass/flag that is on; dbBrowser.ts is gone; flags.ts matc
 2026-11-19T12:27:11+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:31:22+05:30 aquib N: status: open -> approved
 2026-11-19T17:34:49+05:30 aquib N: Built. (1) dbBrowser.ts deleted with its commented mount. (2) Boot: after 'Server running', a [release] ⚠️ line per wrong-for-production setting (NODE_ENV not production, CAPTCHA_BYPASS_CLIENT, launch limits off, PostHog keys missing, GCS_DISABLED, generationLimit null) and one line of render flags on/off (src/config/releaseCheck.ts). (3) Release values = flags.ts as it stands (16 render flags on; scriptWriter off per D-082, shotPins off, replaced by motionPins). No eval picked different values; CONFIRM OR CHANGE before merge — change flags.ts and RELEASE_V1 in releaseCheck.test.ts together. (4) releaseCheck.test.ts pins render/posthog/launch/limits/videoService. (5) Release Checklist sheet: 7 Backend rows; the JET-363 row notes A5 covers it. Also fixed, same class: four gates used NODE_ENV !== 'production', which env.ts warns is TRUE in the container (NODE_ENV unset): the mock Firebase token (reachable only with Firebase unconfigured), OTP codes logged on register/login, and raw error messages in 500 bodies. All now IS_DEV_MACHINE. NOT done: deleting the captcha bypass code (D-065). The app sends no captcha token, so removing it now locks mobile out of login wherever it is set; it stays JET-244's, which needs attestation first. The banner names it at every boot.
+2026-11-19T17:34:49+05:30 aquib N: status: approved -> in_progress
+2026-11-19T17:34:49+05:30 aquib N: status: in_progress -> review — Built and tested; release flag values need your confirmation (see note). Not committed.
