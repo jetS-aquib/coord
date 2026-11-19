@@ -55,3 +55,15 @@ Regression sheet rows TC-090 to TC-091.
 2026-11-19T18:02:09+05:30 aquib N: status: approved -> in_progress
 2026-11-19T18:02:09+05:30 aquib N: status: in_progress -> review — Built and tested; needs a webhook URL for the live check. Not committed.
 2026-11-19T18:10:07+05:30 aquib N: Changed on request: the team uses Teams and may not get a webhook, so PostHog is the alert channel. Every alert is a server_alert event (kind render_failed / render_blocked / 5xx / capacity / limit_check, text, jobId, userId, host); crashes from the error handler also go to PostHog Error Tracking with stacks (captureErrorV1, posthog-node captureException). Email notification = a PostHog insight alert on server_alert. ALERT_WEBHOOK_URL stays as an optional chat webhook (throttled per kind), unset for now; the boot warning for it was dropped. Live-checked: one test server_alert and one test exception sent (jet367-live-check).
+2026-11-19T18:11:53+05:30 aquib N: TO DO LATER — email when something breaks (all in PostHog, EU project, no code needed):
+A) Alerts (failed/blocked renders, 5xx, spend limit, failing allowance check):
+ 1. Product analytics → New insight → Trends. Series: event server_alert, Total count. Date range: last 24 hours, interval Hour. Save as 'Server alerts'.
+ 2. Optional: one insight per kind — add filter kind = render_failed (or 5xx, capacity, limit_check) — so each email says what broke.
+ 3. On the saved insight: Alerts → New alert. Condition: value above 0. Check frequency: hourly. Notify: your email (and teammates). Save.
+ 4. Test: set a bad GEMINI_API_KEY, press Film → server_alert kind render_failed → email within the hour.
+B) Crashes (Error tracking):
+ 1. Error tracking → Settings (or the bell on the Issues page) → Alerts / Notifications → New.
+ 2. Trigger: 'Issue created' (a new kind of crash) and optionally 'Issue reopened'.
+ 3. Destination: Email (or a destination such as a webhook if Teams is set up later). Save.
+ 4. Test: the test issue 'jet367-live-check: test error' already exists; any new unhandled server error creates a new issue and an email.
+Notes: alerts only fire while PostHog keys are set and flags.posthog.events is on. Teams later: set ALERT_WEBHOOK_URL (needs a small payload change for Teams).
