@@ -49,6 +49,7 @@ Setup: POSTHOG_API_KEY (phc_), POSTHOG_HOST=https://eu.i.posthog.com, POSTHOG_SE
 4. Breaker: set dailySpendUsd to 0.01 → Film gives 503 capacity.
 5. Signups: new-signups-enabled off → creating a new account gives 403 signups_closed; an email in signupAllowlist still signs up.
 6. Admin: with your user's role set to 'admin' in Mongo, GET /api/admin/users/<id>/usage answers; as a creator it is 403; the call appears in the auditlogs collection.
+7. Product events: sign up, then sign in on the app → Activity shows user_signed_up then user_logged_in under the user id, and the person has signed_up_at. Share a finished video and open the link in a browser → share_link_created, then share_page_viewed (preview: true when pasted into WhatsApp). Delete a video → video_deleted.
 Regression sheet rows TC-074 to TC-083.
 
 ## Thread
@@ -59,3 +60,4 @@ Regression sheet rows TC-074 to TC-083.
 2026-11-19T16:05:27+05:30 aquib N: linked decision D-090 (PostHog AI events captured by hand at our token log, not via @posthog/ai; admin audit reuses AuditLog)
 2026-11-19T16:06:32+05:30 aquib N: status: approved -> in_progress
 2026-11-19T16:06:47+05:30 aquib N: status: in_progress -> review — All six phases built behind flags.posthog.*, off by default. D-090 records the capture approach. Not committed yet.
+2026-11-19T16:52:28+05:30 aquib N: Folded in pre-launch product events: user_signed_up/user_logged_in with person props, share_link_created, share_page_viewed, songSource on render_started, video_deleted. Test steps item 7 added.
