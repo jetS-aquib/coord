@@ -15,6 +15,11 @@ artifact. Prefer generating one (see contracts/README.md) over growing this file
 - `GET /api/users/one`
 - `POST /api/users`
 - `PUT /api/users/:id`
+- `DELETE /api/users/me` (JET-364) — deletes the signed-in account and everything it owns. Auth + signature, no body.
+  The access token must be under 5 minutes old: refresh first (`POST /api/auth/refresh`), then call.
+  - `200 { success: true }` — gone; every token for it now gets 401. Sign out locally.
+  - `401 { code: 'REAUTH_REQUIRED' }` — token older than 5 minutes; refresh and retry once.
+  - `401 { code: 'INVALID_TOKEN' }` — already deleted, or a bad token.
 
 ## Notes
 

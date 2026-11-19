@@ -51,3 +51,5 @@
 2026-11-19T17:14:50+05:30	music-jetkreate-backend	context	aquib N	together-music-jetkreate-backend-music-jetkreate-mobile-2026-11-19
 2026-11-19T17:18:46+05:30	music-jetkreate-mobile	edit	aquib N	src/lib/analytics.ts
 2026-11-19T17:19:35+05:30	music-jetkreate-mobile	edit	aquib N	src/app/(app)/settings.tsx
+2026-11-19T17:19:39+05:30	music-jetkreate-backend	edit	aquib N	src/modules/auth/deleteAccount.ts
+2026-11-19T17:20:28+05:30	music-jetkreate-backend	edit	aquib N	src/modules/auth/deleteAccount.test.ts
