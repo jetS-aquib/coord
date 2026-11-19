@@ -4,9 +4,9 @@ title: Release: Draft renders ship two-panel grid shots — Draft never checks s
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T13:11:33+05:30
-updated: 2026-11-19T18:14:03+05:30
+updated: 2026-11-19T18:20:02+05:30
 decisions: 
 ---
 
@@ -50,3 +50,5 @@ Regression sheet row TC-092.
 2026-11-19T13:11:33+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T18:14:03+05:30 aquib N: status: open -> approved
 2026-11-19T18:20:01+05:30 aquib N: Built. Tiers without the full still gate (Draft = demo) now ask one question per still: is it a grid? (frameGateV1 panelsOnly constraints: the panels question alone, never skipped for 'nothing stated', failures filtered to panels because the model answers every schema field anyway — seen live). A grid is redrawn up to 3 times without the six-panel plate, then cropped to a panel, exactly as Standard (JET-352); per JET-358 a grid with people in it is not cropped, so clip QA has the last word on those. On while flags.render.frameGate and gridFix are both on (panelsGateOnV1). Cost estimate: Draft now counts the checks and up to ceil(stills/5) still redraws (~$0.23 on a 32-still song); clips are still never re-rendered on Draft, so its ceiling is just above the floor. Checked on the stored stills of mvr_1795072909137_46e55548 (6 vision calls): the grid check flags exactly anchors 2 and 4, the two grids in the report. A full Draft render on HEAD is left to the Test steps (spends money). No mobile change.
+2026-11-19T18:20:01+05:30 aquib N: status: approved -> in_progress
+2026-11-19T18:20:02+05:30 aquib N: status: in_progress -> review — Built and tested; full Draft render left to Test steps. Not committed.
