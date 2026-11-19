@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-19T17:14:30+05:30
+
+Session ended while on JET-376. Touched: JET-376-release-forgot-password-on-the-sign-in-s.md. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-17T18:39:11+05:30
 
 Session ended while on JET-223. Touched: src/lib/generation.ts, src/app/(create)/brief.tsx, src/features/create/song-window-picker.tsx, src/app/(create)/audio.tsx. Nothing committed. (written automatically — no one said what is next)

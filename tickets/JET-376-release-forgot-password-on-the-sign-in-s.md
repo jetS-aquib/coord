@@ -4,9 +4,9 @@ title: Release: Forgot password on the sign-in screen, and a clear message for a
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T17:07:07+05:30
-updated: 2026-11-19T17:10:09+05:30
+updated: 2026-11-19T17:14:26+05:30
 decisions: 
 ---
 
@@ -39,8 +39,14 @@ A Google-created account can set a password from the app and then sign in on the
 
 ## Test steps
 
-—
+1. Backend on JET-375. In the app, sign in with an account created with Google on the web: the field shows "This account signs in with Google or an email link…".
+2. Tap "Forgot password?" under the password field: the web sign-in page opens in an in-app browser. Tap Forgot password there, enter the email, send.
+3. Open the emailed link, set a password, close the browser.
+4. Back in the app, sign in with that email and the new password: you land in the app.
+5. On Create account, enter the same kind of no-password email: the message shows and a "Forgot password" button appears under Create account; it opens the same web page.
 
 ## Thread
 2026-11-19T17:07:07+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:10:09+05:30 aquib N: status: open -> approved
+2026-11-19T17:14:02+05:30 aquib N: status: approved -> in_progress
+2026-11-19T17:14:26+05:30 aquib N: status: in_progress -> review — Forgot password? link on sign-in, button on Create account on password_not_set; both open the web /login in an in-app browser. Commit ff316f2.
