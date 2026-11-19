@@ -4,9 +4,9 @@ title: Release blocker: anyone can take over a Google-created account by logging
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-19T17:01:15+05:30
-updated: 2026-11-19T17:01:15+05:30
+updated: 2026-11-19T17:02:16+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Logging in or registering with a Google-created account's email and any password
 
 ## Thread
 2026-11-19T17:01:15+05:30 aquib N: created ticket, status: - -> open
+2026-11-19T17:02:16+05:30 aquib N: status: open -> approved
