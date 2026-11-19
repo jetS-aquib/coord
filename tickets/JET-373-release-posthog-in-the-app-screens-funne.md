@@ -4,9 +4,9 @@ title: Release: PostHog in the app — screens, funnel events, identify, kill-sw
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-19T13:31:01+05:30
-updated: 2026-11-19T13:31:16+05:30
+updated: 2026-11-19T17:15:15+05:30
 decisions: D-089
 ---
 
@@ -47,3 +47,4 @@ A fresh user's create → watch → share journey shows as one person in PostHog
 ## Thread
 2026-11-19T13:31:01+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T13:31:16+05:30 aquib N: linked decision D-089 (PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits)
+2026-11-19T17:15:15+05:30 aquib N: status: open -> approved

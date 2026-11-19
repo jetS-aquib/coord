@@ -4,9 +4,9 @@ title: Release: delete my account — required by App Store and Play before laun
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-19T12:27:09+05:30
-updated: 2026-11-19T12:27:09+05:30
+updated: 2026-11-19T17:16:01+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ After DELETE /api/users/me the user can't sign in, their projects and share link
 
 ## Thread
 2026-11-19T12:27:09+05:30 aquib N: created ticket, status: - -> open
+2026-11-19T17:16:01+05:30 aquib N: status: open -> approved
