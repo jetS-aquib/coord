@@ -4,9 +4,9 @@ title: Release: PostHog in the app — screens, funnel events, identify, kill-sw
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-19T13:31:01+05:30
-updated: 2026-11-19T17:21:16+05:30
+updated: 2026-11-19T17:21:35+05:30
 decisions: D-089
 ---
 
@@ -57,3 +57,4 @@ Needs a NEW dev build (native deps added: @posthog/react-native-plugin, expo-app
 2026-11-19T17:15:15+05:30 aquib N: status: open -> approved
 2026-11-19T17:21:16+05:30 aquib N: status: approved -> in_progress
 2026-11-19T17:21:35+05:30 aquib N: Built, uncommitted. Notes for review: (1) posthog-react-native-session-replay is deprecated on npm, so replay/native crashes use its successor @posthog/react-native-plugin (same SDK, still D-089). (2) No flag bootstrap from sign-in: the backend's sign-in response carries no flags, so kill switches read 'on' until PostHog answers; the backend enforces the same switches, so the worst case is one tap that answers with its message. (3) reset() on account delete waits for JET-365, which has no button yet. (4) Error capture is the SDK's uncaught-exception/rejection autocapture, no extra boundaries. (5) Replay: 10% local sampleRate, inputs and images masked, the whole (auth) group wrapped in PostHogMaskView.
+2026-11-19T17:21:35+05:30 aquib N: status: in_progress -> review — PostHog wired: provider, $screen per route pattern, identify on real profile / reset on sign-out and expiry, 17 funnel events, thumbs -> $ai_feedback, two kill switches, Settings opt-out, replay 10% masked, limit messages shown on plan. Uncommitted; needs a new dev build.
