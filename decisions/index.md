@@ -90,3 +90,4 @@
 | D-086 | The still gate redraws split-panel stills | 2026-11-17 | active | music-jetkreate-backend | JET-339 |
 | D-087 | Places come from the lyrics; a picked place is a commitment | 2026-11-17 | active | music-jetkreate-backend music-jetkreate-mobile | JET-342 JET-343 |
 | D-088 | Every shot change is a cut: a clip is pinned to its own opening and closing still, never the next shot's | 2026-11-18 | active | music-jetkreate-backend | JET-350 |
+| D-089 | PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits | 2026-11-19 | active | music-jetkreate-backend music-jetkreate-mobile | JET-372 JET-373 |

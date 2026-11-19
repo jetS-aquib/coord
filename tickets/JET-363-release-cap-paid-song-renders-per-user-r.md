@@ -44,3 +44,4 @@ A user past the limit gets 429 render_limit on render/rerender/fix; a failed ren
 
 ## Thread
 2026-11-19T12:27:08+05:30 aquib N: created ticket, status: - -> open
+2026-11-19T13:31:16+05:30 aquib N: Folded into JET-372 A5: the unit is rendered seconds per rolling 7 days, the default allowance comes from PostHog's launch-limits payload, plus a global daily spend breaker (503 capacity). Build once, under JET-372, if you approve that; otherwise this request stands alone.
