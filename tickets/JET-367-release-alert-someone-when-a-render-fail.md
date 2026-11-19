@@ -4,9 +4,9 @@ title: Release: alert someone when a render fails or the API returns 5xx
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T12:27:11+05:30
-updated: 2026-11-19T17:58:11+05:30
+updated: 2026-11-19T18:02:09+05:30
 decisions: 
 ---
 
@@ -51,3 +51,5 @@ Regression sheet rows TC-090 to TC-091.
 2026-11-19T12:27:11+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:58:11+05:30 aquib N: status: open -> approved
 2026-11-19T18:02:08+05:30 aquib N: Built. src/shared/alert.ts: alertV1 posts {text} (works for Slack and Google Chat incoming webhooks) with the host prefixed, 5s timeout, never throws. Render failed/blocked: one message per render from the same emit() point the PostHog render events use (trackRenderV1 no longer returns early when PostHog flags are off, so alerts don't depend on them). 5xx: a res 'finish' listener catches every 5xx however it was sent, throttled to one per 5 min with a count of what was held back; 503 is skipped (renders_off and capacity are deliberate refusals). Extra: the daily spend breaker tripping alerts (one an hour), and the allowance check failing (which refuses every render) alerts. ALERT_WEBHOOK_URL optional in env.ts (empty allowed), placeholder added to .env; the boot banner warns when it is unset. Throttle is per process (noted). No mobile change: alerts are server-side only.
+2026-11-19T18:02:09+05:30 aquib N: status: approved -> in_progress
+2026-11-19T18:02:09+05:30 aquib N: status: in_progress -> review — Built and tested; needs a webhook URL for the live check. Not committed.
