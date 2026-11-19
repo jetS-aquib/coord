@@ -4,9 +4,9 @@ title: Release: delete my account — required by App Store and Play before laun
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T12:27:09+05:30
-updated: 2026-11-19T17:16:01+05:30
+updated: 2026-11-19T17:21:34+05:30
 decisions: 
 ---
 
@@ -53,3 +53,5 @@ Regression sheet rows TC-087 to TC-089.
 2026-11-19T12:27:09+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T17:16:01+05:30 aquib N: status: open -> approved
 2026-11-19T17:21:34+05:30 aquib N: Built. DELETE /api/users/me (src/modules/auth/deleteAccount.ts): token must be <5 min old (401 REAUTH_REQUIRED), cancels live renders, deletes the user's rows in 10 owned collections plus settings and quotas, song caches only for the user's own uploads that nobody else uses (the catalogue is shared), $pulls their lyric edits, keeps GenerationLog rows with userId/email set to 'deleted' (the spend breaker sums them), deletes the Firebase user (a failure is logged, not fatal), deletes the User row last so a half-done delete can be retried. Files are deleted in the background after the 200, from the URLs the deleted records held; GCS keys are not per user, so a prefix delete is impossible. No file is shared between users today (0 of 7,554), so no cross-user check; noted in code. Share links die with the MusicVideo row. Not done: deleting the person in PostHog needs a personal API key the backend doesn't have; events carry only the user id, which now points at nothing. Delete them from PostHog's Persons page on request, or file it when a key exists. Contract api-users.md updated. Live-checked on the local DB with a throwaway user.
+2026-11-19T17:21:34+05:30 aquib N: status: approved -> in_progress
+2026-11-19T17:21:34+05:30 aquib N: status: in_progress -> review — Built and tested; see the note. Not committed.

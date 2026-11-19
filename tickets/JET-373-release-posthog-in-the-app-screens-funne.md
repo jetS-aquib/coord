@@ -42,10 +42,18 @@ A fresh user's create → watch → share journey shows as one person in PostHog
 
 ## Test steps
 
-—
+Needs a NEW dev build (native deps added: @posthog/react-native-plugin, expo-application, expo-localization); Expo Go and the old build will not do. Put the project key in .env.local as EXPO_PUBLIC_POSTHOG_KEY, then `npx expo run:android`.
+
+1. Sign in. In PostHog → Activity, the person is the backend's user id (same as the server's `user_logged_in`), not an anonymous or "restored" id. Kill and reopen the app: still the same person.
+2. Kreate → upload a song → Continue → lyrics → director → brief → Ready → Preview stills. Each step shows as `kreate_tapped`, `track_uploaded`, `window_chosen`, `lyrics_saved`, `director_chosen`, `brief_continued`, `quality_chosen`, `preview_stills_tapped`, with `$screen` events named like `(create)/ready`.
+3. Open a finished video: watch a bit, tap a thumb (a "Thanks" note shows), share a link, go back. Expect `$ai_feedback` with `$ai_trace_id` = the render's jobId, `video_shared` (via link), `video_watched` (percent).
+4. In PostHog set `catalogue-enabled` off: Browse songs disappears on the audio screen. Set `tier-best-enabled` off: Best disappears on Ready. Turn both back on.
+5. Settings → Privacy → turn off "Share usage data". Tap around: no new events arrive. Turn it back on: events resume.
+6. With limits on (backend `posthog.limits`) and a tiny override, tap Film on the plan: the backend's "you have Ns left this week" message shows on the plan instead of moving on, and `limit_message_seen` arrives with `secondsLeft`.
 
 ## Thread
 2026-11-19T13:31:01+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T13:31:16+05:30 aquib N: linked decision D-089 (PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits)
 2026-11-19T17:15:15+05:30 aquib N: status: open -> approved
 2026-11-19T17:21:16+05:30 aquib N: status: approved -> in_progress
+2026-11-19T17:21:35+05:30 aquib N: Built, uncommitted. Notes for review: (1) posthog-react-native-session-replay is deprecated on npm, so replay/native crashes use its successor @posthog/react-native-plugin (same SDK, still D-089). (2) No flag bootstrap from sign-in: the backend's sign-in response carries no flags, so kill switches read 'on' until PostHog answers; the backend enforces the same switches, so the worst case is one tap that answers with its message. (3) reset() on account delete waits for JET-365, which has no button yet. (4) Error capture is the SDK's uncaught-exception/rejection autocapture, no extra boundaries. (5) Replay: 10% local sampleRate, inputs and images masked, the whole (auth) group wrapped in PostHogMaskView.
