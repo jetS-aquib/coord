@@ -4,10 +4,10 @@ title: Release: PostHog on the backend — AI observability, evals, runtime flag
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-19T13:31:01+05:30
-updated: 2026-11-19T14:45:06+05:30
-decisions: D-089
+updated: 2026-11-19T16:06:47+05:30
+decisions: D-089, D-090
 ---
 
 ## Request
@@ -42,10 +42,20 @@ One Draft render is a single PostHog trace with every Gemini call, Omni clips wi
 
 ## Test steps
 
-—
+Setup: POSTHOG_API_KEY (phc_), POSTHOG_HOST=https://eu.i.posthog.com, POSTHOG_SECRET_KEY (phs_) in .env; flags renders-enabled, new-signups-enabled, catalogue-enabled, tier-best-enabled (boolean) and launch-limits (remote config) at 100%, "persist across authentication steps" off. In src/config/flags.ts set every flags.posthog.* to true; ENFORCE_GENERATION_LIMITS=true on a dev machine. Restart.
+1. Trace: film one Draft render. In PostHog → LLM analytics → Traces, the trace named by its jobId shows every Gemini call (plan, stills, checks) with cost, the Omni clips with cost and videoSeconds, the stage spans, and the $ai_metric scores. Activity shows render_started … render_completed under your user id.
+2. Kill switch: turn renders-enabled off, wait 30s, press Film → 503 renders_off. Turn it back on → Film works.
+3. Allowance: set launch-limits weeklyRenderSeconds to 30, wait 30s, Film a song longer than 30s → 429 render_limit with secondsLeft; POST /estimate shows the allowance.
+4. Breaker: set dailySpendUsd to 0.01 → Film gives 503 capacity.
+5. Signups: new-signups-enabled off → creating a new account gives 403 signups_closed; an email in signupAllowlist still signs up.
+6. Admin: with your user's role set to 'admin' in Mongo, GET /api/admin/users/<id>/usage answers; as a creator it is 403; the call appears in the auditlogs collection.
+Regression sheet rows TC-074 to TC-083.
 
 ## Thread
 2026-11-19T13:31:01+05:30 aquib N: created ticket, status: - -> open
 2026-11-19T13:31:16+05:30 aquib N: linked decision D-089 (PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits)
 2026-11-19T14:45:06+05:30 aquib N: status: open -> approved
 2026-11-19T14:57:59+05:30 aquib N: A1+A5 built (uncommitted), behind flags.posthog.{events,limits,remote}, all off. 429 render_limit / 503 capacity / 503 renders_off / 403 signups_closed; allowance on /estimate. Also gated /accept from review (start filming spends too). Handed back before A2.
+2026-11-19T16:05:27+05:30 aquib N: linked decision D-090 (PostHog AI events captured by hand at our token log, not via @posthog/ai; admin audit reuses AuditLog)
+2026-11-19T16:06:32+05:30 aquib N: status: approved -> in_progress
+2026-11-19T16:06:47+05:30 aquib N: status: in_progress -> review — All six phases built behind flags.posthog.*, off by default. D-090 records the capture approach. Not committed yet.
