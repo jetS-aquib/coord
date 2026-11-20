@@ -4,9 +4,9 @@ title: Every shot comes back reworded for 'Image tags representing real people w
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-20T12:24:27+05:30
-updated: 2026-11-20T12:24:27+05:30
+updated: 2026-11-20T13:03:26+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A render whose only people are its generated cast returns no 'real people' warni
 
 ## Thread
 2026-11-20T12:24:27+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T13:03:26+05:30 aquib N: status: open -> approved
