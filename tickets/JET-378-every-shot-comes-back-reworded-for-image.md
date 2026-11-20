@@ -4,9 +4,9 @@ title: Every shot comes back reworded for 'Image tags representing real people w
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-20T12:24:27+05:30
-updated: 2026-11-20T13:03:26+05:30
+updated: 2026-11-20T13:07:05+05:30
 decisions: 
 ---
 
@@ -49,3 +49,5 @@ Regression sheet row TC-096.
 2026-11-20T12:24:27+05:30 aquib N: created ticket, status: - -> open
 2026-11-20T13:03:26+05:30 aquib N: status: open -> approved
 2026-11-20T13:07:05+05:30 aquib N: Cause: the plan-time safety pass (promptSafetyV1.sanitizePromptsV1, one text call at MINIMAL thinking) sometimes reads the shot list's @image1/@image2 cast tags as real people and replaces them with 'a woman'. Intermittent: 1 of the last 12 cast renders (mvr_1795156396084_b3d17799, all 66 shots), 0 on the other 11. It was not harmless rewording: renderPromptsV1 later swaps each @imageN for that cast member's description, so the rewritten shots lost which person they were. Fix in the shared function, so every caller (plan, special-request rewrite, typed edits, shot action, single-shot refilm) gets it: (1) the instruction says @imageN tags are our invented characters, never refused, keep them as written (also in the refusal-fix prompt); (2) code drops any rewrite whose set of @imageN tags differs from the original's, logged. A real name next to a tag is still rewritten. Live: the 66 original prompts of that render re-run through the pass -> 0 rewrites. No mobile change: the app keeps showing plan.warnings, which will now be real ones only.
+2026-11-20T13:07:05+05:30 aquib N: status: approved -> in_progress
+2026-11-20T13:07:05+05:30 aquib N: status: in_progress -> review — Built and tested. Not committed.
