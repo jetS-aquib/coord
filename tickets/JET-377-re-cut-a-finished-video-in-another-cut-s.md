@@ -4,9 +4,9 @@ title: Re-cut a finished video in another cut style, and a 30-45s 9:16 reel arou
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-20T11:46:11+05:30
-updated: 2026-11-20T13:18:24+05:30
+updated: 2026-11-20T13:31:49+05:30
 decisions: 
 ---
 
@@ -54,3 +54,5 @@ A 16:9 render's reel is letterboxed until video-processing ships JET-379; after 
 2026-11-20T11:46:11+05:30 aquib N: created ticket, status: - -> open
 2026-11-20T13:18:24+05:30 aquib N: status: open -> approved
 2026-11-20T13:31:44+05:30 aquib N: Live on local video-processing: mvr_…80e429b5 re-cut fast 42 clips -> 121 pieces, 207s, 218.13s = original length; keep swapped finalVideoUrl, undo restored it exactly. Reels: mvr_…8b8bf794 (trimmed render) 14.07-56.53s -> 42.46s 720x1280 in 80s; mvr_…80e429b5 129.49-172.46s -> 42.97s in 100s. Found and fixed: a reel fit in one segment ('only 14 pieces'), now split in two. 16:9 crop needs JET-379 (video-processing); until then letterboxed. Mobile: JET-346.
+2026-11-20T13:31:49+05:30 aquib N: status: approved -> in_progress
+2026-11-20T13:31:49+05:30 aquib N: status: in_progress -> review
