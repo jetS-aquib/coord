@@ -4,9 +4,9 @@ title: Library card shows the song's length (5:15) instead of the video's (0:35)
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-20T16:50:30+05:30
-updated: 2026-11-20T16:50:30+05:30
+updated: 2026-11-20T16:57:09+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ A Hook render's card shows ~0:30, not the song's length.
 
 ## Thread
 2026-11-20T16:50:30+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T16:57:09+05:30 aquib N: status: open -> approved
