@@ -168,9 +168,46 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   16:9 render's reel is cropped to fill the frame (soft: the shots are 720p); until
   video-processing ships JET-379 it is letterboxed instead. `409` when the video is
   shorter than 30s.
+- **Versions (JET-380).** Every re-cut and reel is kept; none is overwritten. The first
+  stitch is the `original` version (id `v_original`, backfilled for older videos). The poll
+  now also carries `currentVersionId`; `recut` and `reel` above are the newest of each.
+  `POST /api/v1/music-videos/render/:jobId/versions/:versionId/use` — `200`; a ready re-cut
+  or the original becomes `finalVideoUrl` (render and project). `409` for a reel, a version
+  not ready, or an unfinished render; `404` for an unknown version. `…/recut/keep` = use the
+  newest re-cut; `…/recut/undo` = go back to the version before the last switch (one step).
 - All three are off until the app ships them (`404` "Re-cut is not available yet";
   PostHog `render-recut` turns them on per user), and share a limit of 5 an hour per
   person (`429`).
+- `GET /api/v1/music-videos/:id/detail` — everything the finished-video screen shows, in
+  one owner-checked read (`404` for anyone else's project). JET-380.
+  ```
+  { video: { id, title, createdAt, completedAt, durationSeconds, aspectRatio, tier, cutStyle,
+             finalVideoUrl, posterUrl, renderJobId, currentVersionId },
+    director: { id, name, avatarUrl, tagline },          // tagline: the card's traits, " · "-joined
+    direction: { story?, cast?, place?, mood?, look?, where? },   // labels as the person saw them
+    song: { title, durationSeconds, bpm, language, window: { startSeconds, endSeconds } | null },
+    feedback: { rating: "up"|"down", reasons[], note, versionId, updatedAt } | null,
+    publish: { status: "ready"|"writing"|"failed", caption, hashtags[] } | null,
+    assets: {
+      shots: [{ index, startSeconds, endSeconds, sectionLabel, lyricLines[], shotSize, videoUrl, stillUrl }],
+      stills: [{ kind: "opening"|"closing"|"plate"|"location", url, shotIndex?, label }],
+      cast: [{ tag, name, imageUrl }],
+      versions: [{ id, kind: "original"|"recut"|"reel", cutStyle, url, posterUrl, durationSeconds,
+                   aspectRatio, status: "stitching"|"ready"|"failed", error, createdAt, isCurrent }] } }
+  ```
+  Facts and pictures only: no prompts, cost, flags or special request. `videoUrl` is `''`
+  for a shot that did not film. All URLs are permanent public GCS links. `publish` reads
+  `writing` the first time a finished video is opened without one (poll `/detail` again).
+- `PUT /api/v1/music-videos/:id/feedback` `{ rating: "up"|"down", reasons?: ("mood"|"faces"|
+  "offbeat"|"lyrics"|"fake"|"other")[], note?: string<=500, versionId? }` — `200 { feedback }`;
+  one per person per video, the latest wins. The server sends PostHog `$ai_feedback` on the
+  render's trace with the rating and reasons, never the note, so **the app stops sending its
+  own**. `DELETE …/feedback` — `200 { feedback: null }`. `404` for anyone else's. JET-380.
+- `POST /api/v1/music-videos/:id/publish/rewrite` — `202 { publish: { status: "writing", … } }`;
+  writes a fresh caption (poll `/detail`). Written from the title, director, direction
+  labels and logline, in the song's language — never from the special request. Shares the
+  5-an-hour limit with re-cuts and reels (`429`); `409` before the video is finished; `404`
+  while PostHog `publish-kit` is off. The first caption is written when a render finishes. JET-380.
 - `GET /api/v1/music-videos/:id/song-read` — what the song is doing: `bpm`,
   `beatsPerBar`, `downbeats[]`, `energy[]` (one per bar, 0-1) and `sections[]` with
   their timed lines. The same read the planner cuts to, so a screen showing it and a

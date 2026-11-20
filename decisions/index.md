@@ -92,3 +92,5 @@
 | D-088 | Every shot change is a cut: a clip is pinned to its own opening and closing still, never the next shot's | 2026-11-18 | active | music-jetkreate-backend | JET-350 |
 | D-089 | PostHog (EU cloud) for product analytics, AI observability, evals and runtime flags; Mongo stays the record that enforces limits | 2026-11-19 | active | music-jetkreate-backend music-jetkreate-mobile | JET-372 JET-373 |
 | D-090 | PostHog AI events captured by hand at our token log, not via @posthog/ai; admin audit reuses AuditLog | 2026-11-19 | active | music-jetkreate-backend | JET-372 |
+| D-091 | Finished-video feedback stored per person, every cut kept as a version, post caption from chosen facts only | 2026-11-20 | superseded by D-092 | music-jetkreate-backend music-jetkreate-mobile | JET-380 |
+| D-092 | Finished-video feedback stored per person, every cut kept as a version, post caption from chosen facts only | 2026-11-20 | active | music-jetkreate-backend music-jetkreate-mobile | JET-380 |
