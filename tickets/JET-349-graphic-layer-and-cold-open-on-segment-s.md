@@ -4,9 +4,9 @@ title: Graphic layer and cold open on segment stitches: block-grid wipe, split s
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-18T13:38:13+05:30
-updated: 2026-11-20T11:48:26+05:30
+updated: 2026-11-20T12:30:40+05:30
 decisions: 
 ---
 
@@ -62,3 +62,5 @@ Regression sheet row TC-094.
 2026-11-20T11:48:26+05:30 aquib N: status: open -> approved
 2026-11-20T12:03:57+05:30 aquib N: HANDOFF (video side built in video-processing-backend, uncommitted at time of writing; contract: .coord/contracts/video-segments.md 'Graphic layer' + 'Cold open and film finish'). Fields now live: per clip transitionIn 'block_grid'|'bw_flash' (drawn on the clip's own first 0.2s/0.1s, never moves a cut); segment-stitch splitPair [i, j] = clip ORDERs, clip i plays with j beside it (below in portrait) for the SHORTER of the two, and clip j is dropped from the sequence, so the planner must budget the segment's length without j; segment-concat coldOpen {start, end} (master clock, after any audio window, max 15s): that stretch plays first, then 0.3s black/silence, then the song from 0, captions shifted by end-start+0.3 automatically; a coldOpen ending within 0.3s of the master's end fails the job. Grain is NOT here, it is finish:'film' (JET-362). Absent fields = today's output. MUSIC HALF TO DO (music-jetkreate-backend): (6) DirectorSpecV2.graphics on street-pulse, neon-chase + flags.render.graphicLayer (off) + releaseCheck; (7) subShotV1: block_grid at section changes, bw_flash on a loud downbeat max once per section, splitPair on call-and-response lines, coldOpen = first chorus's first bar-aligned 4-6s from song read; (8) video-api.service.ts: add transitionIn to ClipInput type (~line 92), splitPair to the segment-stitch body (~line 928), coldOpen to the segment-concat body; renderOrchestratorV1.ts clip mapping (~line 4701) and stitchInSegmentsV1 (~line 4730) send them only under the flag; renderReport lists what was placed; (9) one render flag on/off same song side by side. Mobile cold-open toggle is JET-346 (blocked on JET-377).
 2026-11-20T12:30:39+05:30 aquib N: Music half built (uncommitted): src/services/render/graphicLayerV1.ts (pure planner) + DirectorSpecV2.graphics (street-pulse: all four; neon-chase: no split screen) + flags.render.graphicLayer (off, in the release list) + transitionIn/splitPair/coldOpen through video-api.service.ts and stitchEditV2/stitchInSegmentsV1, only on EDIT_V2 hard cuts and only for directors that list graphics. Split pair = two different cast in consecutive hook pieces (no per-line singer in the song read), both lengthened to the pair's combined length so the music never moves; skipped when the footage cannot cover it. Cold open = first section labelled chorus/hook/drop, else the loudest; none within 8s of the start (Hook renders) or within 0.3s of the end. plan.stitchInfo records what was placed; renderReport prints it. Live on local video-processing with mvr_1795085795309_80e429b5 (42 clips, 9:16, 4 min): 3 segments with 5 wipes, 4 flashes, 1 split pair accepted and stitched (95s); concat with coldOpen {129.5, 134.9} OK. That song has no chorus label, so the loudest section was used.
+2026-11-20T12:30:40+05:30 aquib N: status: approved -> in_progress
+2026-11-20T12:30:40+05:30 aquib N: status: in_progress -> review — Music half built and live-checked against local video-processing. Not committed.
