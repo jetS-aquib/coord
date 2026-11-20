@@ -150,6 +150,27 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   opening still redrawn from the new words first. JET-250, JET-286.
 - `POST /api/v1/music-videos/render/:jobId/stitch` — `202`; assembles a `blocked`
   render as it is, missing shots and all. Deliberate opt-in; `409` on any other status.
+- `POST /api/v1/music-videos/render/:jobId/recut` `{ cutStyle: "calm" | "beat" | "fast" }`
+  — `202`; re-stitches a finished video at another pace from the shots already filmed.
+  Nothing is generated and nothing counts against the weekly seconds. Poll as usual:
+  `recut` on the payload is `{ status: "stitching" | "ready" | "failed" | "kept",
+  cutStyle, url, error, canUndo }` (`null` until asked). `url` is a preview; the video
+  does not change until kept. `409` if the render is not finished or one is already
+  stitching; `400` for an unknown `cutStyle`. JET-377.
+- `POST …/recut/keep` — `200`; the ready re-cut becomes `finalVideoUrl` (here and on the
+  project) and `cutStyle` on the payload names it; caption corrections keep that pace.
+  `POST …/recut/undo` — `200`; puts the previous video back, and the re-cut returns to
+  `ready` so it can be kept again. One step of undo. `409` when there is nothing to keep
+  or undo.
+- `POST /api/v1/music-videos/render/:jobId/reel` — `202`; a 30-45s 9:16 cut of the hook
+  (from the first chorus's downbeat to a downbeat 30-45s later), captions as the video
+  has them. `reel` on the payload: `{ status, url, error }`. Never replaces the video. A
+  16:9 render's reel is cropped to fill the frame (soft: the shots are 720p); until
+  video-processing ships JET-379 it is letterboxed instead. `409` when the video is
+  shorter than 30s.
+- All three are off until the app ships them (`404` "Re-cut is not available yet";
+  PostHog `render-recut` turns them on per user), and share a limit of 5 an hour per
+  person (`429`).
 - `GET /api/v1/music-videos/:id/song-read` — what the song is doing: `bpm`,
   `beatsPerBar`, `downbeats[]`, `energy[]` (one per bar, 0-1) and `sections[]` with
   their timed lines. The same read the planner cuts to, so a screen showing it and a

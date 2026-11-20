@@ -40,7 +40,15 @@ A finished video re-cuts as 'fast' in about a minute with no new clips generated
 
 ## Test steps
 
-—
+Turn on PostHog flag `render-recut` for your account first (boolean, "persist across authentication steps" OFF). Off = all four endpoints answer 404.
+
+1. Pick a finished render (`GET …/render/:jobId` shows `status: completed`). `POST /api/v1/music-videos/render/:jobId/recut` with `{"cutStyle":"fast"}` → 202, `recut.status: "stitching"`.
+2. Poll `GET …/render/:jobId` until `recut.status` is `ready` (about 1-3 min for a 3-min song). Open `recut.url`: the same shots, cut noticeably faster, music in sync. `finalVideoUrl` has NOT changed. No new clips: the GenerationLog has no new rows and the weekly seconds are unchanged.
+3. `POST …/recut/keep` → `finalVideoUrl` is now the re-cut (and on the project in the app), `cutStyle: "fast"`, `recut.canUndo: true`. `POST …/recut/undo` → the old video is back, `cutStyle: ""`, `recut.status: "ready"`.
+4. `POST …/reel` → poll until `reel.status: "ready"`. `reel.url` is 30-45s, 1080x1920, starts on the first chorus on a beat, ends on a beat, captions on if the video has them. `finalVideoUrl` unchanged.
+5. Edge cases: `{"cutStyle":"slow"}` → 400; a second recut while one is stitching → 409; a render that is not finished → 409; a 6th recut/reel in an hour → 429.
+
+A 16:9 render's reel is letterboxed until video-processing ships JET-379; after that it fills the frame.
 
 ## Thread
 2026-11-20T11:46:11+05:30 aquib N: created ticket, status: - -> open
