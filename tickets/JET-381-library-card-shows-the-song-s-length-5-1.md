@@ -4,9 +4,9 @@ title: Library card shows the song's length (5:15) instead of the video's (0:35)
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-20T16:50:30+05:30
-updated: 2026-11-20T16:57:09+05:30
+updated: 2026-11-20T16:59:35+05:30
 decisions: 
 ---
 
@@ -38,8 +38,13 @@ A Hook render's card shows ~0:30, not the song's length.
 
 ## Test steps
 
-—
+1. Run the backend with videoDurationSeconds on GET /api/music-videos, open Home.
+2. A finished Hook (30s) render of a long song: its card reads about 0:30, not the song's length.
+3. A draft still reads Draft; a rendering one still reads Rendering.
+4. Open that video: the player's end time matches the card (within ~2s on old crossfade cuts).
 
 ## Thread
 2026-11-20T16:50:30+05:30 aquib N: created ticket, status: - -> open
 2026-11-20T16:57:09+05:30 aquib N: status: open -> approved
+2026-11-20T16:59:30+05:30 aquib N: status: approved -> in_progress
+2026-11-20T16:59:35+05:30 aquib N: status: in_progress -> review — card and player fallback use videoDurationSeconds, else totalSongDuration
