@@ -45,7 +45,12 @@ With finish:'film', the master shows even fine grain and one consistent grade ac
 
 ## Test steps
 
-—
+Setup: video-processing with JET-362 deployed; flags.render.filmFinish = true; restart.
+1. Film a realistic-style song: the master has a soft contrast curve, slightly lifted blacks, a touch less saturation, a warm glow off highlights and fine even grain across every cut; the lyrics are clean (not grained).
+2. Film an artistic style (anime, watercolour…): no finish.
+3. scripts/rnd/renderReport.ts <jobId>: stitch.finish 'film' and stitch.concatSeconds; compare concatSeconds and file size with a flag-off render of the same song.
+4. filmFinish false: the master is today's, byte for byte.
+Regression sheet row TC-095.
 
 ## Thread
 2026-11-18T17:34:08+05:30 aquib N: created ticket, status: - -> open

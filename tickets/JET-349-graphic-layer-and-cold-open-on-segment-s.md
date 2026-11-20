@@ -48,7 +48,14 @@ A segment stitch with transition_in block_grid on clip 3 shows a grid wipe into 
 
 ## Test steps
 
-—
+Setup: video-processing with JET-349 deployed; in src/config/flags.ts set flags.render.graphicLayer = true (directorV2 and editV2 are already on); restart.
+1. Film a song with the street-pulse director (Zoya) on Standard. Server log: "[editV2] … graphics {blockGrid, bwFlash, splitPairs, coldOpen}".
+2. Watch the video: it opens with 4-6s of the chorus (or the loudest section when none is labelled chorus), 0.3s of black, then the song from the start; captions stay in sync after the jump.
+3. A black-block grid wipe at each section change; one short black-and-white flash at most per section, on a loud beat; one split screen of two different people in the hook (stacked in portrait).
+4. A neon-chase render: wipes, flashes and cold open, no split screen. Any other director: no graphics at all.
+5. A Hook render (it starts on its chorus): no cold open.
+6. graphicLayer back to false: the same song renders with none of the above. scripts/rnd/renderReport.ts <jobId> shows stitch.graphics.
+Regression sheet row TC-094.
 
 ## Thread
 2026-11-18T13:38:13+05:30 aquib N: created ticket, status: - -> open
