@@ -4,9 +4,9 @@ title: Finished-video detail: store feedback, keep every re-cut and reel, one de
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-20T15:37:13+05:30
-updated: 2026-11-20T15:37:13+05:30
+updated: 2026-11-20T15:37:43+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ GET /:id/detail returns the facts, director, publish caption and all four asset 
 
 ## Thread
 2026-11-20T15:37:13+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T15:37:43+05:30 aquib N: status: open -> approved
