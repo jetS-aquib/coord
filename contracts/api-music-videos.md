@@ -180,6 +180,14 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   or the original becomes `finalVideoUrl` (render and project). `409` for a reel, a version
   not ready, or an unfinished render; `404` for an unknown version. `…/recut/keep` = use the
   newest re-cut; `…/recut/undo` = go back to the version before the last switch (one step).
+- **Start on the chorus (JET-383).** Some directors open with 4-6s of the first chorus
+  before the song plays from the start (the cold open). `POST …/:id/render` takes
+  `coldOpen: true|false` (absent = the director decides; false = never). `…/recut` takes
+  `coldOpen` with or without `cutStyle` (at least one), so a finished video can lose or
+  regain it as a new version to keep or undo. `GET /directors` cards carry `coldOpen:
+  true` where the director can do one for this person; `/detail` `video.coldOpen` is
+  `{ available, on, choice }` (choice `null` = the director's). `available` is false when
+  the chorus sits under 8s into the window: a window that opens on the chorus has none.
 - All three are off until the app ships them (`404` "Re-cut is not available yet";
   PostHog `render-recut` turns them on per user), and share a limit of 5 an hour per
   person (`429`).
