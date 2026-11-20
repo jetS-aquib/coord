@@ -44,3 +44,4 @@ A 16:9 render's reel from POST /api/music-videos/v1/render/:jobId/reel plays ful
 ## Thread
 2026-11-20T13:27:48+05:30 aquib N: created ticket, status: - -> open
 2026-11-20T14:58:31+05:30 aquib N: status: open -> approved
+2026-11-20T15:00:13+05:30 aquib N: Built (uncommitted): ClipInput.fillFrame; clip_trim crops to the named outputFrame's aspect (centred across, zoomAnchor vertical) in the same encode as trim/zoom, and zoom then scales back to the cropped size, not the source's. Ignored when the segment names no outputFrame (no aspect to fill). 1280x720 into 9:16 = 404x720 crop. Contract line added under Beat cuts. Tests: fill math + real ffmpeg landscape->portrait with zoom upper; portrait clip untouched.

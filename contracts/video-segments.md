@@ -82,6 +82,12 @@ still trims to the master audio.
   leaves the clip untouched. Over `1.6` is a 422.
 - `zoomAnchor` (or `zoom_anchor`): `"center"` (default) or `"upper"`, which
   keeps the crop in the top half of the frame, where the faces are.
+- `fillFrame` (or `fill_frame`) on a clip, JET-379: `true` crops the clip to
+  the segment's `outputFrame` aspect (centred across, `zoomAnchor` up and
+  down) before any zoom, so a 16:9 clip fills a 9:16 frame instead of sitting
+  in black bars. Ignored without a named `outputFrame`; a clip already that
+  shape is untouched. A 720p source cropped to 9:16 is 404px wide and goes
+  soft when scaled up — accepted.
 - **Up to 120 clips** per segment-stitch (50 everywhere else), so one clip can
   go in as several beat-length pieces. The same URL may repeat; each piece is
   its own download.
