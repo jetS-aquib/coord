@@ -89,6 +89,32 @@ still trims to the master audio.
   been a hard cut.
 - None of the three fields sent is today's request, byte for byte.
 
+### Graphic layer: `transitionIn` and `splitPair` (JET-349)
+
+```jsonc
+{
+  "clips": [ { "url": "…/a.mp4", "order": 1 },
+             { "url": "…/b.mp4", "order": 2, "transitionIn": "block_grid" },
+             { "url": "…/c.mp4", "order": 3, "transitionIn": "bw_flash" },
+             { "url": "…/d.mp4", "order": 4 } ],
+  "segmentIndex": 0, "cutStyle": "hard",
+  "splitPair": [3, 4]
+}
+```
+
+- `transitionIn` (or `transition_in`) on a clip: `"block_grid"` (a 4x4 grid
+  of black blocks over the clip's first 0.2s, clearing a few per frame) or
+  `"bw_flash"` (its first 0.1s in hard black and white). It is drawn on the
+  clip's own first frames, so it never moves a cut. Meant for `cutStyle:
+  "hard"`; under dissolves it is half hidden.
+- `splitPair` (or `split_pair`): two clip `order`s `[i, j]`. Clip i plays with
+  clip j beside it (landscape) or below it (portrait), each cropped to fill
+  its half, for the **shorter** of the two (after their trims). Clip j does
+  not play on its own, so plan the segment's length without it. The two
+  orders must differ and exist, and the segment needs a third clip: 422
+  otherwise.
+- Absent is today's request, byte for byte.
+
 `segmentIndex` is your own numbering: it labels the job so a log, or a
 failed segment, can be told from its neighbours. This service never reorders
 by it — the finalise call's list is the order.
@@ -160,6 +186,26 @@ analyses nothing.
 
 Refused with `409` if a listed job is not a segment, is not completed, or
 has no stored output; with `422` if a segment is listed twice.
+
+### Cold open and film finish: `coldOpen`, `finish` (JET-349, JET-362)
+
+```jsonc
+{ "segments": ["…", "…"], "audioUrl": "…", "coldOpen": { "start": 60, "end": 66 }, "finish": "film" }
+```
+
+- `coldOpen` (or `cold_open`): `{start, end}` seconds of the master (after
+  any `audioStartSeconds` window), at most 15s long. That stretch, picture and
+  sound, plays first, then 0.3s of black and silence, then the song from its
+  top. The master is `end - start + 0.3` seconds longer, and the captions
+  move later by the same amount (none show over the cold open). It must end at
+  least 0.3s before the master does, or the job fails (the length is only
+  known once the audio is downloaded, so it is not a 422).
+- `finish`: `"film"` or absent. One grade over the whole master (soft
+  S-curve, blacks lifted ~4%, saturation x0.9), a warm halation glow off the
+  highlights, and fine moving luma grain. Applied before the captions, so
+  the lyrics stay clean.
+- Either one costs one extra near-lossless encode of the joined master
+  (crf 16). Neither sent is today's request, byte for byte.
 
 ### What a join looks like
 
