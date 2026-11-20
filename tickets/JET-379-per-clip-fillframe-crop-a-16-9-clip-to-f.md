@@ -4,9 +4,9 @@ title: Per-clip fillFrame: crop a 16:9 clip to fill a 9:16 frame instead of lett
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-20T13:27:48+05:30
-updated: 2026-11-20T13:27:48+05:30
+updated: 2026-11-20T14:58:31+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ A 16:9 render's reel from POST /api/music-videos/v1/render/:jobId/reel plays ful
 
 ## Thread
 2026-11-20T13:27:48+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T14:58:31+05:30 aquib N: status: open -> approved
