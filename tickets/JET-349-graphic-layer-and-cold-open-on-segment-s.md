@@ -4,9 +4,9 @@ title: Graphic layer and cold open on segment stitches: block-grid wipe, split s
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-18T13:38:13+05:30
-updated: 2026-11-18T13:38:13+05:30
+updated: 2026-11-20T11:48:26+05:30
 decisions: 
 ---
 
@@ -52,3 +52,4 @@ A segment stitch with transition_in block_grid on clip 3 shows a grid wipe into 
 
 ## Thread
 2026-11-18T13:38:13+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T11:48:26+05:30 aquib N: status: open -> approved

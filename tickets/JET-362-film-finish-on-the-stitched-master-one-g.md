@@ -4,9 +4,9 @@ title: Film finish on the stitched master: one grade over the edit, matched grai
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-18T17:34:08+05:30
-updated: 2026-11-18T17:34:08+05:30
+updated: 2026-11-20T11:48:38+05:30
 decisions: 
 ---
 
@@ -49,3 +49,4 @@ With finish:'film', the master shows even fine grain and one consistent grade ac
 
 ## Thread
 2026-11-18T17:34:08+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T11:48:38+05:30 aquib N: status: open -> approved
