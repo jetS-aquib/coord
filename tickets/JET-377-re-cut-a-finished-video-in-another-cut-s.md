@@ -45,7 +45,7 @@ Turn on PostHog flag `render-recut` for your account first (boolean, "persist ac
 1. Pick a finished render (`GET …/render/:jobId` shows `status: completed`). `POST /api/v1/music-videos/render/:jobId/recut` with `{"cutStyle":"fast"}` → 202, `recut.status: "stitching"`.
 2. Poll `GET …/render/:jobId` until `recut.status` is `ready` (about 1-3 min for a 3-min song). Open `recut.url`: the same shots, cut noticeably faster, music in sync. `finalVideoUrl` has NOT changed. No new clips: the GenerationLog has no new rows and the weekly seconds are unchanged.
 3. `POST …/recut/keep` → `finalVideoUrl` is now the re-cut (and on the project in the app), `cutStyle: "fast"`, `recut.canUndo: true`. `POST …/recut/undo` → the old video is back, `cutStyle: ""`, `recut.status: "ready"`.
-4. `POST …/reel` → poll until `reel.status: "ready"`. `reel.url` is 30-45s, 1080x1920, starts on the first chorus on a beat, ends on a beat, captions on if the video has them. `finalVideoUrl` unchanged.
+4. `POST …/reel` → poll until `reel.status: "ready"`. `reel.url` is 30-45s, portrait 9:16 (720x1280), starts on the first chorus on a beat, ends on a beat, captions on if the video has them. `finalVideoUrl` unchanged.
 5. Edge cases: `{"cutStyle":"slow"}` → 400; a second recut while one is stitching → 409; a render that is not finished → 409; a 6th recut/reel in an hour → 429.
 
 A 16:9 render's reel is letterboxed until video-processing ships JET-379; after that it fills the frame.
@@ -53,3 +53,4 @@ A 16:9 render's reel is letterboxed until video-processing ships JET-379; after 
 ## Thread
 2026-11-20T11:46:11+05:30 aquib N: created ticket, status: - -> open
 2026-11-20T13:18:24+05:30 aquib N: status: open -> approved
+2026-11-20T13:31:44+05:30 aquib N: Live on local video-processing: mvr_…80e429b5 re-cut fast 42 clips -> 121 pieces, 207s, 218.13s = original length; keep swapped finalVideoUrl, undo restored it exactly. Reels: mvr_…8b8bf794 (trimmed render) 14.07-56.53s -> 42.46s 720x1280 in 80s; mvr_…80e429b5 129.49-172.46s -> 42.97s in 100s. Found and fixed: a reel fit in one segment ('only 14 pieces'), now split in two. 16:9 crop needs JET-379 (video-processing); until then letterboxed. Mobile: JET-346.

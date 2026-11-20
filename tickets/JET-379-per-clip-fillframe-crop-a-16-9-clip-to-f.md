@@ -12,7 +12,7 @@ decisions:
 
 ## Request
 
-segment-stitch accepts fillFrame: true on a clip. That clip is cropped to the output frame's aspect (centred across, zoomAnchor honoured for height) before zoom and scale, so a 16:9 render's reel fills 1080x1920 rather than sitting in black bars.
+segment-stitch accepts fillFrame: true on a clip. That clip is cropped to the output frame's aspect (centred across, zoomAnchor honoured for height) before zoom and scale, so a 16:9 render's reel fills the portrait frame rather than sitting in black bars.
 
 ## Understanding
 
@@ -22,7 +22,7 @@ Music backend already sends fillFrame: true on every piece of a reel when the re
 
 1. ClipInput.fill_frame (alias fillFrame), bool, default false.
 2. clip_trim: when set and the probed aspect differs from the output frame, crop to that aspect before zoom_filter; forces the trim encode.
-3. Test: a 1280x720 clip with fillFrame into a 9:16 segment comes out 1080x1920 with no black bars; without it, unchanged.
+3. Test: a 1280x720 clip with fillFrame into a 9:16 segment comes out portrait with no black bars; without it, unchanged.
 4. contracts/video-segments.md: one line under Beat cuts.
 
 ## Reason
