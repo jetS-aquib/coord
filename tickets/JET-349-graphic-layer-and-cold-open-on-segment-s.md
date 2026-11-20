@@ -16,15 +16,23 @@ Optional per-boundary and per-render effects on the hard-cut path from JET-344. 
 
 ## Understanding
 
-Everything is absent by default and byte-identical when absent, like JET-344. The music backend sends them only under its flags.render.directorV2, and only for directors whose spec asks for graphics. Cold open needs the audio too, so it belongs in the concat that muxes the master audio. Assumed: block_grid can be built from 4x4 overlay boxes over about 6 frames.
+Everything is absent by default and byte-identical when absent, like JET-344 (deployed: cutStyle 'hard' and zoom are live in video-processing 61208f9). Fields: per clip transition_in 'block_grid' | 'bw_flash'; per segment-stitch split_pair [i, j]; per segment-concat cold_open {start, end}. Grain moves to JET-362 (finish: 'film') so there is one grain, applied once, not two. Cold open needs the audio, so it belongs in the concat that muxes the master audio; captions must shift by the cold open's length plus the 0.3s black. Assumed: block_grid = 4x4 overlay boxes over ~6 frames; split_pair is hstack (vstack in 9:16), both halves cropped to fill, trimmed to the shorter clip.
+
+Both ends, one sitting (every dev owns every repo). The music-backend half has no ticket of its own and is part of this one: a director's spec says which graphics it uses (DirectorSpecV2.graphics), EDIT_V2's planner (subShotV1) places them at section changes and call-and-response, and the stitch call sends them, all under a new flags.render.graphicLayer (off), so today's renders are unchanged. Reference: docs/rnd/steal-tu-mil-jaaye.json.
 
 ## Plan
 
-1. schemas/jobs.py: transition_in on ClipInput; split_pair on SegmentStitchRequest; grain and cold_open on SegmentConcatRequest.
-2. Hard-cut path: a block_grid or bw_flash filter over the first frames of a clip that asks for one.
-3. split_pair: hstack (vstack in 9:16) of the two clips, trimmed to the shorter.
-4. Concat: optional noise=alls grain, then the cold open (trim + concat of video and audio) ahead of the song.
+video-processing-backend:
+1. schemas/jobs.py: transition_in on ClipInput; split_pair on SegmentStitchRequest; cold_open on SegmentConcatRequest.
+2. Hard-cut path: block_grid / bw_flash filter over the first frames of a clip that asks for one.
+3. split_pair: hstack/vstack of the two clips, trimmed to the shorter.
+4. Concat: cold open (trim + concat of video and audio) ahead of the song, 0.3s black, captions offset.
 5. Tests: absent fields give an identical filtergraph; each effect changes only its own frames.
+music-jetkreate-backend:
+6. DirectorSpecV2.graphics on the directors whose look uses them (street-pulse, neon-chase); flags.render.graphicLayer (off) + releaseCheck list.
+7. subShotV1: block_grid at section changes, bw_flash on a loud downbeat at most once per section, split_pair on call-and-response lines; cold open = the first chorus's first bar-aligned 4-6s.
+8. Stitch call sends the fields only under the flag; the renderReport lists what was placed.
+9. One render with the flag on and one off of the same song, side by side.
 
 ## Reason
 

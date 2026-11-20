@@ -16,15 +16,20 @@ An optional 'finish' on segment-stitch / segment-concat: one grade applied over 
 
 ## Understanding
 
-Part of JET-359 (photoreal look). Research: grain belongs in post, added last and the same over every clip; a single grade over the edit hides clip-to-clip colour jumps that read as AI. Assumed: ffmpeg filters only (curves/eq, noise or a grain overlay, a blurred-highlight blend for halation), applied once on the final pass so no extra re-encode; music-jetkreate-backend sends the field under its own flag; no change to the response shape.
+Part of JET-359 (photoreal look). Grain belongs in post, added last and the same over every clip; a single grade over the edit hides clip-to-clip colour jumps that read as AI. Assumed: ffmpeg filters only (curves/eq, temporal noise, a blurred-highlight blend for halation), applied once on the final pass (segment-concat, which already re-encodes for captions) so there is no extra encode. finish takes 'film' only for now; absent = today's output byte for byte. This is the only grain: JET-349's grain field moved here.
+
+Both ends, one sitting. The music-backend half is part of this ticket: send finish: 'film' on segment-concat under a new flags.render.filmFinish (off), only for realistic styles (the same rule JET-359's realism uses; artistic styles stay clean). Captions are burnt after the finish so lyrics are not grained.
 
 ## Plan
 
-1. Accept optional finish on segment-stitch and segment-concat.
-2. ffmpeg chain for 'film': curves + eq saturation, temporal grain, highlight halation.
-3. Apply once on the final encode only.
-4. Absent field = unchanged output.
-5. Sample before/after frames from one Tu Mil Jaaye master.
+video-processing-backend:
+1. Accept optional finish on segment-concat (and the single-request stitch, for parity).
+2. ffmpeg chain for 'film': curves (soft S, blacks lifted ~4%), eq saturation ~0.9, temporal grain ~15-20%, halation = blurred highlights blended warm at low opacity.
+3. Applied once, before captions, on the final encode.
+4. Absent field = unchanged output (test the filtergraph string).
+music-jetkreate-backend:
+5. flags.render.filmFinish (off) + releaseCheck list; send finish: 'film' for realistic styles only.
+6. Before/after frames from one Tu Mil Jaaye master, plus encode time and file size before and after.
 
 ## Reason
 
@@ -32,7 +37,7 @@ AI clips each carry their own colour and are too clean; a shared finish is what 
 
 ## Related files
 
-transition_selector / stitch pipeline (video-processing-backend)
+video-processing-backend: app/schemas/jobs.py (SegmentConcatRequest), app/services/job_service.py, the concat ffmpeg chain. music-jetkreate-backend: src/modules/video/video-api.service.ts (segment-concat call), src/services/render/renderOrchestratorV1.ts (stitchInSegmentsV1), src/config/flags.ts.
 
 ## Acceptance criteria
 

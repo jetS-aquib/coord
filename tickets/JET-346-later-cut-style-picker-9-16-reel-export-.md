@@ -16,7 +16,7 @@ Mobile surface for the backend's EDIT_V2: let a person pick a cut style (calm / 
 
 ## Understanding
 
-Not to start until the backend exposes the endpoints, which are not built yet. Filed now so it is not lost. Each needs a backend route first, under JET-345 or a follow-up.
+Mobile surface for EDIT_V2: pick a cut style (calm / on the beat / fast), export a 30-45s 9:16 reel around the hook, re-cut a finished video without re-filming, and turn a cold open on or off. BLOCKED: none of the backend endpoints exist. They are filed as JET-377 (re-cut, cut style, reel) and the cold open needs JET-349. Start this only once those are in review. Mobile is also busy with JET-376 and JET-365 (release) and JET-373 (PostHog).
 
 ## Plan
 
