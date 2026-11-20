@@ -12,6 +12,11 @@ truth — and their shapes remain undocumented.
 ## Endpoints — the project
 
 - `GET /api/music-videos`
+  Each project also carries `renderStatus`, `resumable`, `stalled` and
+  `videoDurationSeconds`: the length of the finished video (the newest completed
+  render's song window), absent until one finishes. Show this on a card, not
+  `totalSongDuration` — that is the whole song (a Hook render of a 5:15 song is ~30s)
+  and is stale on some older projects.
 - `GET /api/music-videos/:id`
 - `POST /api/music-videos`
   `status` and `finalVideoUrl` are the server's (JET-315). `status` in the body is
