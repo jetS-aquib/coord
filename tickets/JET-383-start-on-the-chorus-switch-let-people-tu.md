@@ -4,9 +4,9 @@ title: 'Start on the chorus' switch: let people turn the cold open on or off, be
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-20T17:38:42+05:30
-updated: 2026-11-20T17:38:42+05:30
+updated: 2026-11-20T18:20:37+05:30
 decisions: 
 ---
 
@@ -39,7 +39,14 @@ With Zoya (street-pulse) on a window that does not start on the chorus: switch o
 
 ## Test steps
 
-—
+1. Backend on feat/director-rnd. Create with Zoya (street-pulse), pick a part of the song that does not start on the chorus.
+2. On Ready, a 'Start on chorus' switch shows (not for a director without a cold open). Turn it off and film: the video starts at the window, not on the chorus.
+3. On a finished Zoya video, open Versions: tap 'Start from the top'. A new re-cut row ('From the top') stitches; Use this -> no opening chorus.
+4. Use the Original again: the chorus opening is back.
+5. On a video whose detail says coldOpen.available false (or an older backend), no chorus chip shows.
 
 ## Thread
 2026-11-20T17:38:42+05:30 aquib N: created ticket, status: - -> open
+2026-11-20T18:18:35+05:30 aquib N: status: open -> approved
+2026-11-20T18:20:30+05:30 aquib N: status: approved -> in_progress
+2026-11-20T18:20:37+05:30 aquib N: status: in_progress -> review — Ready switch for coldOpen directors; Versions tab chip re-cuts with coldOpen
