@@ -4,9 +4,9 @@ title: Reuse a song read when the same file is uploaded again: key song reads by
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:45+05:30
-updated: 2026-11-23T15:47:45+05:30
+updated: 2026-11-23T16:50:47+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Upload Zaaya.mp3 twice from the app; the second Pick a track shows parts and lyr
 
 ## Thread
 2026-11-23T15:47:45+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:50:47+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Video detail: who is in each shot, where each shot sits in the video, a s
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:49+05:30
-updated: 2026-11-23T15:47:49+05:30
+updated: 2026-11-23T16:50:56+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ For the Zaaya hook video: detail shots have castTags ['@image1'…], shot 1 vide
 
 ## Thread
 2026-11-23T15:47:49+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:50:56+05:30 aquib N: status: open -> approved

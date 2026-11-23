@@ -4,9 +4,9 @@ title: Deleting an unfinished project should stop its render and remove its plan
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:48+05:30
-updated: 2026-11-23T15:47:48+05:30
+updated: 2026-11-23T16:50:53+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Start a render, delete the project from the API while filming; within one poll t
 
 ## Thread
 2026-11-23T15:47:48+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:50:53+05:30 aquib N: status: open -> approved

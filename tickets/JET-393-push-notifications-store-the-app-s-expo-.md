@@ -4,9 +4,9 @@ title: Push notifications: store the app's Expo push token and notify when a ren
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:55+05:30
-updated: 2026-11-23T15:47:55+05:30
+updated: 2026-11-23T16:51:12+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Register a token from a dev build, start a short render, background the app: a n
 ## Thread
 2026-11-23T15:47:55+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:06:32+05:30 aquib N: Deprioritised 2026-11-23: push notifications are the last batch, after release QA. In-app polling on Home (JET-403) covers 'your video is ready' until then.
+2026-11-23T16:51:12+05:30 aquib N: status: open -> approved

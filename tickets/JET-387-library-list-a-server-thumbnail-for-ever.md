@@ -4,9 +4,9 @@ title: Library list: a server thumbnail for every video, and live progress for u
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:46+05:30
-updated: 2026-11-23T15:47:46+05:30
+updated: 2026-11-23T16:50:50+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ GET /api/music-videos while a render is filming returns that item with progress.
 
 ## Thread
 2026-11-23T15:47:46+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:50:50+05:30 aquib N: status: open -> approved

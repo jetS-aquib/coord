@@ -4,9 +4,9 @@ title: Over-the-air updates with EAS Update: ship JS fixes and UI changes withou
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-23T16:05:13+05:30
-updated: 2026-11-23T16:25:20+05:30
+updated: 2026-11-23T16:50:46+05:30
 decisions: D-094
 ---
 
@@ -42,10 +42,17 @@ Build a preview APK, then publish an update that changes one string to the previ
 
 ## Test steps
 
-—
+Needs a preview build (a dev build does not download updates by itself).
+1. `eas build --profile preview --platform android`, install the APK, open it once.
+2. Change one visible string, then `npm run update:preview -- --message "test"`.
+3. Fully close the app (swipe away) and reopen, twice. The new string shows; nothing was reinstalled.
+4. `eas update:rollback` on the preview branch, close and reopen twice: the old string is back.
+5. `OTA_CRITICAL=1 npm run update:preview -- --message "critical test"`, reopen once: a dark "An important fix is ready" sheet offers Restart / Later.
 
 ## Thread
 2026-11-23T16:05:13+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:11:16+05:30 aquib N: status: open -> approved
 2026-11-23T16:25:20+05:30 aquib N: linked decision D-094 (Over-the-air JS updates with EAS Update (expo-updates), fingerprint runtime)
 2026-11-23T16:27:00+05:30 aquib N: Implemented (uncommitted): expo-updates ~58.0.22; app.json runtimeVersion {policy:'fingerprint'} + updates.url; eas.json channel per profile; app.config.ts adds extra.otaCritical from OTA_CRITICAL=1; fingerprint.config.js = balanced + ExpoConfigExtraSection (verified: same fingerprint with/without the flag); src/lib/updates.ts (check+fetch on launch/foreground, critical -> ConfirmSheet Restart/Later in _layout); npm scripts update:preview / update:production gated on tsc; docs/ota-runbook.md; D-094. Lint is NOT in the gate: expo lint fails (ESLint not installed). eas update:configure had duplicated the Android permissions; deduped. Test steps: build preview APK; change one string; npm run update:preview -- --message test; kill + relaunch twice -> new string; eas update:rollback -> old string after two cold launches; OTA_CRITICAL=1 publish -> Restart sheet appears.
+2026-11-23T16:50:46+05:30 aquib N: status: approved -> in_progress
+2026-11-23T16:50:46+05:30 aquib N: status: in_progress -> review — Implemented; Test steps filled in. Committed on v1-render-and-design-pass.

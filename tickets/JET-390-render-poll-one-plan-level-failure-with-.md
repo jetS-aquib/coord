@@ -4,9 +4,9 @@ title: Render poll: one plan-level failure with a cause and whether retrying can
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:51+05:30
-updated: 2026-11-23T15:47:51+05:30
+updated: 2026-11-23T16:51:00+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ Force a refused clip: GET /render/:jobId returns failure.cause 'refused', refusa
 
 ## Thread
 2026-11-23T15:47:51+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:51:00+05:30 aquib N: status: open -> approved

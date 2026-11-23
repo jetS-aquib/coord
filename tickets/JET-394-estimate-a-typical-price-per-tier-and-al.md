@@ -4,9 +4,9 @@ title: Estimate: a typical price per tier, and always say what is left this week
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:47:57+05:30
-updated: 2026-11-23T15:47:57+05:30
+updated: 2026-11-23T16:51:15+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ POST /estimate for a 27s window returns three different typical values between f
 
 ## Thread
 2026-11-23T15:47:57+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:51:15+05:30 aquib N: status: open -> approved
