@@ -12,18 +12,20 @@ decisions:
 
 ## Request
 
+Depends on: JET-412.
+
 Nothing exists. The redesign adds a 'Start with a look' row on Home and on first-run Pick a track: each recipe pre-fills the create flow (director, picks, place, mood, style, aspect, tier) and shows an example video. The app's draft already holds every field (mobile create-context.tsx:35-80).
 
 ## Understanding
 
-Assumptions: (1) StarterV1 {id, name, coverUrl, previewUrl, exampleVideoUrl, directorId, direction, where, special, visualStyle, aspectRatio, tier, order, enabled, demoTrack?: {audioUrl, contentHash}}; (2) GET /api/v1/music-videos/starters returns enabled ones in order; (3) kill switch 'starters-enabled' via switchOn, default true; (4) an admin seed script plus 6-10 recipes, each rendered once on the free credits to produce exampleVideoUrl; (5) demoTrack stays empty until cleared audio exists — the song catalogue is preview-only and switched off (services/music/epidemicV1.ts:36), so phase A recipes use the person's own song.
+REVISED 2026-11-23 after the remote-config design (docs/ux-revamp-v2/REMOTE_CONFIG.md): no StarterV1 model or /starters endpoint. Recipes are the 'starters' bundle served by JET-412. This ticket is the content work: define 6-10 recipes {id, name, coverUrl, previewUrl, exampleVideoUrl, directorId, direction, where, special, visualStyle, aspectRatio, tier, order, enabled, demoTrack?}, render each once on the free credits to produce exampleVideoUrl/coverUrl, and publish them as starters@N. demoTrack stays empty until cleared audio exists (the song catalogue is preview-only and switched off, epidemicV1.ts:36), so phase A recipes use the person's own song.
 
 ## Plan
 
-1. Model + route + switch.
-2. Seed script with recipe definitions.
-3. Render each recipe once and store exampleVideoUrl/coverUrl.
-4. Contract note.
+1. Write the recipe definitions (with product).
+2. Render each recipe once; store cover and example video URLs on the /media host.
+3. Publish the 'starters' bundle through JET-412's admin route; move the PostHog pointer.
+4. Keep a seed script so the bundle can be rebuilt.
 
 ## Reason
 

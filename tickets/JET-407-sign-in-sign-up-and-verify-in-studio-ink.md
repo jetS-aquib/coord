@@ -12,7 +12,7 @@ decisions:
 
 ## Request
 
-Depends on: JET-385, JET-384, JET-398.
+Depends on: JET-398 (UI now); JET-385, JET-384 for final wiring in the auth batch.
 
 SCREEN_REDESIGN.md §1 (V1 UX-021/040/041/042/043): render backdrop + logo + 'Turn any song into a music video'; hairline fields with Show; primary kept above the keyboard (KeyboardStickyView, already installed); Create an account as an equal secondary; live password rule checks; terms/privacy line; Verify gets Resend (cooldown from the backend) and Wrong email?; Forgot password opens the web reset view (${WEB}/login?view=reset, coordinate with JET-376); email survives an app restart. Settings gets an About group (version, privacy, terms, contact).
 
@@ -20,15 +20,15 @@ Design: docs/ux-revamp-v2 (SCREEN_REDESIGN.md, DESIGN_SYSTEM.md) and https://cla
 
 ## Understanding
 
-Mobile sign-up only works once codes are emailed (backend ticket). The Google token fix is listed as a dependency because offering Google sign-in on mobile is not safe before it; adding a Google button on mobile is optional and not in this plan unless asked. Privacy and terms URLs do not exist yet — needs product/legal pages; the links use config so they can be filled later.
+REVISED 2026-11-23: the auth BACKEND is deprioritised to the pre-release auth batch (JET-384 now also enables Google sign-in), but this UI work is not blocked: build the Studio Ink sign in / create account / verify screens, live password checks (rule from the 'limits' bundle when JET-413 lands, else the current constant), the Resend control with cooldown UI, Wrong email?, the reset link (${WEB}/login?view=reset), a 'Continue with Google' button behind a flag, persisted email, and Settings About now. Wiring Resend to JET-385 and the Google button to JET-384 happens in the auth batch. Privacy and terms URLs do not exist yet (product/legal); links read from config.
 
 ## Plan
 
-1. Sign in / Create account / Verify restyle.
-2. Resend + cooldown.
-3. Reset link.
-4. Persist email in SecureStore.
-5. Settings About.
+1. Sign in / Create account / Verify restyle with ActionBar above the keyboard.
+2. Live password checks; Resend countdown UI; reset link; persisted email.
+3. Google button behind a flag (hidden until JET-384).
+4. Settings About group.
+5. Auth batch: wire Resend to JET-385 and Google to JET-384; remove the flag.
 
 ## Reason
 

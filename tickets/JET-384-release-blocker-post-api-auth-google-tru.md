@@ -16,7 +16,7 @@ POST /api/auth/google (auth.routes.ts:8, auth.service.ts:80 googleAuth) takes {s
 
 ## Understanding
 
-This is a different hole from JET-375 (password takeover of passwordless accounts). Assumptions: (1) the web client can send the Google ID token (credential) it already receives from Google Identity Services instead of the profile fields; (2) mobile does not call /google today, so only the web client changes now; (3) allowed audiences are the web client ID plus future Android/iOS client IDs, read from env (GOOGLE_CLIENT_IDS, comma-separated); (4) verification uses Google's public keys — google-auth-library OAuth2Client.verifyIdToken is the standard way and is a new dependency, or a small JWKS check with the existing jsonwebtoken; whoever implements picks and records a decision. Email must be email_verified=true in the token.
+This is a different hole from JET-375 (password takeover of passwordless accounts). Assumptions: (1) the web client can send the Google ID token (credential) it already receives from Google Identity Services instead of the profile fields; (2) mobile does not call /google today, so only the web client changes now; (3) allowed audiences are the web client ID plus future Android/iOS client IDs, read from env (GOOGLE_CLIENT_IDS, comma-separated); (4) verification uses Google's public keys — google-auth-library OAuth2Client.verifyIdToken is the standard way and is a new dependency, or a small JWKS check with the existing jsonwebtoken; whoever implements picks and records a decision. Email must be email_verified=true in the token. REVISED 2026-11-23: scope now also ENABLES Google sign-in for the mobile app (the person wants it before release): GOOGLE_CLIENT_IDS includes the Android and iOS OAuth client IDs, and the mobile app sends the ID token from its native Google sign-in. Priority: pre-release, scheduled in the auth batch after the redesign batches (see artifact batches).
 
 ## Plan
 
@@ -25,6 +25,7 @@ This is a different hole from JET-375 (password takeover of passwordless account
 3. googleAuth(sub,email,…) takes the verified claims.
 4. Web: send credential/idToken (music-jetkreate-frontend, its own change, coordinated).
 5. Test: forged body without token -> 401; valid token -> same user as before.
+6. Add the Android/iOS client IDs to the allowed audiences and document the OAuth client setup for the mobile builds.
 
 ## Reason
 
@@ -44,3 +45,4 @@ curl POST /api/auth/google with {sub,email} of an existing user and no token -> 
 
 ## Thread
 2026-11-23T15:45:57+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:06:31+05:30 aquib N: Revised in place 2026-11-23 (unapproved): see the REVISED note in Understanding and the updated Depends on line. Reason: remote-config design (JET-411..413) and the person's reprioritisation (auth backend later with Google sign-in, auth UI now, push last).

@@ -12,7 +12,7 @@ decisions:
 
 ## Request
 
-Depends on: JET-397, JET-398, JET-399, JET-400, JET-401, JET-402, JET-403, JET-404, JET-405, JET-406, JET-407, JET-408, JET-409.
+Depends on: JET-397, JET-398, JET-399, JET-400, JET-401, JET-402, JET-403, JET-404, JET-405, JET-406, JET-407, JET-409, JET-411, JET-413.
 
 Close the redesign with a device pass: iOS simulator full journey, an Android 2 GB profile (JET-371 picker), font scale 1.3x and 2.0x, TalkBack/VoiceOver on Home, Lyrics, Ready, Working and the video page, light theme, and re-shot screenshots compared with the artifact; re-score with mobile-design-review against design-baseline.json.
 
@@ -20,7 +20,7 @@ Design: docs/ux-revamp-v2 (SCREEN_REDESIGN.md, DESIGN_SYSTEM.md) and https://cla
 
 ## Understanding
 
-Uses mobile-mcp (now connected) for element-based taps and screenshots. Findings become follow-up tickets rather than scope creep.
+Uses mobile-mcp (now connected) for element-based taps and screenshots. Findings become follow-up tickets rather than scope creep. REVISED 2026-11-23: push notifications (JET-393/JET-408) are deprioritised to the very last batch and get their own check, so this QA pass no longer waits for them. Adds OTA (JET-411) and config fallbacks (JET-413: kill switch, malformed bundle, offline install) to the checks.
 
 ## Plan
 

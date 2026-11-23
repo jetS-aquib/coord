@@ -12,7 +12,7 @@ decisions:
 
 ## Request
 
-Depends on: JET-395, JET-394, JET-398.
+Depends on: JET-395, JET-394, JET-398, JET-412, JET-413.
 
 SCREEN_REDESIGN.md §6-8 (V1 UX-011/012/013/022/023/024): Director as a list of 76dp rows with the illustrated avatars, top 3 with one line of why, More directors, I'll direct myself; Direction with the director's note, style frames (bundled stills per visual style) as the hero, the four chip groups written as one tappable sentence, an always-visible special request; Ready with frame-icon shape choice, flat quality rows with typical prices, lyric looks as frames, and the cost plus allowance in the action bar.
 
@@ -20,7 +20,7 @@ Design: docs/ux-revamp-v2 (SCREEN_REDESIGN.md, DESIGN_SYSTEM.md) and https://cla
 
 ## Understanding
 
-Director avatars are kept everywhere (user instruction). Style example stills are bundled assets chosen from existing renders (no backend). Caption-style previews depend on the existing JET-233; until it lands, render the sample word in app fonts as an approximation and say so.
+Director avatars are kept everywhere (user instruction). Style example stills are bundled assets chosen from existing renders (no backend). Caption-style previews depend on the existing JET-233; until it lands, render the sample word in app fonts as an approximation and say so. REVISED 2026-11-23: style stills and lyric-look previews come from the 'styles' and 'lyricLooks' config bundles (JET-412) through useConfig (JET-413), with embedded defaults, instead of being bundled assets.
 
 ## Plan
 
