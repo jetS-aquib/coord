@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Design language V2 (Studio Ink) proposal in `docs/ux-revamp-v2/`, awaiting approval; docs only, uncommitted.
+- **Current task:** Studio Ink locked (D-093). Backend requests JET-384..396 filed; mobile JET-397..410 filed, each depends on its backend tickets. Waiting for approvals; backend first.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-23T12:45:00+05:30
+- **Last updated:** 2026-11-23T17:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T17:00:00+05:30
+
+Locked Studio Ink (D-093). Filed backend JET-384 (Google ID token, security), 385 (send+resend verification code, mobile signups dead-end today), 386 song-read by content hash, 387 list thumbnail+progress, 388 delete cascade, 389 detail additions (castTags, video time, cast summary, recipe), 390 plan failure cause, 391 create-and-render one call, 392 manual lyrics, 393 push, 394 estimate typical+allowance, 395 director why, 396 starters. Mobile JET-397..410 with 'Depends on:' lines. Notes added to JET-371, JET-376. Next: user approves backend tickets, implement backend (384, 385 first), then mobile.
 
 ### 2026-11-23T15:30:00+05:30
 

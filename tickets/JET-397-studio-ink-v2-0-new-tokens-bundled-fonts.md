@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: open
 created: 2026-11-23T15:48:26+05:30
-updated: 2026-11-23T15:48:26+05:30
-decisions: 
+updated: 2026-11-23T15:50:34+05:30
+decisions: D-093
 ---
 
 ## Request
@@ -45,3 +45,4 @@ grep -rn 'colors.signal\|JETKREATE' src is empty; titles render in the serif, ti
 
 ## Thread
 2026-11-23T15:48:26+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T15:50:34+05:30 aquib N: linked decision D-093 (Lock the Studio Ink design language for the mobile app (V2))

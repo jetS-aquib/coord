@@ -94,3 +94,4 @@
 | D-090 | PostHog AI events captured by hand at our token log, not via @posthog/ai; admin audit reuses AuditLog | 2026-11-19 | active | music-jetkreate-backend | JET-372 |
 | D-091 | Finished-video feedback stored per person, every cut kept as a version, post caption from chosen facts only | 2026-11-20 | superseded by D-092 | music-jetkreate-backend music-jetkreate-mobile | JET-380 |
 | D-092 | Finished-video feedback stored per person, every cut kept as a version, post caption from chosen facts only | 2026-11-20 | active | music-jetkreate-backend music-jetkreate-mobile | JET-380 |
+| D-093 | Lock the Studio Ink design language for the mobile app (V2) | 2026-11-23 | active | music-jetkreate-mobile | JET-397 JET-398 |
