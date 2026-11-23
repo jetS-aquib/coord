@@ -43,3 +43,4 @@ Ranked directors for Zaaya return a why for each, and the top director's why men
 ## Thread
 2026-11-23T15:47:58+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:51:18+05:30 aquib N: status: open -> approved
+2026-11-23T17:11:48+05:30 aquib N: Built, not committed. whyDirectorV1: tempo band from bpm, mood from mean energy, then 'their kind of <genre>' / 'they know <region>' / the director's first trait; <=70 chars, no model call. Only on the ranked call (audioUrl with a read song). TEST: GET /directors?audioUrl=<Zaaya>&title=Zaaya -> every card has why, the top one names tempo or mood; without audioUrl, no why.
