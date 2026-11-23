@@ -4,9 +4,9 @@ title: Release: never trap or lose a creation — exits on the call sheet and wh
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:49:54+05:30
-updated: 2026-11-23T17:38:18+05:30
+updated: 2026-11-23T17:50:53+05:30
 decisions: 
 ---
 
@@ -50,3 +50,5 @@ iOS simulator: every create screen can be left without spending; kill the app 2s
 ## Thread
 2026-11-23T15:49:54+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T17:38:18+05:30 aquib N: status: open -> approved
+2026-11-23T17:50:53+05:30 aquib N: status: approved -> in_progress — Working on it in music-jetkreate-mobile
+2026-11-23T17:50:53+05:30 aquib N: Built, not committed. Film now is one POST /create-and-render (Idempotency-Key per tap); Working waits on the jobId (404 = still planning, project.startError = failed) and shows 'Leave, it keeps going' from the 202 on; before it, Back returns to Ready. Failed start: Try again re-sends with projectId (from the project's saved choices on a cold open), Change something goes back to Ready with the draft. Call sheet has a header X. Leaving the create flow with a track and nothing saved asks first (usePreventRemove). Video page back stays visible inline while playing. Default titles cleaned (lib/title.ts, npm run check:title). createStoryboard/saveProject removed from the app.
