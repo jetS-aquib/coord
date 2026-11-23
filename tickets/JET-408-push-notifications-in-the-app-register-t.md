@@ -47,3 +47,4 @@ Start a render, leave, background the app: the notification arrives at completio
 
 ## Thread
 2026-11-23T15:50:07+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:06:32+05:30 aquib N: Deprioritised 2026-11-23: push notifications are the last batch, after release QA. In-app polling on Home (JET-403) covers 'your video is ready' until then.
