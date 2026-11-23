@@ -44,3 +44,4 @@ For the Zaaya hook video: detail shots have castTags ['@image1'…], shot 1 vide
 ## Thread
 2026-11-23T15:47:49+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:50:56+05:30 aquib N: status: open -> approved
+2026-11-23T17:11:46+05:30 aquib N: Built, not committed. shots[] get castTags + videoStartSeconds/videoEndSeconds (clipMapV1, same as the poll's clipMap); cast[].summary derived from the description (age + what they wear, no model call) on /detail AND on the call sheet's cast; recipe {directorId, direction, where, special, visualStyle, aspectRatio, tier, showLyrics, captionStyle, window}. recipe is the one place /detail returns the person's special request (owner only; GET /api/music-videos/:id already has it) — JET-380's no-special rule still holds everywhere else. TEST: GET /:id/detail for the Zaaya hook: shot 1 videoStartSeconds 0, castTags present, cast[0].summary short, recipe.directorId 'neel'.
