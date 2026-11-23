@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-23T15:47:45+05:30
-updated: 2026-11-23T16:50:47+05:30
-decisions: 
+updated: 2026-11-23T17:12:31+05:30
+decisions: D-096
 ---
 
 ## Request
@@ -46,3 +46,4 @@ Upload Zaaya.mp3 twice from the app; the second Pick a track shows parts and lyr
 2026-11-23T15:47:45+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:50:47+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:46+05:30 aquib N: Built, not committed. Hash computed server-side in local-upload (never trusted from the app), stored on a placeholder SongReadV1; sharedSongReadV1 copies a fresh read with the same hash (edits included). Skipped: in-flight join by hash (two uploads read at the same moment both transcribe). TEST: 1) upload the same file twice -> both answers carry the same contentHash; 2) song-read the first until 200; 3) song-read the second -> 200 in ~3s, same lyrics; 4) log says 'song read reused from an earlier upload' and no second read call.
+2026-11-23T17:12:31+05:30 aquib N: linked decision D-096 (Song reads are reused across uploads, and across users, by a hash of the audio bytes)

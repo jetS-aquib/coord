@@ -655,6 +655,43 @@ recorded with its real cost by `tokenLogger` into `GenerationLog`.
   every clip pinned to them is refused. Surface `warnings` so the author knows what
   changed.
 
+## 2026-11-23 additions (JET-386 to JET-395)
+
+All new fields are optional; nothing existing changed shape.
+
+- `GET /api/music-videos` — every item has `thumbnailUrl` (opening still, else
+  poster, '' if neither). Unfinished items have `progress: { stage, stageCount,
+  stageTotal, clipsDone, clipsTotal, latestStillUrl }`. JET-387.
+- `DELETE /api/music-videos/:id` — cancels the project's unfinished renders first.
+  Their plans stay, cancelled. JET-388.
+- `POST /api/v1/music-videos/create-and-render` — the app's whole draft plus every
+  `/:id/render` field; optional `projectId` to retry a failed start; optional
+  `Idempotency-Key` header. `202 { projectId, jobId, pollUrl }` once the project row
+  exists. Storyboard and render start run on the server; `GET render/:jobId` is 404
+  until they land. A failed start leaves the project `draft` with `startError:
+  { code, message, at }`. Limit refusals are the same as `/:id/render`. JET-391.
+- Render poll (`GET render/:jobId`, `GET /:id/render`) — `failure: { cause:
+  refused|timeout|no_video|quota|provider_credit|error, refusalCause?, clipsAffected,
+  retryable, message } | null`, set on failed/blocked. Limit refusals (429/503 on
+  render, resume and create-and-render) carry `failure: { cause: 'limit', retryable:
+  false, … }`. JET-390.
+- `GET /:id/detail` — `assets.shots[]` add `castTags`, `videoStartSeconds`,
+  `videoEndSeconds` (absent for a shot not in the cut). `assets.cast[]` adds `summary`
+  (also on the call sheet's cast). Adds `recipe: { directorId, direction, where,
+  special, visualStyle, aspectRatio, tier, showLyrics, captionStyle, window }`.
+  JET-389.
+- `POST /api/v1/music-videos/lyrics/manual { audioUrl, text, window? }` — typed
+  lines, spread evenly. Answers `{ success, aligned: false, lines }`. 409
+  `lyrics_heard` when words were heard (use `PUT /lyrics`); 409 on library tracks;
+  400 if more than 400 lines or any line is over 120 chars. Song-read then returns
+  them with `edited: true, aligned: false`. Both song-read routes now always carry
+  `aligned`. JET-392.
+- `POST /estimate` — `tiers[]` add `typical`. `allowance` is always present:
+  `{ unlimited: true }` when limits are off, else `{ unlimited: false,
+  allowanceSeconds, secondsLeft, windowDays }`. JET-394.
+- `GET /directors` with a read song — each card has `why` (70 chars at most).
+  JET-395.
+
 ## Notes
 
 Request and response shapes are not documented yet. All paths mount under `/api`

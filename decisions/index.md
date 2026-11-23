@@ -96,3 +96,6 @@
 | D-092 | Finished-video feedback stored per person, every cut kept as a version, post caption from chosen facts only | 2026-11-20 | active | music-jetkreate-backend music-jetkreate-mobile | JET-380 |
 | D-093 | Lock the Studio Ink design language for the mobile app (V2) | 2026-11-23 | active | music-jetkreate-mobile | JET-397 JET-398 |
 | D-094 | Over-the-air JS updates with EAS Update (expo-updates), fingerprint runtime | 2026-11-23 | active | music-jetkreate-mobile | JET-411 |
+| D-095 | Deleting a project cancels its renders and keeps their plans | 2026-11-23 | active | music-jetkreate-backend | JET-388 |
+| D-096 | Song reads are reused across uploads, and across users, by a hash of the audio bytes | 2026-11-23 | active | music-jetkreate-backend | JET-386 |
+| D-097 | Typed lyrics are spread evenly, not aligned, and not yet burnt onto the video | 2026-11-23 | active | music-jetkreate-backend video-processing-backend | JET-392 |

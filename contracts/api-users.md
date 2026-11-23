@@ -21,6 +21,12 @@ artifact. Prefer generating one (see contracts/README.md) over growing this file
   - `401 { code: 'REAUTH_REQUIRED' }` — token older than 5 minutes; refresh and retry once.
   - `401 { code: 'INVALID_TOKEN' }` — already deleted, or a bad token.
 
+- `POST /api/users/me/push-tokens { token: 'ExponentPushToken[…]', platform?: 'ios'|'android' }`:
+  saves this device's push token (up to 10 devices). `DELETE` with the same body
+  removes it; call it on sign-out. Pushes go out when a render completes, fails or
+  blocks, or waits for review. Their `data` is `{ projectId, jobId, status }`.
+  The PostHog `push-enabled` flag is the kill switch. JET-393.
+
 ## Notes
 
 Same handlers as `/api/auth/users/*`, mounted twice for backward compat. `POST /api/users` is public registration; the rest need auth + signature.

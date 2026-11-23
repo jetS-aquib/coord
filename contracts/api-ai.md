@@ -13,7 +13,7 @@ artifact. Prefer generating one (see contracts/README.md) over growing this file
 ## Endpoints
 
 - `GET /api/ai/gcs-presign`
-- `PUT /api/ai/local-upload`
+- `PUT /api/ai/local-upload` — answers `{ success, path, contentHash? }`. For audio, `contentHash` is the sha256 of the bytes; the same song uploaded again reuses its song read (JET-386).
 - `POST /api/ai/generate-scene-image`
 - `POST /api/ai/generate-character-image`
 - `POST /api/ai/auto-generate-cast`

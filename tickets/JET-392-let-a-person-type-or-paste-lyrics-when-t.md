@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-23T15:47:54+05:30
-updated: 2026-11-23T16:51:09+05:30
-decisions: 
+updated: 2026-11-23T17:12:31+05:30
+decisions: D-097
 ---
 
 ## Request
@@ -45,3 +45,4 @@ Upload an instrumental, POST 8 typed lines; the next song-read for that audioUrl
 2026-11-23T15:47:54+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:51:09+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:47+05:30 aquib N: Built, not committed. POST /api/v1/music-videos/lyrics/manual {audioUrl, text, window?}: lines spread evenly (aligned:false) — the JET-323 aligner lives inside video-processing's stitch with no endpoint. Written as the song's sections with manual:true, never re-read over. Only where nothing was heard (409 lyrics_heard otherwise) and never on library tracks (shared audio). Song-read returns them with edited:true, aligned:false. NOT covered: burning typed lines onto the video — video-processing's creator_lines only retimes lines that match a transcript segment; that needs a request to video-processing-backend. TEST: upload an instrumental, POST 8 lines -> 8 lines with increasing starts; song-read returns them; Lyrics screen shows them.
+2026-11-23T17:12:31+05:30 aquib N: linked decision D-097 (Typed lyrics are spread evenly, not aligned, and not yet burnt onto the video)
