@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** UX audit and revamp blueprint in `docs/ux-revamp/` (docs only, uncommitted).
+- **Current task:** Design language V2 (Studio Ink) proposal in `docs/ux-revamp-v2/`, awaiting approval; docs only, uncommitted.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
 - **Last updated:** 2026-11-23T12:45:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T15:30:00+05:30
+
+V2 design language: 7 docs in `docs/ux-revamp-v2/` + artifact https://claude.ai/artifact/7JdVEQRYBCeC5G1VveG3fM. Direction Studio Ink (warm charcoal #121110, ivory #F2ECE4, cue coral #FF7759 for live states only, Instrument Serif + Geist + Geist Mono). Starter library judged feasible (draft prefill); backend request to file on approval. Next: user approves direction, then V2-0/V2-1.
 
 ### 2026-11-23T12:45:00+05:30
 
