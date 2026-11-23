@@ -4,9 +4,9 @@ title: Stopped and failed renders say why, offer only useful actions, and can be
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:49:58+05:30
-updated: 2026-11-23T15:49:58+05:30
+updated: 2026-11-23T17:38:24+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ A refused-shot render shows '2 shots couldn't be filmed…' with re-film / use w
 
 ## Thread
 2026-11-23T15:49:58+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T17:38:24+05:30 aquib N: status: open -> approved

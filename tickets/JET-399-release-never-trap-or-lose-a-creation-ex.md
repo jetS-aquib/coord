@@ -4,9 +4,9 @@ title: Release: never trap or lose a creation — exits on the call sheet and wh
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:49:54+05:30
-updated: 2026-11-23T15:49:54+05:30
+updated: 2026-11-23T17:38:18+05:30
 decisions: 
 ---
 
@@ -49,3 +49,4 @@ iOS simulator: every create screen can be left without spending; kill the app 2s
 
 ## Thread
 2026-11-23T15:49:54+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T17:38:18+05:30 aquib N: status: open -> approved

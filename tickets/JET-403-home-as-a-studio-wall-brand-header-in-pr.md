@@ -4,9 +4,9 @@ title: Home as a studio wall: brand header, in-progress row with live progress, 
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:49:59+05:30
-updated: 2026-11-23T15:49:59+05:30
+updated: 2026-11-23T17:38:27+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ With a render running, Home shows it in progress with a moving count and its new
 
 ## Thread
 2026-11-23T15:49:59+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T17:38:27+05:30 aquib N: status: open -> approved
