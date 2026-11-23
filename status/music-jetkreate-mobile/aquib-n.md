@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Studio Ink locked (D-093). Backend requests JET-384..396 filed; mobile JET-397..410 filed, each depends on its backend tickets. Waiting for approvals; backend first.
+- **Current task:** Studio Ink locked (D-093); work grouped into batches B0-B9 on artifact 7JdVEQRYBCeC5G1VveG3fM. Remote config: JET-411 (OTA), JET-412 (bundles), JET-413 (renderer). Waiting for batch approvals.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
 - **Last updated:** 2026-11-23T17:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T18:00:00+05:30
+
+Remote config design note docs/ux-revamp-v2/REMOTE_CONFIG.md (OTA + versioned bundles behind PostHog 'ui-config' pointer + content-block renderer; no full server-driven UI). Filed JET-411/412/413. Revised unapproved JET-384 (adds Google sign-in), 396 (starters = bundle), 404, 407 (UI now, wiring in auth batch), 409, 410 (QA no longer waits on push). Deprioritised 384/385 to B7 pre-release auth, 393/408 to B9 last. Batches on the artifact with approve commands. Next: user approves B0/B1/B2.
 
 ### 2026-11-23T17:00:00+05:30
 
