@@ -44,3 +44,4 @@ Start a render, delete the project from the API while filming; within one poll t
 ## Thread
 2026-11-23T15:47:48+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:50:53+05:30 aquib N: status: open -> approved
+2026-11-23T17:11:46+05:30 aquib N: Built, not committed. Delete cancels every unfinished render of the project via cancelRenderV1, then deletes the project. Plans are KEPT (cancelled), not removed: in-flight shots still land on them, the admin render list keeps the history, and allowance is counted from GenerationLog so nothing is charged. TEST: 1) DELETE /api/music-videos/<id> while filming; 2) render poll shows cancelled within one poll, no new clips requested; 3) list no longer shows it; 4) as another user -> 404, render keeps going.
