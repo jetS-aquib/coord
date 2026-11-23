@@ -4,9 +4,9 @@ title: Config client and content-block renderer: useConfig() with cache and fall
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-23T16:05:16+05:30
-updated: 2026-11-23T16:05:16+05:30
+updated: 2026-11-23T18:51:29+05:30
 decisions: 
 ---
 
@@ -47,3 +47,5 @@ Move the PostHog pointer to a new 'home' bundle with an extra banner: on next fo
 
 ## Thread
 2026-11-23T16:05:16+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T18:49:04+05:30 aquib N: status: open -> approved
+2026-11-23T18:51:29+05:30 aquib N: status: approved -> in_progress — Working on it
