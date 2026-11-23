@@ -4,10 +4,10 @@ title: Starter recipes: a list of ready-made looks (director, picks, style, exam
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:47:59+05:30
-updated: 2026-11-23T17:18:14+05:30
-decisions: 
+updated: 2026-11-23T17:31:29+05:30
+decisions: D-098
 ---
 
 ## Request
@@ -47,3 +47,5 @@ GET /starters returns the seeded recipes with playable exampleVideoUrl; turning 
 2026-11-23T15:47:59+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:06:31+05:30 aquib N: Revised in place 2026-11-23 (unapproved): see the REVISED note in Understanding and the updated Depends on line. Reason: remote-config design (JET-411..413) and the person's reprioritisation (auth backend later with Google sign-in, auth UI now, push last).
 2026-11-23T17:18:14+05:30 aquib N: status: open -> approved
+2026-11-23T17:31:18+05:30 aquib N: linked decision D-098 (Config bundle manifest fallback order, and starters stay data in the starters bundle)
+2026-11-23T17:31:29+05:30 aquib N: status: approved -> in_progress

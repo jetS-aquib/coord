@@ -4,10 +4,10 @@ title: Versioned config bundles: store and serve immutable bundles (starters, st
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T16:05:15+05:30
-updated: 2026-11-23T17:18:00+05:30
-decisions: 
+updated: 2026-11-23T17:31:29+05:30
+decisions: D-098
 ---
 
 ## Request
@@ -48,3 +48,6 @@ GET /api/v1/config/styles/1 returns the six visual styles with still URLs that o
 ## Thread
 2026-11-23T16:05:15+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T17:18:00+05:30 aquib N: status: open -> approved
+2026-11-23T17:31:18+05:30 aquib N: linked decision D-098 (Config bundle manifest fallback order, and starters stay data in the starters bundle)
+2026-11-23T17:31:29+05:30 aquib N: status: approved -> in_progress
+2026-11-23T17:31:29+05:30 aquib N: Built, not committed. ConfigBundleV1 (all fields immutable, unique bundle+version); zod schemas for all seven bundles in modules/config/configBundlesV1.ts (data only: home actions are allowlisted, openUrl is limited to https on jetkreate.com, styling by tone token); GET /api/v1/config/:bundle/:version (immutable, cached for a year), GET /api/v1/config/manifest (D-098), POST /api/admin/config/:bundle. Seeding: scripts/seed-config.ts, positional, so re-running is safe; it prints the ui-config payload. NOT DONE: the PostHog flag 'ui-config' is not created (no personal API key here), so paste the payload the seed prints. Not run against a database yet. TEST: 1) npx tsx scripts/seed-config.ts; 2) GET /api/v1/config/styles/1 -> 6 styles; 3) POST /api/admin/config/styles with styles@2's payload -> version 3, and /styles/1 is unchanged; 4) POST with {payload:{styles:[{id:'X'}]}} -> 400 zod; 5) GET /api/v1/config/manifest -> source 'latest' (or 'posthog' once the flag exists).
