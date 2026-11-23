@@ -49,3 +49,4 @@ Playing Zaaya, the current line is 26px with a coral underline advancing; tappin
 2026-11-23T15:49:57+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T18:10:43+05:30 aquib N: status: open -> approved
 2026-11-23T18:11:55+05:30 aquib N: status: approved -> in_progress — Working on it
+2026-11-23T18:23:22+05:30 aquib N: Built, not committed. Karaoke lyrics: live line lyricLive with a growing cue underline (UI thread), neighbours inkMuted, rest inkSubtle (colours instead of 60%/30% opacity, to stay >= 3:1). Tap a line plays from it; dock with cue play, mini SongTimeline (tap to seek), Looks right. Edit in place opens on the tapped line; undo and saveLyrics unchanged. Typed lyrics say they are spread evenly. Reduced motion jumps.
