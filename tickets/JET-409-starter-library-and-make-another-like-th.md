@@ -42,7 +42,10 @@ A new account sees recipes; choosing one and uploading a song reaches Ready with
 
 ## Test steps
 
-—
+1. New account: Home shows the hero, a 'Start with a look' row of 10 covers and the banner above 'Start from a song'.
+2. Tap Sangeet night: the sheet shows cover, hook and recipe line; 'Use this look with your song' opens Pick a track saying 'Using the Sangeet night look…'.
+3. Pick a song and continue: Director keeps the recipe's director; Direction shows its picks, place, special request and Vibrant; Ready shows Tall and Golden script on the Vibrant still.
+4. Open a finished video, tap 'Make another like this': Pick a track opens seeded with that video's director, picks and look.
 
 ## Thread
 2026-11-23T15:50:09+05:30 aquib N: created ticket, status: - -> open

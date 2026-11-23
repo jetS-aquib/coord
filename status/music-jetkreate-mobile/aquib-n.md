@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-400/401 (Pick a track, Lyrics), JET-404 (Director, Direction, Ready), JET-407 (auth UI, About) implemented, uncommitted on v1-render-and-design-pass. JET-399/402/403 committed (776f2e8, e87172c).
+- **Current task:** JET-413 (config client + Home blocks) and JET-409 (starter looks, Make another like this) implemented, uncommitted. JET-400/401/404/407 committed (6e5e007). Backend art in ../music-jetkreate-backend/assets/config uncommitted.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-23T23:00:00+05:30
+- **Last updated:** 2026-11-24T01:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-24T01:00:00+05:30
+
+Drew and uploaded 20 config stills (backend draw-config-art), seeded all bundles into local Mongo. Built JET-413 + JET-409 (agent, verified: tsc, 11 checks incl. new check:config, Android export). Fixed timeline on long songs (fixed columns), lyrics preview redesign with real caption colours (video service luxury/gold look BGR-swapped -> blue; worth a ticket). Waiting: user makes sign-in video in app (I cut a 6s muted loop and bundle it); commit go-ahead; backend art commit.
 
 ### 2026-11-23T23:00:00+05:30
 

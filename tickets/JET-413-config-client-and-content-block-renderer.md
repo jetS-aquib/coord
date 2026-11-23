@@ -43,7 +43,11 @@ Move the PostHog pointer to a new 'home' bundle with an extra banner: on next fo
 
 ## Test steps
 
-—
+1. Sign in, then kill the app, turn on airplane mode and reopen it: Home still shows its content blocks and Direction shows colour swatches.
+2. Online: Direction's style frames show real stills, including Digicam, Home movie, Soft focus and Neon city. Ready's lyrics preview sits on the chosen style's still.
+3. Create account: password ticks still read 8+ · A–Z · a–z · 0–9 · symbol.
+4. Optional on staging: point PostHog ui-config 'home' at a version with an extra banner, background the app 5+ minutes, foreground: the banner appears and config_applied is sent. Point at a version with minAppVersion 9.0.0: nothing changes, config_rejected (min_app_version).
+5. npm run check:config passes.
 
 ## Thread
 2026-11-23T16:05:16+05:30 aquib N: created ticket, status: - -> open
