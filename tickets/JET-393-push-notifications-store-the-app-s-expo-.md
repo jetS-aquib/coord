@@ -44,3 +44,4 @@ Register a token from a dev build, start a short render, background the app: a n
 
 ## Thread
 2026-11-23T15:47:55+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:06:32+05:30 aquib N: Deprioritised 2026-11-23: push notifications are the last batch, after release QA. In-app polling on Home (JET-403) covers 'your video is ready' until then.
