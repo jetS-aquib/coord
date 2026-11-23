@@ -4,9 +4,9 @@ title: Pick a track: listening state, one song timeline from the real waveform, 
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-23T15:49:55+05:30
-updated: 2026-11-23T15:49:55+05:30
+updated: 2026-11-23T18:11:54+05:30
 decisions: 
 ---
 
@@ -48,3 +48,5 @@ Re-upload a known song -> parts and lyrics within ~3s; a new song shows elapsed 
 
 ## Thread
 2026-11-23T15:49:55+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T18:10:40+05:30 aquib N: status: open -> approved
+2026-11-23T18:11:54+05:30 aquib N: status: approved -> in_progress — Working on it

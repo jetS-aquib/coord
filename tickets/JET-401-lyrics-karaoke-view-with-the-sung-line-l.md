@@ -4,9 +4,9 @@ title: Lyrics: karaoke view with the sung line large, coral underline, and edit 
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-23T15:49:57+05:30
-updated: 2026-11-23T15:49:57+05:30
+updated: 2026-11-23T18:11:55+05:30
 decisions: 
 ---
 
@@ -47,3 +47,5 @@ Playing Zaaya, the current line is 26px with a coral underline advancing; tappin
 
 ## Thread
 2026-11-23T15:49:57+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T18:10:43+05:30 aquib N: status: open -> approved
+2026-11-23T18:11:55+05:30 aquib N: status: approved -> in_progress — Working on it

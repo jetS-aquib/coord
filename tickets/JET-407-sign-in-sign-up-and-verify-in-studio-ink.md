@@ -4,9 +4,9 @@ title: Sign in, sign up and verify in Studio Ink: purpose line, live password ch
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: in_progress
 created: 2026-11-23T15:50:06+05:30
-updated: 2026-11-23T15:50:06+05:30
+updated: 2026-11-23T18:11:55+05:30
 decisions: 
 ---
 
@@ -49,3 +49,5 @@ On staging a new account receives its code, Resend works with a countdown, Forgo
 ## Thread
 2026-11-23T15:50:06+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:06:31+05:30 aquib N: Revised in place 2026-11-23 (unapproved): see the REVISED note in Understanding and the updated Depends on line. Reason: remote-config design (JET-411..413) and the person's reprioritisation (auth backend later with Google sign-in, auth UI now, push last).
+2026-11-23T18:10:51+05:30 aquib N: status: open -> approved
+2026-11-23T18:11:55+05:30 aquib N: status: approved -> in_progress — Working on it
