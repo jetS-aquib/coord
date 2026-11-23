@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-278 mobile side: delete on the video screen. Uncommitted.
+- **Current task:** UX audit and revamp blueprint in `docs/ux-revamp/` (docs only, uncommitted).
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-10T06:00:00+05:30
+- **Last updated:** 2026-11-23T12:45:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T12:45:00+05:30
+
+Pre-release UX audit, docs only: `docs/ux-revamp/` (README + 6 docs, 27 emulator screenshots). 33 findings: 6 P0, all frontend, ~4 days (iOS exits on call sheet/working, keep draft on failed start, song-read failure outcomes, stopped cause + delete, render_limit as final + allowance). 5 backend requests proposed, NOT filed (BE-1 reuse song reads by content hash: `SongReadV1` keyed on audioUrl, so every re-upload re-transcribes). One real upload + song read of Zaaya.mp3 made; nothing filmed or deleted. Next: user reviews README, approves Phase 1, decides which BE requests to file.
 
 ### 2026-11-19T17:14:30+05:30
 
