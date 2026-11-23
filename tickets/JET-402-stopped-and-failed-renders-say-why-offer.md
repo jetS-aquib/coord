@@ -49,3 +49,4 @@ A refused-shot render shows '2 shots couldn't be filmed…' with re-film / use w
 2026-11-23T15:49:58+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T17:38:24+05:30 aquib N: status: open -> approved
 2026-11-23T17:50:53+05:30 aquib N: status: approved -> in_progress — Working on it
+2026-11-23T17:50:53+05:30 aquib N: Built, not committed. Stopped screen reads failure {cause, clipsAffected, retryable, message}: headline per cause ('2 shots couldn't be filmed', 'Out of video time'...), server's sentence under it, retry only when retryable (refused -> 'Film those shots again'), Delete project with a confirm (server stops the render, JET-388). retry.ts: render_limit/capacity/renders_off final on code (check:retry). Ready keeps the allowance from /estimate: summary '27s · up to $3.80 · 2:10 left this week', typical price per tier, Film now and Preview disabled with a note when the video is longer than what is left.
