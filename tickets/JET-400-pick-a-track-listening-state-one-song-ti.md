@@ -50,3 +50,4 @@ Re-upload a known song -> parts and lyrics within ~3s; a new song shows elapsed 
 2026-11-23T15:49:55+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T18:10:40+05:30 aquib N: status: open -> approved
 2026-11-23T18:11:54+05:30 aquib N: status: approved -> in_progress — Working on it
+2026-11-23T18:23:22+05:30 aquib N: Built, not committed. One SongTimeline (features/create/song-timeline.tsx) from songRead.energy replaces the fake waveform, parts strip and second window strip; window picker drawn on it with snapping and adjustable grips kept. ListeningPanel: elapsed time, one pulsing cue dot, no percentage, no 'only happens once'. Title + shape while waiting. Three outcomes: words / no singing / read failed (Try again, Add lyrics myself, Continue without lyrics). Add lyrics myself -> POST /lyrics/manual, then re-reads the song. contentHash skipped: the server hashes uploads itself (JET-386). lib/waveform.ts kept: planning-stage (Working) still uses it.
