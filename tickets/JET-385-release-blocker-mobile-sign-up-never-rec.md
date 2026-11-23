@@ -43,3 +43,4 @@ On staging: create an account from the app with a real inbox -> the code arrives
 
 ## Thread
 2026-11-23T15:47:44+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:06:32+05:30 aquib N: Deprioritised 2026-11-23: moved to the pre-release auth batch with JET-384 (which now also enables Google sign-in). The mobile auth UI (JET-407) proceeds earlier and is wired to this when it lands.
