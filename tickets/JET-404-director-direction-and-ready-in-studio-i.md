@@ -46,3 +46,4 @@ Director shows 3 avatars with reasons; Direction fits the picks in one sentence 
 
 ## Thread
 2026-11-23T15:50:01+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:06:31+05:30 aquib N: Revised in place 2026-11-23 (unapproved): see the REVISED note in Understanding and the updated Depends on line. Reason: remote-config design (JET-411..413) and the person's reprioritisation (auth backend later with Google sign-in, auth UI now, push last).
