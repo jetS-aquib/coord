@@ -44,3 +44,4 @@ GET /api/music-videos while a render is filming returns that item with progress.
 ## Thread
 2026-11-23T15:47:46+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:50:50+05:30 aquib N: status: open -> approved
+2026-11-23T17:11:46+05:30 aquib N: Built, not committed. List items get thumbnailUrl (anchor 0 still, else posterUrl) and, while unfinished, progress {stage, stageCount, stageTotal, clipsDone, clipsTotal, latestStillUrl}. latestStillUrl = last drawn still in array order (anchors carry no timestamp). TEST: 1) GET /api/music-videos while filming -> progress.stage 'filming' + counts + latestStillUrl opens; 2) finished items have thumbnailUrl that opens, no progress.
