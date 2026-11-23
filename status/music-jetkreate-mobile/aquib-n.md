@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-411 (OTA), JET-397 (Studio Ink tokens/fonts/brand), JET-398 (core components) implemented, uncommitted on v1-render-and-design-pass; waiting for device test and commit go-ahead.
+- **Current task:** JET-399 (never trap/lose a creation), JET-402 (stopped renders say why, delete, allowance on Ready), JET-403 (Home studio wall) implemented, uncommitted on v1-render-and-design-pass; JET-411/397/398 committed (853a181) and in review.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-23T19:30:00+05:30
+- **Last updated:** 2026-11-23T21:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T21:00:00+05:30
+
+Implemented JET-399, 402, 403 against backend 23580cc (create-and-render, list thumbnailUrl/progress, plan failure, allowance, delete stops render). Film now is one server call; createStoryboard/saveProject removed from the app. tsc clean, all check:* pass (new check:title), Android export bundles. Not seen on a device. Test steps filled on all three. Skipped: long-press Rename (no partial-update endpoint). Next: device test, commit go-ahead, coord review.
 
 ### 2026-11-23T19:30:00+05:30
 

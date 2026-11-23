@@ -45,7 +45,12 @@ iOS simulator: every create screen can be left without spending; kill the app 2s
 
 ## Test steps
 
-—
+1. Pick a track, go to Ready, tap Film now, then kill the app within 2 seconds. Reopen: the project is in Home's In progress row and rendering.
+2. With a track picked, press back on the first create screen (or swipe on iOS): 'Leave this song?' appears; Keep going stays, Leave goes home.
+3. Preview stills to reach the call sheet: the X in its header goes back to Home and the plan is still there.
+4. While Working says 'Reading your track', 'Leave, it keeps going' is shown and works.
+5. Make the storyboard fail on staging: Working shows 'That did not start' with Try again and Change something; Change something opens Ready with every choice kept.
+6. Pick a file named 'Sent Gamkauwa_320(KoshalWorld.Com).mp3': the title reads 'Sent Gamkauwa'. On a finished video the back arrow stays visible while it plays.
 
 ## Thread
 2026-11-23T15:49:54+05:30 aquib N: created ticket, status: - -> open

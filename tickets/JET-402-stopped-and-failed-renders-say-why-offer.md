@@ -43,7 +43,11 @@ A refused-shot render shows '2 shots couldn't be filmed…' with re-film / use w
 
 ## Test steps
 
-—
+1. Force a refused shot (e.g. a real person's name) and let it fail: the stopped screen says 'N shots couldn't be filmed', the server's reason under it, with 'Film those shots again' and 'Delete project'.
+2. Delete project -> confirm: back on Home, the project is gone, and the render poll shows cancelled.
+3. With the weekly limit nearly used on staging, open Ready on a longer song: the summary line shows 'M:SS left this week', Film now and Preview stills are disabled, and the note says why.
+4. Exhaust the limit and start from a saved project: 'Out of video time' with no Try again.
+5. npm run check:retry passes.
 
 ## Thread
 2026-11-23T15:49:58+05:30 aquib N: created ticket, status: - -> open

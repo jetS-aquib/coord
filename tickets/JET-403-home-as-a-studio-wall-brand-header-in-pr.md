@@ -43,7 +43,11 @@ With a render running, Home shows it in progress with a moving count and its new
 
 ## Test steps
 
-—
+1. Start a render, go Home: it sits in In progress with its newest still, a coral line along the bottom, and 'FILMING 4/5' moving without pulling to refresh.
+2. Leave Home open until it finishes: within about 15s it leaves the row, becomes the featured video, the phone buzzes once and the card pulses.
+3. Header shows the logo with 'jetKreate Music', '+ New' and settings; '+ New' starts a song.
+4. Long-press any card -> 'Delete ...?' -> Delete: it disappears.
+5. On an account with no finished videos the grid's first tile is 'Start from a song'. With 100+ videos, adb shell dumpsys meminfo com.jetsynthesys.jetkreatemusic is lower than before.
 
 ## Thread
 2026-11-23T15:49:59+05:30 aquib N: created ticket, status: - -> open
