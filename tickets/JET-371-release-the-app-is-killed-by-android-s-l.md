@@ -42,3 +42,4 @@ Release build on a 2 GB device: picking a song after 10 minutes of use never kil
 
 ## Thread
 2026-11-19T13:11:35+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T15:50:33+05:30 aquib N: Reproduced on the emulator twice (2026-11-23): lowmemorykiller took the app when the file picker opened, and again while the Forgot password Chrome tab was open; the Library alone was ~630 MB PSS. Likely contributor: on-device frame decoding for every Library poster (lib/thumbnails.ts). JET-387 (backend: thumbnailUrl + progress on the list) and JET-403 (mobile: Home uses server thumbnails) remove that; this ticket keeps the picker-specific fix (release memory before launching the picker, reopen Pick a track after a kill).
