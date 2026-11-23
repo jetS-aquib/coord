@@ -45,3 +45,4 @@ Upload Zaaya.mp3 twice from the app; the second Pick a track shows parts and lyr
 ## Thread
 2026-11-23T15:47:45+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:50:47+05:30 aquib N: status: open -> approved
+2026-11-23T17:11:46+05:30 aquib N: Built, not committed. Hash computed server-side in local-upload (never trusted from the app), stored on a placeholder SongReadV1; sharedSongReadV1 copies a fresh read with the same hash (edits included). Skipped: in-flight join by hash (two uploads read at the same moment both transcribe). TEST: 1) upload the same file twice -> both answers carry the same contentHash; 2) song-read the first until 200; 3) song-read the second -> 200 in ~3s, same lyrics; 4) log says 'song read reused from an earlier upload' and no second read call.
