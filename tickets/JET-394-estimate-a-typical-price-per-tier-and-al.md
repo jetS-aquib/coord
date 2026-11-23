@@ -4,9 +4,9 @@ title: Estimate: a typical price per tier, and always say what is left this week
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:47:57+05:30
-updated: 2026-11-23T16:51:15+05:30
+updated: 2026-11-23T17:15:02+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ POST /estimate for a 27s window returns three different typical values between f
 2026-11-23T15:47:57+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:51:15+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:47+05:30 aquib N: Built, not committed. tiers[].typical = floor + half the floor-to-ceiling range (0.5 is a guess until a measured median per tier exists). allowance always sent: {unlimited:true} where limits are off, {unlimited:false, allowanceSeconds, secondsLeft, windowDays} where on. TEST: POST /estimate {seconds:27} -> three different typical values between floor and ceiling, and allowance present.
+2026-11-23T17:15:02+05:30 aquib N: status: approved -> in_progress

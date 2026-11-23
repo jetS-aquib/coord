@@ -4,9 +4,9 @@ title: Push notifications: store the app's Expo push token and notify when a ren
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:47:55+05:30
-updated: 2026-11-23T16:51:12+05:30
+updated: 2026-11-23T17:15:02+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ Register a token from a dev build, start a short render, background the app: a n
 2026-11-23T16:06:32+05:30 aquib N: Deprioritised 2026-11-23: push notifications are the last batch, after release QA. In-app polling on Home (JET-403) covers 'your video is ready' until then.
 2026-11-23T16:51:12+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:47+05:30 aquib N: Built, not committed. User.pushTokens (max 10 devices); POST/DELETE /api/users/me/push-tokens {token, platform}; src/shared/push.ts sends over fetch to exp.host in batches of 100 and drops DeviceNotRegistered tokens from the send's tickets (receipts not polled yet). Pushes on completed ('<title> is ready'), failed/blocked ('<title> needs you'), review ('Your stills are ready to approve' / 'Your plan is ready'); data {projectId, jobId, status}. Kill switch: PostHog push-enabled (default on). FCM/APNs creds on EAS are out of scope. TEST: register a dev-build token, start a short render, background the app -> 'Zaaya is ready' arrives and opens the video.
+2026-11-23T17:15:02+05:30 aquib N: status: approved -> in_progress

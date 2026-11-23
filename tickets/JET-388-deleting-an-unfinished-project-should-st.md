@@ -4,9 +4,9 @@ title: Deleting an unfinished project should stop its render and remove its plan
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:47:48+05:30
-updated: 2026-11-23T17:12:31+05:30
+updated: 2026-11-23T17:15:01+05:30
 decisions: D-095
 ---
 
@@ -46,3 +46,4 @@ Start a render, delete the project from the API while filming; within one poll t
 2026-11-23T16:50:53+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:46+05:30 aquib N: Built, not committed. Delete cancels every unfinished render of the project via cancelRenderV1, then deletes the project. Plans are KEPT (cancelled), not removed: in-flight shots still land on them, the admin render list keeps the history, and allowance is counted from GenerationLog so nothing is charged. TEST: 1) DELETE /api/music-videos/<id> while filming; 2) render poll shows cancelled within one poll, no new clips requested; 3) list no longer shows it; 4) as another user -> 404, render keeps going.
 2026-11-23T17:12:31+05:30 aquib N: linked decision D-095 (Deleting a project cancels its renders and keeps their plans)
+2026-11-23T17:15:01+05:30 aquib N: status: approved -> in_progress

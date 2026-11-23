@@ -4,9 +4,9 @@ title: Render poll: one plan-level failure with a cause and whether retrying can
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:47:51+05:30
-updated: 2026-11-23T16:51:00+05:30
+updated: 2026-11-23T17:15:01+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Force a refused clip: GET /render/:jobId returns failure.cause 'refused', refusa
 2026-11-23T15:47:51+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:51:00+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:47+05:30 aquib N: Built, not committed. failure {cause, refusalCause?, clipsAffected, retryable, message} on every summarizePlanV1 (so both GET /render/:jobId and GET /:id/render) for failed/blocked plans; null when running/done/cancelled by the person. provider_credit is matched from the error text (credit/billing/insufficient balance/402). Limit refusals happen before a plan exists, so the 429/503 body carries failure {cause:'limit', retryable:false}. TEST: 1) force a refused clip -> failure.cause 'refused', refusalCause 'real-person', clipsAffected [n], retryable true; 2) exhaust the weekly limit -> 429 with failure.cause 'limit', retryable false.
+2026-11-23T17:15:01+05:30 aquib N: status: approved -> in_progress

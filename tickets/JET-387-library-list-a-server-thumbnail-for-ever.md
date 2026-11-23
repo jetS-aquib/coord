@@ -4,9 +4,9 @@ title: Library list: a server thumbnail for every video, and live progress for u
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-23T15:47:46+05:30
-updated: 2026-11-23T16:50:50+05:30
+updated: 2026-11-23T17:15:01+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ GET /api/music-videos while a render is filming returns that item with progress.
 2026-11-23T15:47:46+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:50:50+05:30 aquib N: status: open -> approved
 2026-11-23T17:11:46+05:30 aquib N: Built, not committed. List items get thumbnailUrl (anchor 0 still, else posterUrl) and, while unfinished, progress {stage, stageCount, stageTotal, clipsDone, clipsTotal, latestStillUrl}. latestStillUrl = last drawn still in array order (anchors carry no timestamp). TEST: 1) GET /api/music-videos while filming -> progress.stage 'filming' + counts + latestStillUrl opens; 2) finished items have thumbnailUrl that opens, no progress.
+2026-11-23T17:15:01+05:30 aquib N: status: approved -> in_progress
