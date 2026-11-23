@@ -9,7 +9,7 @@
 
 ### 2026-11-23T12:45:00+05:30
 
-Pre-release UX audit, docs only: `docs/ux-revamp/` (README + 6 docs, 27 emulator screenshots). 39 findings: 7 P0 (incl. JET-371 memory kill reproduced: lowmemorykiller took the app when the file picker opened), ~5-6 days (iOS exits on call sheet/working, keep draft on failed start, song-read failure outcomes, stopped cause + delete, render_limit as final + allowance). 8 backend requests proposed, NOT filed (incl. BE-6 shots[].castTags on detail, BE-7 list thumbnailUrl) (BE-1 reuse song reads by content hash: `SongReadV1` keyed on audioUrl, so every re-upload re-transcribes). One real upload + song read of Zaaya.mp3 made; nothing filmed or deleted. Next: user reviews README, approves Phase 1, decides which BE requests to file.
+Pre-release UX audit, docs only: `docs/ux-revamp/` (README + 6 docs, 27 emulator screenshots). 46 findings (third pass: auth + one real render on dev, Zaaya Hook 27s, throwaway ux.audit.1123@example.com left unverified in dev DB): 7 P0 (incl. JET-371 memory kill reproduced: lowmemorykiller took the app when the file picker opened), ~5-6 days (iOS exits on call sheet/working, keep draft on failed start, song-read failure outcomes, stopped cause + delete, render_limit as final + allowance). 8 backend requests proposed, NOT filed (incl. BE-6 shots[].castTags on detail, BE-7 list thumbnailUrl) (BE-1 reuse song reads by content hash: `SongReadV1` keyed on audioUrl, so every re-upload re-transcribes). One real upload + song read of Zaaya.mp3 made; nothing filmed or deleted. Next: user reviews README, approves Phase 1, decides which BE requests to file.
 
 ### 2026-11-19T17:14:30+05:30
 
