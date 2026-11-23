@@ -42,7 +42,11 @@ Director shows 3 avatars with reasons; Direction fits the picks in one sentence 
 
 ## Test steps
 
-—
+1. Director: 3 rows with avatars and one reason each, More directors shows the rest, I'll direct myself last, button 'Continue with <name>'.
+2. Direction: director's note in italic serif at the top, style frames; tapping a frame moves the ring.
+3. Tap an underlined word in the sentence: a sheet of chips opens; picking one updates the sentence. Type a film name in Anything special? and Continue: 'Reading your request' still appears.
+4. Ready: Tall/Wide frame icons; three different 'about $X' prices; action bar shows 's · up to $X · m:ss left this week'.
+5. With lyrics on, tap a 'Zaaya' frame (ring moves) and a dot on the 9:16 grid (big dot moves).
 
 ## Thread
 2026-11-23T15:50:01+05:30 aquib N: created ticket, status: - -> open

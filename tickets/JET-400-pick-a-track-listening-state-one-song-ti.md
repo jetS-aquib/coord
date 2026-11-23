@@ -44,7 +44,11 @@ Re-upload a known song -> parts and lyrics within ~3s; a new song shows elapsed 
 
 ## Test steps
 
-—
+1. Pick a new song: serif title, a flat line, and 'Listening to …' with elapsed time and no percentage; Continue disabled with 'Waiting for the lyrics'. Change the title and shape while waiting.
+2. When the read lands the bars rise with a haptic: one timeline, HOOK labelled. Pick Hook, drag a grip (it snaps), tap Play: one coral playhead.
+3. Re-upload the same file: parts and lyrics within about 3s.
+4. Pick an instrumental: 'No singing found…'. Add lyrics myself, type 3 lines, Save (Save visible above the keyboard): Continue opens Lyrics with those lines.
+5. Airplane mode during the read: 'We could not read this track…' with Try again, Add lyrics myself, Continue without lyrics.
 
 ## Thread
 2026-11-23T15:49:55+05:30 aquib N: created ticket, status: - -> open

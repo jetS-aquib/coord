@@ -43,7 +43,10 @@ Playing Zaaya, the current line is 26px with a coral underline advancing; tappin
 
 ## Test steps
 
-—
+1. Open Lyrics on Zaaya, press the coral play: the sung line is large with a coral underline growing across it; neighbours dimmer, the rest dimmer still.
+2. Tap a lower line: playback jumps there.
+3. Edit: the tapped line is focused; change a word, 'Heard: …' and Undo appear, Undo restores it.
+4. Tap the mini timeline in the dock: playback seeks. With reduced motion on, lines jump instead of scrolling.
 
 ## Thread
 2026-11-23T15:49:57+05:30 aquib N: created ticket, status: - -> open

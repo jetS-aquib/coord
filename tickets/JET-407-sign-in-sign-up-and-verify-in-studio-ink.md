@@ -44,7 +44,11 @@ On staging a new account receives its code, Resend works with a countdown, Forgo
 
 ## Test steps
 
-—
+1. Kill and reopen signed out: Sign in shows the mark and 'Turn any song into a music video.'; with the password field focused, Sign in and Create an account stay above the keyboard.
+2. Type an email, kill the app, reopen: the email is still there.
+3. Create account: type 'abc' -> only a–z ticks; 'Abcdefg1!' -> all five tick and Create account enables.
+4. Create a new account on staging: Verify counts down 'Resend in 0:30', then 'Get a new code' goes to Sign in; 'Wrong email?' opens Create account with the email filled.
+5. Forgot password opens <web>/login?view=reset. Settings > About shows 'Version x.y.z (build)'.
 
 ## Thread
 2026-11-23T15:50:06+05:30 aquib N: created ticket, status: - -> open

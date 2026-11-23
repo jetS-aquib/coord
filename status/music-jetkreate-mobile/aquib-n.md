@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** JET-399 (never trap/lose a creation), JET-402 (stopped renders say why, delete, allowance on Ready), JET-403 (Home studio wall) implemented, uncommitted on v1-render-and-design-pass; JET-411/397/398 committed (853a181) and in review.
+- **Current task:** JET-400/401 (Pick a track, Lyrics), JET-404 (Director, Direction, Ready), JET-407 (auth UI, About) implemented, uncommitted on v1-render-and-design-pass. JET-399/402/403 committed (776f2e8, e87172c).
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-23T21:00:00+05:30
+- **Last updated:** 2026-11-23T23:00:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T23:00:00+05:30
+
+Built JET-400, 401, 404, 407 (three parallel agents, integrated and checked). tsc clean, all check:* pass, Android export bundles; not seen on a device. Stubs: resend code (JET-385), Google (JET-384), style stills / password rule / legal links (JET-413), lyric-look previews (JET-233), auth backdrop image. lib/waveform.ts kept for planning-stage. Next: device test, commit go-ahead, coord review.
 
 ### 2026-11-23T21:00:00+05:30
 
