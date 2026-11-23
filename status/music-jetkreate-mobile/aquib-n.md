@@ -1,11 +1,15 @@
 # music-jetkreate-mobile — aquib N
 
-- **Current task:** Studio Ink locked (D-093); work grouped into batches B0-B9 on artifact 7JdVEQRYBCeC5G1VveG3fM. Remote config: JET-411 (OTA), JET-412 (bundles), JET-413 (renderer). Waiting for batch approvals.
+- **Current task:** JET-411 (OTA), JET-397 (Studio Ink tokens/fonts/brand), JET-398 (core components) implemented, uncommitted on v1-render-and-design-pass; waiting for device test and commit go-ahead.
 - **Status:** waiting on human
 - **Blockers:** **A TestFlight build must point at STAGING.** D-065's bypass is keyed on `CAPTCHA_BYPASS_CLIENT`, staging sets it and production deliberately does not, so a production build still cannot sign in. JET-244 stays open for Play Integrity / App Attest. Still needs `coord approve`: JET-242, JET-243. `coord done 241`. Before any build: `eas init`, and the three `EXPO_PUBLIC_*` on the EAS environments, with the production profile's API URL pointed at staging until attestation lands.
-- **Last updated:** 2026-11-23T17:00:00+05:30
+- **Last updated:** 2026-11-23T19:30:00+05:30
 
 ## Handoff notes
+
+### 2026-11-23T19:30:00+05:30
+
+Implemented JET-411, 397, 398 (nothing committed; notes with full detail on each request). expo-updates added (D-094): existing dev builds must be rebuilt or the app crashes at import. tsc clean; Android export bundles. Not yet seen on a device. ESLint isn't installed, so `expo lint` can't run. Can't move the three to review: `coord review` needs Test steps and the CLI has no way to set them after `new`; test steps are in each thread. Next: user rebuilds the dev client, checks, and says commit; then V2-2/V2-3 screens (Working, video-studio panel, edit-bar bar still use old layouts).
 
 ### 2026-11-23T18:00:00+05:30
 
