@@ -50,3 +50,4 @@ A Google-created account can set a password from the app and then sign in on the
 2026-11-19T17:10:09+05:30 aquib N: status: open -> approved
 2026-11-19T17:14:02+05:30 aquib N: status: approved -> in_progress
 2026-11-19T17:14:26+05:30 aquib N: status: in_progress -> review — Forgot password? link on sign-in, button on Create account on password_not_set; both open the web /login in an in-app browser. Commit ff316f2.
+2026-11-23T15:50:34+05:30 aquib N: Audit finding: Forgot password opens ${WEB}/login (the login view). The web reset view is /login?view=reset (frontend services/firebase.ts:141) — point the app there. Folded into JET-407 (auth screens in Studio Ink) if this one closes first.
