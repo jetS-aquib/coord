@@ -4,9 +4,9 @@ title: Over-the-air updates with EAS Update: ship JS fixes and UI changes withou
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T16:05:13+05:30
-updated: 2026-11-23T16:05:13+05:30
+updated: 2026-11-23T16:11:16+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Build a preview APK, then publish an update that changes one string to the previ
 
 ## Thread
 2026-11-23T16:05:13+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T16:11:16+05:30 aquib N: status: open -> approved

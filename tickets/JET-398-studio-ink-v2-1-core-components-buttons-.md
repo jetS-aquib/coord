@@ -4,9 +4,9 @@ title: Studio Ink V2-1: core components — buttons, action bar, sections, one c
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:49:53+05:30
-updated: 2026-11-23T15:50:34+05:30
+updated: 2026-11-23T16:11:29+05:30
 decisions: D-093
 ---
 
@@ -49,3 +49,4 @@ No screen shows two stacked full-width filled buttons (auth excepted); no white 
 ## Thread
 2026-11-23T15:49:53+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T15:50:34+05:30 aquib N: linked decision D-093 (Lock the Studio Ink design language for the mobile app (V2))
+2026-11-23T16:11:29+05:30 aquib N: status: open -> approved

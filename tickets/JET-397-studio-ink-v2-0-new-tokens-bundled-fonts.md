@@ -4,9 +4,9 @@ title: Studio Ink V2-0: new tokens, bundled fonts, jetKreate Music brand mark, r
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:48:26+05:30
-updated: 2026-11-23T15:50:34+05:30
+updated: 2026-11-23T16:11:24+05:30
 decisions: D-093
 ---
 
@@ -46,3 +46,4 @@ grep -rn 'colors.signal\|JETKREATE' src is empty; titles render in the serif, ti
 ## Thread
 2026-11-23T15:48:26+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T15:50:34+05:30 aquib N: linked decision D-093 (Lock the Studio Ink design language for the mobile app (V2))
+2026-11-23T16:11:24+05:30 aquib N: status: open -> approved
