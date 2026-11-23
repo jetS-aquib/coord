@@ -4,9 +4,9 @@ title: Versioned config bundles: store and serve immutable bundles (starters, st
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T16:05:15+05:30
-updated: 2026-11-23T16:05:15+05:30
+updated: 2026-11-23T17:18:00+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ GET /api/v1/config/styles/1 returns the six visual styles with still URLs that o
 
 ## Thread
 2026-11-23T16:05:15+05:30 aquib N: created ticket, status: - -> open
+2026-11-23T17:18:00+05:30 aquib N: status: open -> approved
