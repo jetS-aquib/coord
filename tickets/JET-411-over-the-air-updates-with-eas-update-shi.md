@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: approved
 created: 2026-11-23T16:05:13+05:30
-updated: 2026-11-23T16:11:16+05:30
-decisions: 
+updated: 2026-11-23T16:25:20+05:30
+decisions: D-094
 ---
 
 ## Request
@@ -47,3 +47,5 @@ Build a preview APK, then publish an update that changes one string to the previ
 ## Thread
 2026-11-23T16:05:13+05:30 aquib N: created ticket, status: - -> open
 2026-11-23T16:11:16+05:30 aquib N: status: open -> approved
+2026-11-23T16:25:20+05:30 aquib N: linked decision D-094 (Over-the-air JS updates with EAS Update (expo-updates), fingerprint runtime)
+2026-11-23T16:27:00+05:30 aquib N: Implemented (uncommitted): expo-updates ~58.0.22; app.json runtimeVersion {policy:'fingerprint'} + updates.url; eas.json channel per profile; app.config.ts adds extra.otaCritical from OTA_CRITICAL=1; fingerprint.config.js = balanced + ExpoConfigExtraSection (verified: same fingerprint with/without the flag); src/lib/updates.ts (check+fetch on launch/foreground, critical -> ConfirmSheet Restart/Later in _layout); npm scripts update:preview / update:production gated on tsc; docs/ota-runbook.md; D-094. Lint is NOT in the gate: expo lint fails (ESLint not installed). eas update:configure had duplicated the Android permissions; deduped. Test steps: build preview APK; change one string; npm run update:preview -- --message test; kill + relaunch twice -> new string; eas update:rollback -> old string after two cold launches; OTA_CRITICAL=1 publish -> Restart sheet appears.
