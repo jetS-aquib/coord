@@ -103,3 +103,4 @@
 | D-099 | expo-media-library and expo-clipboard for Save to phone and Copy caption | 2026-11-24 | active | music-jetkreate-mobile | JET-406 |
 | D-100 | Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch | 2026-11-24 | active | music-jetkreate-backend music-jetkreate-mobile | JET-416 JET-417 JET-418 JET-419 JET-420 JET-421 JET-422 JET-423 JET-424 |
 | D-101 | Billing config in one versioned collection; credits seeded at 100 per USD of cost; USD cost logging left on the old tables | 2026-11-24 | active | music-jetkreate-backend | JET-416 JET-418 |
+| D-102 | Metering and charging hang off the GenerationLog sink; renders reserve then settle cumulatively; abuse controls hold in soft launch | 2026-11-24 | active | music-jetkreate-backend | JET-417 JET-419 JET-420 |

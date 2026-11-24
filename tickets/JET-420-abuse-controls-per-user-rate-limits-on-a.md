@@ -4,10 +4,10 @@ title: Abuse controls: per-user rate limits on AI routes, one free grant per per
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-24T12:55:49+05:30
-updated: 2026-11-24T13:23:24+05:30
-decisions: D-100
+updated: 2026-11-24T13:36:47+05:30
+decisions: D-100, D-102
 ---
 
 ## Request
@@ -47,3 +47,5 @@ Scripted calls to special/understand above the limit get 429 with retryAfter; tw
 2026-11-24T12:55:49+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
 2026-11-24T13:23:24+05:30 aquib N: status: open -> approved
+2026-11-24T13:36:47+05:30 aquib N: linked decision D-102 (Metering and charging hang off the GenerationLog sink; renders reserve then settle cumulatively; abuse controls hold in soft launch)
+2026-11-24T13:36:47+05:30 aquib N: status: approved -> in_progress — building in music-jetkreate-backend

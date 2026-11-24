@@ -4,10 +4,10 @@ title: Metering: price every AI call in credits and tag it with feature, render 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-24T12:55:45+05:30
-updated: 2026-11-24T13:23:16+05:30
-decisions: D-100
+updated: 2026-11-24T13:36:47+05:30
+decisions: D-100, D-102
 ---
 
 ## Request
@@ -47,3 +47,6 @@ After one render, every GenerationLog row for that jobId has credits > 0 (or 0 b
 2026-11-24T12:55:45+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
 2026-11-24T13:23:16+05:30 aquib N: status: open -> approved
+2026-11-24T13:36:47+05:30 aquib N: linked decision D-102 (Metering and charging hang off the GenerationLog sink; renders reserve then settle cumulatively; abuse controls hold in soft launch)
+2026-11-24T13:36:47+05:30 aquib N: status: approved -> in_progress — building in music-jetkreate-backend
+2026-11-24T13:36:48+05:30 aquib N: Built (not committed). GenerationLog gains credits, rateCardVersion, category, feature, jobId (indexed). Metered in one place: logGenerationToDb asks billing (meterV1/chargingV1); category from aiContext or the fn name (clips, stills, planning, checks, song, lyrics, captions, stitch, other). Song read metered per audio minute and stitch/recut/reel per output second as 'video-processing' rate-card rows (seed: 1 credit/min, 0.05/s). Not done: projectId on rows (jobId links them), and legacy image.service.ts is left as is (old code; its calls still meter if they log). D-102.
