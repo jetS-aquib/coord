@@ -130,7 +130,7 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   drop out of every scope but a single chosen shot (that one is `400`). Answers `edit`:
   `{ id, summary, diffs: [{ index, timeOfDay?, place?, dropCast?, addCast?, action?,
   shotSize?, redraw?, summary }], notDone, phase: 'prespend'|'refilm', refilm: [...], stills, clips,
-  costUsd, status: 'proposed' }`. Spends nothing (one text call). `409` while busy.
+  costUsd, credits, status: 'proposed' }` (`credits`: show this, not `costUsd`; JET-425). Spends nothing (one text call). `409` while busy.
   `shotSize` (wide|medium wide|medium|medium close|close) is a framing ask ("make it a
   wide shot"); `redraw: true` means only the still is drawn again, for a broken frame
   ("no split screen") — nothing else on the shot changes. JET-339.
@@ -669,7 +669,8 @@ All new fields are optional; nothing existing changed shape.
   `Idempotency-Key` header. `202 { projectId, jobId, pollUrl }` once the project row
   exists. Storyboard and render start run on the server; `GET render/:jobId` is 404
   until they land. A failed start leaves the project `draft` with `startError:
-  { code, message, at }`. Limit refusals are the same as `/:id/render`. JET-391.
+  { code, message, details, at }`; a credit or limit refusal keeps its own `code` and fields
+  in `details` (api-billing.md, JET-425). Limit refusals are the same as `/:id/render`. JET-391.
 - Render poll (`GET render/:jobId`, `GET /:id/render`) — `failure: { cause:
   refused|timeout|no_video|quota|provider_credit|error, refusalCause?, clipsAffected,
   retryable, message } | null`, set on failed/blocked. Limit refusals (429/503 on

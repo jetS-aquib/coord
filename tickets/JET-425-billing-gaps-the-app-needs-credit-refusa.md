@@ -47,3 +47,4 @@ Film now with 0 credits and billing enforced shows the credit sheet, not 'did no
 ## Thread
 2026-11-24T14:03:19+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T18:32:28+05:30 aquib N: status: open -> approved
+2026-11-24T18:45:01+05:30 aquib N: Built all 7 in music-jetkreate-backend (uncommitted). Film now keeps startError {code,message,details}; /billing/me has enforced + reserveBuffer; byFeature items carry category ('video' for renders); call sheet has credits {floor,ceiling,held,charged} and edit proposals have credits; render state credits now {reserved (kept after settle), holding, charged, returned}; copy bundle v2 adds credits.howItWorks and support.contact. support.contact is a PLACEHOLDER (mailto:support@jetsynthesys.com) until the real address is confirmed. Contracts api-billing.md and api-music-videos.md updated.

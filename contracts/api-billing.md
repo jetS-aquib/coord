@@ -13,12 +13,15 @@ unit a user sees, and no user response carries USD (D-100).
 ## User — `/api/v1/billing` (signed in)
 
 - `GET /me`:
-  `{ balance, lowBalance, frozen, freeReshoots, plan: { id, name, refill: { amount, period } | null, rollover }, nextRefillAt | null, limits: { day, week, month, renders } }`.
+  `{ balance, lowBalance, frozen, enforced, reserveBuffer, freeReshoots, plan: { id, name, refill: { amount, period } | null, rollover }, nextRefillAt | null, limits: { day, week, month, renders } }`.
   Each limit is `{ limit | null, used, left | null, resetsAt }`, and `null` means no
   limit. Windows are calendar day, week and month in the plan's time zone.
+  `enforced: false` (soft launch) means nothing is refused for credits, so the app must not refuse either.
+  `reserveBuffer` (e.g. `0.2`) is held on top of an estimate's `ceiling` when a render starts. JET-425.
 - `GET /usage?period=day|week|month` (default `week`), or `?from=&to=` (ISO, at most 92 days):
   `{ from, to, total, freeReshootCredits, byCategory[], byFeature[], byModel[], byProject[] }`.
   - `byCategory`, `byFeature` and `byModel` are lists of `{ key, name, credits }`, and each one sums to `total`.
+  - Each `byFeature` item also has `category` (one of the categories below). The `video` feature is whole renders, across every category, and has `category: 'video'`. JET-425.
   - `total` is what the ledger charged.
   - Categories are `planning`, `stills`, `clips`, `checks`, `song`, `lyrics`, `captions`, `stitch` and `other`. A render that has not finished yet shows as `held`.
   - A render is counted in the window it started, including everything charged and returned for it since.
@@ -41,7 +44,13 @@ unit a user sees, and no user response carries USD (D-100).
 | 429 | `rate_limited` | `retryAfter` (seconds) | Too many requests in a short time |
 
 `GET /api/v1/music-videos/estimate` returns `credits { floor, typical, ceiling }` for each tier.
-A render's state includes `credits { reserved, charged, reshootCredits } | null`.
+A render's state includes `credits { reserved, holding, charged, returned, reshootCredits } | null`.
+`reserved` is everything ever held for the render and stays after it settles; `holding` is what is held right now
+(0 once settled); `returned` is what came back unused. JET-425.
+`GET …/render/:jobId/call-sheet` has `credits { floor, ceiling, held | null, charged | null }`, and an edit proposal has
+`credits` beside `costUsd`. Show credits, never `costUsd` (D-100).
+A Film now (`create-and-render`) start refused for credits or limits leaves `startError { code, message, details }`
+with the same `code` and extra fields (as `details`) as the table above. JET-425.
 
 ## Admin — `/api/admin/billing` (admin role; every request goes to AuditLog)
 
