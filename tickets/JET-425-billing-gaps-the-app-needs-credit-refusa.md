@@ -4,9 +4,9 @@ title: Billing gaps the app needs: credit refusals through create-and-render, en
 from: music-jetkreate-mobile
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T14:03:19+05:30
-updated: 2026-11-24T14:03:19+05:30
+updated: 2026-11-24T18:32:28+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Film now with 0 credits and billing enforced shows the credit sheet, not 'did no
 
 ## Thread
 2026-11-24T14:03:19+05:30 aquib N: created ticket, status: - -> open
+2026-11-24T18:32:28+05:30 aquib N: status: open -> approved
