@@ -46,3 +46,4 @@ An admin signs in and reaches Overview; a creator account sees 'not an admin'; t
 
 ## Thread
 2026-11-24T17:05:04+05:30 aquib N: created ticket, status: - -> open
+2026-11-24T17:05:23+05:30 aquib N: Order: JET-426 first. Everything else in the console (JET-434..440) builds on this shell. Onboarding: D-103.
