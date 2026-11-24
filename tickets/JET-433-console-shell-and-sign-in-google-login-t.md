@@ -1,0 +1,48 @@
+---
+id: JET-433
+title: Console shell and sign-in: Google login through the backend, signed server-side calls, guard, sidebar
+from: music-jetkreate-web
+to: music-jetkreate-web
+filed_by: aquib N
+status: open
+created: 2026-11-24T17:05:04+05:30
+updated: 2026-11-24T17:05:04+05:30
+decisions: 
+---
+
+## Request
+
+The admin console's skeleton: sign in, call the backend safely, and the layout every module plugs into.
+
+## Understanding
+
+Admins sign in with Google; the backend's /api/auth/google returns its own JWTs (access 15m, refresh 7d). The Next server keeps them in httpOnly Secure SameSite=Strict cookies and signs every call like music-jetkreate-mobile/src/lib/signing.ts (HMAC of snonce, METHOD|path|ts|nonce|bodyHash, server clock offset). The browser never sees the tokens or REQUEST_SIGNING_KEY. A non-admin gets 403 from /api/admin and sees a 'not an admin' page. Needs JET-426. Assumption: Google sign-in in the browser via Firebase Auth (same project as the app), then the ID token goes to our server action.
+
+## Plan
+
+1. lib/backend.ts (server-only): sign, bearer, refresh once on 401, typed errors.
+2. Login page + server action that exchanges the Google credential, sets cookies; logout.
+3. proxy.ts: no session -> /login.
+4. App shell: sidebar (Overview, Users, Renders, Content, Billing, Control room, Audit), top bar with admin email, dark mode toggle.
+5. shadcn: sidebar, table, dialog, dropdown, form, sonner, card, tabs, badge, chart.
+6. One Playwright check: login stub -> users list renders.
+7. Signer unit test against a vector computed from the backend's code.
+
+## Reason
+
+—
+
+## Related files
+
+apps/admin/lib/backend.ts, apps/admin/proxy.ts, apps/admin/app/(console)/layout.tsx, apps/admin/app/login/*, packages/ui/src/components/*
+
+## Acceptance criteria
+
+An admin signs in and reaches Overview; a creator account sees 'not an admin'; tokens are not readable from document.cookie; a session survives the 15-minute access expiry.
+
+## Test steps
+
+—
+
+## Thread
+2026-11-24T17:05:04+05:30 aquib N: created ticket, status: - -> open
