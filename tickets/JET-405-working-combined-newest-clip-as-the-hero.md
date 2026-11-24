@@ -4,9 +4,9 @@ title: Working, combined: newest clip as the hero, five-stage rail, one count, s
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-23T15:50:03+05:30
-updated: 2026-11-24T12:12:17+05:30
+updated: 2026-11-24T13:00:38+05:30
 decisions: 
 ---
 
@@ -43,8 +43,14 @@ During a 5-shot render the headline and strip always agree; the call sheet's cas
 
 ## Test steps
 
-—
+1. Start a short render and tap Preview stills. Call sheet: ✕ top left, the pitch once, cast as portrait frames with a short summary (More shows the full text), the last part scrolls clear of the footer, no Approve all, one coral "Film 5 shots".
+2. Tap Film 5 shots. Working: the Plan · Cast · Frames · Film · Cut rail over the hero, Film lit in coral; headline "Filming · N of 5" and the strip "N OF 5 READY" always match, including at 5 of 5.
+3. Under the headline: director face with the live line and "Started <time> · you can leave". Pause and a red Stop as text, Leave it running outlined. Stop opens the themed confirm sheet; cancel.
+4. At the cut: collage, "Cutting it to the music". At the end: video in the hero, "<Title> is ready", one success buzz, ivory Watch, text Back to your videos.
+5. npm run check:narration passes.
 
 ## Thread
 2026-11-23T15:50:03+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:12:17+05:30 aquib N: status: open -> approved
+2026-11-24T13:00:38+05:30 aquib N: status: approved -> in_progress
+2026-11-24T13:00:38+05:30 aquib N: status: in_progress -> review — Built and committed (3fff167); Test steps filled

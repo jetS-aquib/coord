@@ -4,9 +4,9 @@ title: Video page: Share and Save first, credits with faces, Scenes and Versions
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-23T15:50:04+05:30
-updated: 2026-11-24T12:19:36+05:30
+updated: 2026-11-24T13:00:38+05:30
 decisions: D-099
 ---
 
@@ -43,9 +43,15 @@ Share is the first button; Save puts the video in the gallery; tapping a face fi
 
 ## Test steps
 
-—
+1. Needs the new dev build (npx expo run:android). Open a finished video: serif title, "0:28 · Tall · …", Directed by with avatar, Starring line; back chevron visible over the player.
+2. Tap Save: "Saved to gallery", no permission prompt, video in Gallery. Tap Share: system share sheet with the file.
+3. Post it: tap Copy, it reads "Copied", no share sheet; paste elsewhere shows the caption. Language reads "English"/"Hindi", not a code.
+4. ⋯ → Delete opens the themed confirm sheet with Delete in red; cancel.
+5. Scenes: scene 1 reads "1 · 0:00 · …"; tap a face (initial when no portrait): "Elena · in 4 of 5 scenes" and only those scenes; tap a scene and the player jumps there. Versions still has the re-cut chips.
 
 ## Thread
 2026-11-23T15:50:04+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:12:20+05:30 aquib N: status: open -> approved
 2026-11-24T12:19:36+05:30 aquib N: linked decision D-099 (expo-media-library and expo-clipboard for Save to phone and Copy caption)
+2026-11-24T13:00:38+05:30 aquib N: status: approved -> in_progress
+2026-11-24T13:00:38+05:30 aquib N: status: in_progress -> review — Built and committed (3fff167); Test steps filled
