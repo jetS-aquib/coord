@@ -4,9 +4,9 @@ title: Credit accounts and ledger: balance, free grants, refills with switchable
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T12:55:47+05:30
-updated: 2026-11-24T12:56:05+05:30
+updated: 2026-11-24T13:02:24+05:30
 decisions: D-100
 ---
 
@@ -46,3 +46,4 @@ A new user gets the signup grant once; after the refill period the balance refil
 ## Thread
 2026-11-24T12:55:47+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
+2026-11-24T13:02:24+05:30 aquib N: status: open -> approved

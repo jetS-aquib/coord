@@ -4,9 +4,9 @@ title: Billing config: an admin-editable rate card, plans and billing switches t
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T12:55:44+05:30
-updated: 2026-11-24T12:56:05+05:30
+updated: 2026-11-24T13:02:21+05:30
 decisions: D-100
 ---
 
@@ -46,3 +46,4 @@ Publishing a rate card that doubles Omni's credits per second changes POST /esti
 ## Thread
 2026-11-24T12:55:44+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
+2026-11-24T13:02:21+05:30 aquib N: status: open -> approved
