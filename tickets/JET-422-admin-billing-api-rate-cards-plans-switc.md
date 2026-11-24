@@ -4,7 +4,7 @@ title: Admin billing API: rate cards, plans, switches, per-user grants and freez
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-24T12:55:52+05:30
 updated: 2026-11-24T13:45:14+05:30
 decisions: D-100
@@ -48,3 +48,4 @@ An admin grants 500 credits with a reason and the user's /me shows it; the repor
 2026-11-24T13:38:26+05:30 aquib N: status: open -> approved
 2026-11-24T13:45:14+05:30 aquib N: status: approved -> in_progress
 2026-11-24T13:45:14+05:30 aquib N: Built (uncommitted): POST /users/:id/grant {credits, reason, key?} (+ grant, - adjust, idempotent per key), POST /users/:id/plan {planId?, limitsOverride?} with before/after AuditLog row, GET /reports (per day×model credits/costUsd/margin at list price, plus ledger charged, free reshoots, top 20 spenders, frozen), POST /rate-card/preview {payload|version} (last 7 days on draft vs live, list price; scans every call in the window). Existing freeze/unfreeze/zero and rate card/plans/settings routes unchanged.
+2026-11-24T13:45:14+05:30 aquib N: status: in_progress -> review
