@@ -4,9 +4,9 @@ title: Metering: price every AI call in credits and tag it with feature, render 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T12:55:45+05:30
-updated: 2026-11-24T12:56:05+05:30
+updated: 2026-11-24T13:23:16+05:30
 decisions: D-100
 ---
 
@@ -46,3 +46,4 @@ After one render, every GenerationLog row for that jobId has credits > 0 (or 0 b
 ## Thread
 2026-11-24T12:55:45+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
+2026-11-24T13:23:16+05:30 aquib N: status: open -> approved
