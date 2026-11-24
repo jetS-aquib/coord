@@ -4,9 +4,9 @@ title: User billing API: balance, limits left, usage broken down by feature and 
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: in_progress
 created: 2026-11-24T12:55:51+05:30
-updated: 2026-11-24T13:38:23+05:30
+updated: 2026-11-24T13:45:14+05:30
 decisions: D-100
 ---
 
@@ -46,3 +46,5 @@ After one render and one special request, /me shows the balance and limits left;
 2026-11-24T12:55:51+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
 2026-11-24T13:38:23+05:30 aquib N: status: open -> approved
+2026-11-24T13:45:14+05:30 aquib N: status: approved -> in_progress
+2026-11-24T13:45:14+05:30 aquib N: Built (uncommitted): usageV1.ts + /usage and /history in billing.routes.ts, freeReshoots on /me, contract .coord/contracts/api-billing.md. Totals come from the ledger, so they add up to what was charged; byCategory/byFeature/byModel each sum to total (whole credits, largest remainder). A render counts in the window it started; an unsettled one shows as 'held'. byModel is a family name split in proportion to metered work, never a provider id. Per-call charges have no project (projectId is not on log rows).
