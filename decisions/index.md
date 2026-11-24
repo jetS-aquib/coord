@@ -100,3 +100,4 @@
 | D-096 | Song reads are reused across uploads, and across users, by a hash of the audio bytes | 2026-11-23 | active | music-jetkreate-backend | JET-386 |
 | D-097 | Typed lyrics are spread evenly, not aligned, and not yet burnt onto the video | 2026-11-23 | active | music-jetkreate-backend video-processing-backend | JET-392 |
 | D-098 | Config bundle manifest fallback order, and starters stay data in the starters bundle | 2026-11-23 | active | music-jetkreate-backend music-jetkreate-mobile | JET-412 JET-396 |
+| D-099 | expo-media-library and expo-clipboard for Save to phone and Copy caption | 2026-11-24 | active | music-jetkreate-mobile | JET-406 |

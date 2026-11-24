@@ -6,8 +6,8 @@ to: music-jetkreate-mobile
 filed_by: aquib N
 status: approved
 created: 2026-11-23T15:50:04+05:30
-updated: 2026-11-24T12:12:20+05:30
-decisions: 
+updated: 2026-11-24T12:19:36+05:30
+decisions: D-099
 ---
 
 ## Request
@@ -48,3 +48,4 @@ Share is the first button; Save puts the video in the gallery; tapping a face fi
 ## Thread
 2026-11-23T15:50:04+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:12:20+05:30 aquib N: status: open -> approved
+2026-11-24T12:19:36+05:30 aquib N: linked decision D-099 (expo-media-library and expo-clipboard for Save to phone and Copy caption)

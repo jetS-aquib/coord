@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-24T12:23:42+05:30
+
+Session ended while on JET-409. Touched: src/features/create/stage-rail.tsx. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-24T01:00:00+05:30
 
 Drew and uploaded 20 config stills (backend draw-config-art), seeded all bundles into local Mongo. Built JET-413 + JET-409 (agent, verified: tsc, 11 checks incl. new check:config, Android export). Fixed timeline on long songs (fixed columns), lyrics preview redesign with real caption colours (video service luxury/gold look BGR-swapped -> blue; worth a ticket). Waiting: user makes sign-in video in app (I cut a 6s muted loop and bundle it); commit go-ahead; backend art commit.
