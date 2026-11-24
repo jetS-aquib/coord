@@ -4,9 +4,9 @@ title: Billing config: an admin-editable rate card, plans and billing switches t
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T12:55:44+05:30
-updated: 2026-11-24T13:20:12+05:30
+updated: 2026-11-24T13:20:31+05:30
 decisions: D-100, D-101
 ---
 
@@ -49,3 +49,5 @@ Publishing a rate card that doubles Omni's credits per second changes POST /esti
 2026-11-24T13:02:21+05:30 aquib N: status: open -> approved
 2026-11-24T13:20:12+05:30 aquib N: linked decision D-101 (Billing config in one versioned collection; credits seeded at 100 per USD of cost; USD cost logging left on the old tables)
 2026-11-24T13:20:25+05:30 aquib N: Built (not committed). New module src/modules/billing/ + models BillingConfigV1 (one collection, kind rateCard|plans|settings — D-101), scripts/seed-billing.ts. Admin: GET /api/admin/billing/{rate-card|plans|settings}, POST …/draft {payload,note}, POST …/:version/publish, POST …/rollback {version}, GET …/:version. POST /api/v1/music-videos/estimate now adds credits {floor,typical,ceiling} to each tier from the live card (awaits the 10s cache). Not done, by choice: tokenLogger/renderCostV1 USD still read the hard-coded tables (they are the seed, so they agree) — JET-417 meters from the card. Tests: src/modules/billing/billing.test.ts; the Mongo half runs with MONGO_TEST_URI=mongodb://127.0.0.1:27017/billing_test.
+2026-11-24T13:20:30+05:30 aquib N: status: approved -> in_progress — building in music-jetkreate-backend
+2026-11-24T13:20:31+05:30 aquib N: status: in_progress -> review — built and tested; see notes

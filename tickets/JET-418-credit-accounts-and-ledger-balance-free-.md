@@ -4,9 +4,9 @@ title: Credit accounts and ledger: balance, free grants, refills with switchable
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T12:55:47+05:30
-updated: 2026-11-24T13:20:12+05:30
+updated: 2026-11-24T13:20:31+05:30
 decisions: D-100, D-101
 ---
 
@@ -49,3 +49,5 @@ A new user gets the signup grant once; after the refill period the balance refil
 2026-11-24T13:02:24+05:30 aquib N: status: open -> approved
 2026-11-24T13:20:12+05:30 aquib N: linked decision D-101 (Billing config in one versioned collection; credits seeded at 100 per USD of cost; USD cost logging left on the old tables)
 2026-11-24T13:20:25+05:30 aquib N: Built (not committed). Models CreditLedgerV1 (append-only, unique idempotencyKey) and CreditAccountV1 (atomic guarded $inc); src/modules/billing/creditsV1.ts: accountV1 (lazy create, signup grant once, carry expiry, refill once per period), postV1, debitV1 (limits + balance guard when billingEnforced or enforce:true; soft launch records, never refuses), limitsV1 (IST calendar windows from the ledger), assertWithinLimitsV1 (429 daily_limit|weekly_limit|monthly_limit|render_limit with details.resetsAt). GET /api/v1/billing/me (balance, plan, limits, nextRefillAt). scripts/migrate-quota-overrides.ts maps weekly-seconds overrides to limitsOverride.perWeek in credits. Test step 4 (a real request refused with daily_limit) needs JET-419 to wire debitV1 into routes; until then it is covered by the test 'the daily limit refuses until IST midnight'. Tests pass against local Mongo, incl. 20 parallel debits of 10 vs 100 -> exactly 10.
+2026-11-24T13:20:31+05:30 aquib N: status: approved -> in_progress — building in music-jetkreate-backend
+2026-11-24T13:20:31+05:30 aquib N: status: in_progress -> review — built and tested; see notes
