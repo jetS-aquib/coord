@@ -4,9 +4,9 @@ title: Settings: a Credits and usage screen with the balance, limits left, refil
 from: music-jetkreate-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T12:55:53+05:30
-updated: 2026-11-24T12:56:05+05:30
+updated: 2026-11-24T13:43:31+05:30
 decisions: D-100
 ---
 
@@ -46,3 +46,4 @@ Settings shows Credits and usage; the screen shows the balance, refill date, thr
 ## Thread
 2026-11-24T12:55:53+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
+2026-11-24T13:43:31+05:30 aquib N: status: open -> approved
