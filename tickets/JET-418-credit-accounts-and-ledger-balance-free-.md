@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-24T12:55:47+05:30
-updated: 2026-11-24T13:02:24+05:30
-decisions: D-100
+updated: 2026-11-24T13:20:12+05:30
+decisions: D-100, D-101
 ---
 
 ## Request
@@ -47,3 +47,4 @@ A new user gets the signup grant once; after the refill period the balance refil
 2026-11-24T12:55:47+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T12:56:05+05:30 aquib N: linked decision D-100 (Billing: credits as the unit, an append-only ledger as the record of truth, every AI call metered, free reshoots behind a switch)
 2026-11-24T13:02:24+05:30 aquib N: status: open -> approved
+2026-11-24T13:20:12+05:30 aquib N: linked decision D-101 (Billing config in one versioned collection; credits seeded at 100 per USD of cost; USD cost logging left on the old tables)
