@@ -28,3 +28,13 @@
 2026-11-24T13:02:45+05:30	music-jetkreate-backend	session-start	aquib N
 2026-11-24T13:03:46+05:30	music-jetkreate-mobile	session-stop	aquib N
 2026-11-24T13:08:59+05:30	music-jetkreate-backend	edit	aquib N	src/models/BillingConfigV1.ts
+2026-11-24T13:08:59+05:30	music-jetkreate-backend	edit	aquib N	src/models/CreditLedgerV1.ts
+2026-11-24T13:08:59+05:30	music-jetkreate-backend	edit	aquib N	src/models/CreditAccountV1.ts
+2026-11-24T13:09:24+05:30	music-jetkreate-backend	edit	aquib N	src/modules/billing/seedBillingV1.ts
+2026-11-24T13:10:07+05:30	music-jetkreate-backend	edit	aquib N	src/modules/billing/billingConfigV1.ts
+2026-11-24T13:10:49+05:30	music-jetkreate-backend	edit	aquib N	src/modules/billing/creditsV1.ts
+2026-11-24T13:10:54+05:30	music-jetkreate-backend	edit	aquib N	src/shared/middleware/errorHandler.ts
+2026-11-24T13:11:12+05:30	music-jetkreate-backend	edit	aquib N	src/modules/billing/billing.routes.ts
+2026-11-24T13:12:36+05:30	music-jetkreate-backend	edit	aquib N	scripts/seed-billing.ts
+2026-11-24T13:12:37+05:30	music-jetkreate-backend	edit	aquib N	scripts/migrate-quota-overrides.ts
+2026-11-24T13:13:23+05:30	music-jetkreate-backend	edit	aquib N	src/modules/billing/billing.test.ts
