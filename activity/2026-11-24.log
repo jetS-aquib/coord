@@ -57,3 +57,9 @@
 2026-11-24T13:47:36+05:30	music-jetkreate-mobile	edit	aquib N	src/lib/billing.ts
 2026-11-24T13:48:39+05:30	music-jetkreate-mobile	session-stop	aquib N
 2026-11-24T13:48:39+05:30	music-jetkreate-mobile	context	aquib N	together-music-jetkreate-backend-music-jetkreate-mobile-2026-11-24
+2026-11-24T13:50:16+05:30	music-jetkreate-mobile	edit	aquib N	src/lib/credits-breakdown.ts
+2026-11-24T13:50:33+05:30	music-jetkreate-mobile	edit	aquib N	package.json
+2026-11-24T13:50:33+05:30	music-jetkreate-mobile	edit	aquib N	src/app/(app)/_layout.tsx
+2026-11-24T13:51:53+05:30	music-jetkreate-mobile	edit	aquib N	src/app/(app)/credits.tsx
+2026-11-24T13:52:09+05:30	music-jetkreate-mobile	edit	aquib N	src/lib/credit-fit.ts
+2026-11-24T13:53:30+05:30	music-jetkreate-mobile	edit	aquib N	src/components/credit-sheet.tsx
