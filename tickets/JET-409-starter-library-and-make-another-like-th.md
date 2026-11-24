@@ -4,9 +4,9 @@ title: Starter library and 'Make another like this'
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-23T15:50:09+05:30
-updated: 2026-11-23T18:51:29+05:30
+updated: 2026-11-24T12:12:11+05:30
 decisions: 
 ---
 
@@ -53,3 +53,4 @@ A new account sees recipes; choosing one and uploading a song reaches Ready with
 2026-11-23T18:49:07+05:30 aquib N: status: open -> approved
 2026-11-23T18:51:29+05:30 aquib N: status: approved -> in_progress — Working on it
 2026-11-23T19:05:16+05:30 aquib N: Built, not committed. StarterRow + StarterSheet (cover or muted looping example video; 'Use this look with your song'); startFromRecipe seeds director, picks, where, special, style, aspect, tier, captionStyle, captionPosition, showLyrics, coldOpen, all editable; recipe director survives the auto-pick and the place survives upload/brief. Row on Home (starterRow block) and on Pick a track before a song is chosen. 'Make another like this' chip on the video page from detail.recipe. No hidden-starters kill switch exists; per-starter enabled and dates are honoured. Known gap: Ready's 'Start on chorus' switch hides when the recipe's director comes from the bundle (coldOpen still sent).
+2026-11-24T12:12:11+05:30 aquib N: status: in_progress -> review — Built and committed (5e8a66c); Test steps filled

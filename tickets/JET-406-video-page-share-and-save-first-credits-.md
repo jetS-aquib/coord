@@ -4,9 +4,9 @@ title: Video page: Share and Save first, credits with faces, Scenes and Versions
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:50:04+05:30
-updated: 2026-11-23T15:50:04+05:30
+updated: 2026-11-24T12:12:20+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ Share is the first button; Save puts the video in the gallery; tapping a face fi
 
 ## Thread
 2026-11-23T15:50:04+05:30 aquib N: created ticket, status: - -> open
+2026-11-24T12:12:20+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Working, combined: newest clip as the hero, five-stage rail, one count, s
 from: music-jetkreate-mobile
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-23T15:50:03+05:30
-updated: 2026-11-23T15:50:03+05:30
+updated: 2026-11-24T12:12:17+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ During a 5-shot render the headline and strip always agree; the call sheet's cas
 
 ## Thread
 2026-11-23T15:50:03+05:30 aquib N: created ticket, status: - -> open
+2026-11-24T12:12:17+05:30 aquib N: status: open -> approved
