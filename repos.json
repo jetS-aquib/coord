@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-12T17:29:26+05:30",
+  "updated": "2026-11-24T17:03:17+05:30",
   "repos": [
     {
       "name": "creater-ai-backend",
@@ -119,6 +119,17 @@
         "music-jetkreate-backend"
       ],
       "onboarded": "2026-10-20",
+      "status": "active"
+    },
+    {
+      "name": "music-jetkreate-web",
+      "remote": "",
+      "stack": "pnpm + Turborepo monorepo: Next.js 16 + TypeScript + Tailwind v4 + shadcn/ui (apps/www static export, apps/admin console), packages/ui",
+      "contracts": [],
+      "depends_on": [
+        "music-jetkreate-backend"
+      ],
+      "onboarded": "2026-11-24",
       "status": "active"
     },
     {
