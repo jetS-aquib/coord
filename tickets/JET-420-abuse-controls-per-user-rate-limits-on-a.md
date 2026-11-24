@@ -4,9 +4,9 @@ title: Abuse controls: per-user rate limits on AI routes, one free grant per per
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-24T12:55:49+05:30
-updated: 2026-11-24T13:36:47+05:30
+updated: 2026-11-24T13:36:48+05:30
 decisions: D-100, D-102
 ---
 
@@ -50,3 +50,4 @@ Scripted calls to special/understand above the limit get 429 with retryAfter; tw
 2026-11-24T13:36:47+05:30 aquib N: linked decision D-102 (Metering and charging hang off the GenerationLog sink; renders reserve then settle cumulatively; abuse controls hold in soft launch)
 2026-11-24T13:36:47+05:30 aquib N: status: approved -> in_progress — building in music-jetkreate-backend
 2026-11-24T13:36:48+05:30 aquib N: Built (not committed). aiGuardV1: aiCallsPerMinute (setting, 10) per user (else IP) per route, 429 rate_limited with retryAfter; 202 reading_lyrics polls are not counted. Signup grant: one per normalized email and per X-Device-Id (sha256) via GrantClaimV1; a duplicate gets a 0 grant entry with the reason; disposable domains get none; requireVerifiedEmail setting off until JET-385. concurrentRenders checked at reserve (409 concurrent_limit). After every spend: past anomaly.creditsPerHour (5000) or rendersPerHour (6) freezes and alerts (server_alert billing_freeze + account_frozen event). Admin: GET /api/admin/billing/users/:id, POST …/freeze, …/unfreeze, …/zero. All of these hold even with billingEnforced off. D-102.
+2026-11-24T13:36:48+05:30 aquib N: status: in_progress -> review — built and tested; see notes

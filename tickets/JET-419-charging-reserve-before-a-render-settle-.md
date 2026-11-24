@@ -4,9 +4,9 @@ title: Charging: reserve before a render, settle after it, refund failed shots b
 from: music-jetkreate-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: in_progress
+status: review
 created: 2026-11-24T12:55:48+05:30
-updated: 2026-11-24T13:36:47+05:30
+updated: 2026-11-24T13:36:48+05:30
 decisions: D-100, D-102
 ---
 
@@ -50,3 +50,4 @@ A render with 2 refused clips settles with those clips refunded when freeReshoot
 2026-11-24T13:36:47+05:30 aquib N: linked decision D-102 (Metering and charging hang off the GenerationLog sink; renders reserve then settle cumulatively; abuse controls hold in soft launch)
 2026-11-24T13:36:47+05:30 aquib N: status: approved -> in_progress — building in music-jetkreate-backend
 2026-11-24T13:36:48+05:30 aquib N: Built (not committed). startRenderV1 reserves ceiling x 1.2 before creating the plan (402/429/409 refusals there), resume reserves what is left; plan.billing freezes rateCardVersion and freeReshoots. Every terminal emit settles (5s later; cancelled 10 min) on the frozen card: failed and re-shot takes refunded when freeReshoots was on; idempotent and cumulative. Boot settles anything missed. Calls outside a render are charged per call from the log sink; aiGuardV1 on song-read, special/understand, brief, transcript/warm, publish/rewrite, edits, recut, reel gives 402 insufficient_credits / 403 account_frozen first. Render state has credits {reserved, charged, reshootCredits}; estimate has credits per tier. Not done: call sheet in credits; mid-render top-up/pause (overrun charged at settle instead); the old weekly-seconds check is left (only on while the PostHog limits flag is). D-102.
+2026-11-24T13:36:48+05:30 aquib N: status: in_progress -> review — built and tested; see notes
