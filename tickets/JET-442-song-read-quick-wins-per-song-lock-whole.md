@@ -4,9 +4,9 @@ title: Song read quick wins: per-song lock, whole-mix Gemini at t=0, persisted c
 from: video-processing-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-25T12:57:55+05:30
-updated: 2026-11-25T12:57:55+05:30
+updated: 2026-11-25T15:17:47+05:30
 decisions: 
 ---
 
@@ -48,3 +48,4 @@ On staging, a [READ-PERF] lock_wait under 1s for a read of a new song while anot
 2026-11-25T12:57:55+05:30 aquib N: created ticket, status: - -> open
 2026-11-25T13:31:00+05:30 aquib N: From JET-441's first staging read: each re-ask (Node re-POSTs lyric-transcription and song-read every 60s) parks a thread from asyncio's default pool on the transcription lock; that pool is min(32, cpus+4) = 8 on the 4-vCPU box, and one song already reached 6 in flight. With several songs at once, the pool fills and even cache hits queue. Add to scope: answer a re-ask for a song already being transcribed with an immediate 202 instead of parking a thread (or a dedicated executor). Confirm with the 3-song run first.
 2026-11-25T14:59:46+05:30 aquib N: Raised to first priority by JET-441's concurrent run: thread starvation, not compute, turned a 4-min read into 16-17 min and failed 15 downloads. Must-haves: (1) a re-ask for a key already being transcribed returns 202 at once instead of parking a thread; (2) downloads off the shared default executor (own executor or async file writes); (3) per-song lock + a CPU semaphore around Demucs only. Expected: each song ~its own work time, with only Demucs serialised.
+2026-11-25T15:17:47+05:30 aquib N: status: open -> approved

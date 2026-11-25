@@ -4,9 +4,9 @@ title: Song read: take Demucs off the read path (pieces from the mix) or swap it
 from: video-processing-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-25T12:57:57+05:30
-updated: 2026-11-25T12:57:57+05:30
+updated: 2026-11-25T15:17:50+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Eval: word_accuracy and line_recall not lower than baseline over 3 runs. Staging
 
 ## Thread
 2026-11-25T12:57:57+05:30 aquib N: created ticket, status: - -> open
+2026-11-25T15:17:50+05:30 aquib N: status: open -> approved
