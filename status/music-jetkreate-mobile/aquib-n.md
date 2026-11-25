@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-25T11:58:24+05:30
+
+Session ended while on JET-406. Touched: src/app/(create)/working/[id].tsx. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-24T12:23:42+05:30
 
 Session ended while on JET-409. Touched: src/features/create/stage-rail.tsx. Nothing committed. (written automatically — no one said what is next)
