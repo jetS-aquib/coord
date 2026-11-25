@@ -326,6 +326,12 @@ whole song from one call, instead of the client calling a clip endpoint per scen
   has finished. Absent on projects saved before it, which means false.
 - `DELETE /api/v1/music-videos/lyrics` — body `{ audioUrl }`; back to what was heard.
   Returns `{ success, edited: false, restitching }`, re-stitching as above. JET-266, JET-308.
+- `POST /api/v1/music-videos/song-read/cancel` — body `{ audioUrl }`, `200 { cancelled }`.
+  Call it when the person leaves a song before its read is done. It drops only the
+  caller's interest; the read stops (`cancelled: true`) once no other person and no
+  render wants it. A person stays interested while they asked within 2 minutes, so an
+  app that is killed has its read stopped 2 minutes later anyway. Asking for the read
+  again afterwards starts it fresh. JET-446.
 - `POST /api/v1/music-videos/transcript/warm` — `202` and nothing else. Body
   `{ audioUrl }`. Not project-scoped, because the point is that it is called at
   **upload**, before a project exists. Fire and forget: nothing depends on it, nothing
