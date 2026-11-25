@@ -9,3 +9,8 @@
 2026-11-25T12:36:42+05:30	video-processing-backend	session-stop	aquib N
 2026-11-25T12:41:16+05:30	video-processing-backend	edit	aquib N	lets-do-an-optimisation-woolly-hanrahan.md
 2026-11-25T12:48:15+05:30	video-processing-backend	edit	aquib N	lets-do-an-optimisation-woolly-hanrahan.md
+2026-11-25T12:49:20+05:30	video-processing-backend	edit	aquib N	staging-logs-only.md
+2026-11-25T12:49:21+05:30	video-processing-backend	edit	aquib N	MEMORY.md
+2026-11-25T12:52:07+05:30	video-processing-backend	edit	aquib N	app/processors/lyrics/lyric_extractor.py
+2026-11-25T12:52:13+05:30	video-processing-backend	edit	aquib N	app/processors/lyrics/lyric_extractor.py
+2026-11-25T12:54:16+05:30	video-processing-backend	edit	aquib N	scripts/read_perf_report.py
