@@ -1,13 +1,17 @@
 # video-processing-backend — aquib N
 
-- **Current task:** JET-441 song-read timing/diagnostic logs — built, uncommitted, waiting on commit + staging deploy so the logs can be read. JET-442/443/444 (song-read optimisation) filed, waiting for approval and for JET-441's numbers. Earlier: JET-329 done, uncommitted.
+- **Current task:** JET-442 + JET-443 song-read speed — built, uncommitted, 738 tests pass; waiting on commit + staging deploy to read [READ-PERF]. JET-441 committed (d93427f) + report-script fixes uncommitted.
 - **Status:** waiting on human
 - **Blockers:** the board does not sync from this machine — `coord sync` push fails with `remote: error: inflate: data stream error`. Everything else: JET-232, JET-233, JET-222, JET-219, JET-215 and JET-212 are with the requester; JET-199/200/201/203 are ours to close with `coord ok`
-- **Last updated:** 2026-11-25T00:00:00+05:30
+- **Last updated:** 2026-11-25T16:00:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-25T16:00:00+05:30
+
+JET-442/443 built from JET-441's staging numbers (4 songs at once: 16-17 min each, 15 failed downloads; thread starvation on one global lock). Re-asks join in-flight work, per-song lock, Demucs/Whisper gates, own download executor, whole-mix read before Demucs, cache volumes (D-105). Demucs in-process on all vCPUs, preloaded (D-106). Pieces-from-mix measured and rejected (Lutt Putt 0.72 -> 0.57). Fixed lyric_eval.py for JET-329. Next: commit, deploy, upload 3-4 songs at once, run read_perf_report; if Demucs is still the pain, an ONNX vocals model is the next request.
+
 ### 2026-11-25T15:34:11+05:30
 
 Session ended while on JET-362. Touched: app/processors/lyrics/separator.py. Nothing committed. (written automatically — no one said what is next)
