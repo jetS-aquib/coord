@@ -46,3 +46,4 @@ On staging, a [READ-PERF] lock_wait under 1s for a read of a new song while anot
 
 ## Thread
 2026-11-25T12:57:55+05:30 aquib N: created ticket, status: - -> open
+2026-11-25T13:31:00+05:30 aquib N: From JET-441's first staging read: each re-ask (Node re-POSTs lyric-transcription and song-read every 60s) parks a thread from asyncio's default pool on the transcription lock; that pool is min(32, cpus+4) = 8 on the 4-vCPU box, and one song already reached 6 in flight. With several songs at once, the pool fills and even cache hits queue. Add to scope: answer a re-ask for a song already being transcribed with an immediate 202 instead of parking a thread (or a dedicated executor). Confirm with the 3-song run first.
