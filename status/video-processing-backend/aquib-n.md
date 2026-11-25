@@ -8,6 +8,10 @@
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+### 2026-11-25T15:34:11+05:30
+
+Session ended while on JET-362. Touched: app/processors/lyrics/separator.py. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-25T12:58:27+05:30
 
 Session ended while on JET-362. Touched: lets-do-an-optimisation-woolly-hanrahan.md, staging-logs-only.md, MEMORY.md, app/processors/lyrics/lyric_extractor.py, scripts/read_perf_report.py, tests/test_read_perf.py. Nothing committed. (written automatically — no one said what is next)
