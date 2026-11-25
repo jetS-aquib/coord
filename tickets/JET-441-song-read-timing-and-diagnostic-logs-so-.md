@@ -50,3 +50,4 @@ After a deploy, the staging logs hold one [BOOT-CONFIG] line and one [READ-PERF]
 ## Thread
 2026-11-25T12:57:28+05:30 aquib N: created ticket, status: - -> open
 2026-11-25T12:58:04+05:30 aquib N: Built in this session at the dev's direction, uncommitted: logs only, 734 tests pass. Next: commit, deploy to staging, collect logs from 3-5 fresh uploads, run scripts/read_perf_report.py. The table decides the order of JET-442/443/444.
+2026-11-25T13:31:00+05:30 aquib N: First staging read (Lutt Putt Gaya, 223s, 320k mp3, one user, no render running): user wait 238s. Demucs 176s (74%; weights were cold, ~9s before separation started), Gemini lyric sheets 47s (2 parallel calls, ~6k output tokens each), 7 pieces in parallel ~10s incl. cutting, whole-mix 6.4s alongside, DSP 1.7s, download 0.3s. Node re-asked every 60s: 8 requests for one song, 6 parked on the transcription lock.
