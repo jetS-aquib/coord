@@ -186,6 +186,35 @@ what a read says cannot serve one made the old way — and, since D-061,
 read from. A read made for a caller who asked for Gemini is therefore never
 served to one who asked for nothing.
 
+## `POST /api/v1/song-read/cancel` — JET-445
+
+Stops the read of a song nobody wants any more, so it stops holding the
+CPU the next song needs. Same `X-Service-Assertion`, `extra="forbid"`.
+
+```jsonc
+// request
+{ "audioUrl": "https://…/song.mp3",   // the object; the query string is ignored
+  "language": "hi",                    // optional: only this language's read
+  "lyricEngine": "gemini" }            // optional: only this engine's read
+
+// 200, always — cancelling something already finished is not an error
+{ "cancelled": true, "reads": 2 }      // reads = how many were running
+```
+
+- It stops every running read of that audio object — `song-read` and
+  `lyric-transcription` alike, every language and engine unless named. A
+  re-signed URL for the same object matches.
+- The work stops at its next check: before Demucs, between Demucs segments
+  (a few seconds), before each Gemini call. Nothing of it is cached.
+- Every request that was answered 202 for that work gets its callback with
+  `status: "cancelled"`. A request still waiting inline gets
+  `409 {"status": "cancelled"}`.
+- **This service does not know who else wants the song.** Song reads are
+  shared by bytes (D-096) and joined while running (D-105), so the caller
+  must only cancel once no person and no render still needs it. In
+  music-jetkreate-backend that is JET-446's interest tracking.
+- Asking for the song again afterwards starts a fresh read.
+
 ## Errors
 
 | status | when |

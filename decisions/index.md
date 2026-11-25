@@ -108,3 +108,4 @@
 | D-104 | Admin console reaches PostHog only through music-jetkreate-backend | 2026-11-24 | active | music-jetkreate-web music-jetkreate-backend |  |
 | D-105 | Song reads: a lock per song, re-asks join the work in flight, and gates only around Demucs and Whisper | 2026-11-25 | active | video-processing-backend | JET-442 |
 | D-106 | Vocal stem stays; Demucs runs in-process on every vCPU, preloaded at startup | 2026-11-25 | active | video-processing-backend | JET-443 |
+| D-107 | Song reads stop cooperatively on cancel; the caller decides when nobody wants a song | 2026-11-25 | active | video-processing-backend music-jetkreate-backend music-jetkreate-mobile | JET-445 |
