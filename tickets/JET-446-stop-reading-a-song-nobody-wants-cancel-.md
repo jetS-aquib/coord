@@ -4,9 +4,9 @@ title: Stop reading a song nobody wants: cancel route, stop the 60s re-asks, and
 from: video-processing-backend
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-25T17:21:51+05:30
-updated: 2026-11-25T17:21:51+05:30
+updated: 2026-11-25T17:24:45+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ After the app cancels (or stops polling for ~2 min), Node logs no further POSTs 
 ## Thread
 2026-11-25T17:21:51+05:30 aquib N: created ticket, status: - -> open
 2026-11-25T17:21:58+05:30 aquib N: Depends on JET-445 (the video service's POST /api/v1/song-read/cancel). JET-447 (mobile) calls this request's route.
+2026-11-25T17:24:45+05:30 aquib N: status: open -> approved
