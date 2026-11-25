@@ -43,3 +43,4 @@ Backing out mid-read or uploading a different song sends one cancel for the old 
 
 ## Thread
 2026-11-25T17:21:54+05:30 aquib N: created ticket, status: - -> open
+2026-11-25T17:21:58+05:30 aquib N: Depends on JET-446 for POST /api/v1/music-videos/song-read/cancel.
