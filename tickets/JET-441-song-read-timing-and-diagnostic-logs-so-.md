@@ -49,3 +49,4 @@ After a deploy, the staging logs hold one [BOOT-CONFIG] line and one [READ-PERF]
 
 ## Thread
 2026-11-25T12:57:28+05:30 aquib N: created ticket, status: - -> open
+2026-11-25T12:58:04+05:30 aquib N: Built in this session at the dev's direction, uncommitted: logs only, 734 tests pass. Next: commit, deploy to staging, collect logs from 3-5 fresh uploads, run scripts/read_perf_report.py. The table decides the order of JET-442/443/444.
