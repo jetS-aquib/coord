@@ -6,8 +6,8 @@ to: video-processing-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-25T12:57:57+05:30
-updated: 2026-11-25T15:17:50+05:30
-decisions: 
+updated: 2026-11-25T15:41:45+05:30
+decisions: D-106
 ---
 
 ## Request
@@ -45,3 +45,5 @@ Eval: word_accuracy and line_recall not lower than baseline over 3 runs. Staging
 ## Thread
 2026-11-25T12:57:57+05:30 aquib N: created ticket, status: - -> open
 2026-11-25T15:17:50+05:30 aquib N: status: open -> approved
+2026-11-25T15:41:45+05:30 aquib N: linked decision D-106 (Vocal stem stays; Demucs runs in-process on every vCPU, preloaded at startup)
+2026-11-25T15:41:45+05:30 aquib N: Eval (5 songs x 3 runs, Gemini path): stem baseline word_accuracy 0.72, line_recall 0.67, consistency 0.67, timing_within_1s 0.89. Pieces cut from the mix with Silero VAD: 0.69 / 0.63 / 0.52 / 0.96; Lutt Putt 0.72 -> 0.57, Zaaya worst 0.65 -> 0.23. Fails the no-regression bar, so the stem stays and the experiment code is removed. Shipped instead: Demucs in-process (same Separator/save_audio as the CLI; stem matches within Demucs's own random shift), model preloaded at startup, torch threads = all vCPUs, subprocess as fallback, torch cache in a volume. Locally (10 cores) it is ~equal to the CLI (44-46s vs 46s on a 2:24 song); staging's gain is the thread count and the ~9s start, confirmed by '[DEMUCS] model loaded ... threads=' and [READ-PERF] demucs after deploy. ONNX swap (b) not done: needs an exported model validated here; file it if staging Demucs is still the pain. Also fixed scripts/lyric_eval.py, broken by JET-329 (extractor reads song_file).

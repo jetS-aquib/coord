@@ -106,3 +106,5 @@
 | D-102 | Metering and charging hang off the GenerationLog sink; renders reserve then settle cumulatively; abuse controls hold in soft launch | 2026-11-24 | active | music-jetkreate-backend | JET-417 JET-419 JET-420 |
 | D-103 | Onboarded music-jetkreate-web to coordination | 2026-11-24 | active | music-jetkreate-web |  |
 | D-104 | Admin console reaches PostHog only through music-jetkreate-backend | 2026-11-24 | active | music-jetkreate-web music-jetkreate-backend |  |
+| D-105 | Song reads: a lock per song, re-asks join the work in flight, and gates only around Demucs and Whisper | 2026-11-25 | active | video-processing-backend | JET-442 |
+| D-106 | Vocal stem stays; Demucs runs in-process on every vCPU, preloaded at startup | 2026-11-25 | active | video-processing-backend | JET-443 |
