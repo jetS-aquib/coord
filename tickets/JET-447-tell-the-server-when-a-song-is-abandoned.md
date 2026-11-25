@@ -4,9 +4,9 @@ title: Tell the server when a song is abandoned: cancel the old song's read on b
 from: video-processing-backend
 to: music-jetkreate-mobile
 filed_by: aquib N
-status: open
+status: review
 created: 2026-11-25T17:21:54+05:30
-updated: 2026-11-25T17:21:54+05:30
+updated: 2026-11-25T17:45:28+05:30
 decisions: 
 ---
 
@@ -44,3 +44,7 @@ Backing out mid-read or uploading a different song sends one cancel for the old 
 ## Thread
 2026-11-25T17:21:54+05:30 aquib N: created ticket, status: - -> open
 2026-11-25T17:21:58+05:30 aquib N: Depends on JET-446 for POST /api/v1/music-videos/song-read/cancel.
+2026-11-25T17:36:34+05:30 aquib N: status: open -> approved
+2026-11-25T17:42:35+05:30 aquib N: status: approved -> in_progress
+2026-11-25T17:45:28+05:30 aquib N: status: in_progress -> review
+2026-11-25T17:45:28+05:30 aquib N: App side in music-jetkreate-mobile (uncommitted): cancelSongRead() in generation.ts, sent from the song-read effect's cleanup in create-context.tsx when a read is still pending and the song is replaced or the create flow is left. Not sent on Continue, on a same-song re-ask (Try again, typed lyrics), or for a song that already has a project. Until JET-446 ships the route 404s and the app ignores it.
