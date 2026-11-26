@@ -4,9 +4,9 @@ title: Console v2: chart set (line, stacked and diverging bar, waterfall, funnel
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:49+05:30
-updated: 2026-11-26T15:48:49+05:30
+updated: 2026-11-26T15:51:00+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Negative values render below zero; a 30-day range with 3 data points shows 30 sl
 
 ## Thread
 2026-11-26T15:48:49+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:51:00+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Console v2: design tokens and base components (theme split, semantic colo
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:48+05:30
-updated: 2026-11-26T15:48:48+05:30
+updated: 2026-11-26T15:50:56+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ www pages look unchanged; console text and controls meet 4.5:1 in light and dark
 
 ## Thread
 2026-11-26T15:48:48+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:50:56+05:30 aquib N: status: open -> approved

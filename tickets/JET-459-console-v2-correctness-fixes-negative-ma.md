@@ -4,9 +4,9 @@ title: Console v2: correctness fixes (negative margin chart, money sign, kill sw
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:46+05:30
-updated: 2026-11-26T15:48:46+05:30
+updated: 2026-11-26T15:50:52+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ With a negative margin day, the margin chart draws a bar below zero and the stat
 
 ## Thread
 2026-11-26T15:48:46+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:50:52+05:30 aquib N: status: open -> approved
