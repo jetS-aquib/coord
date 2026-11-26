@@ -9,6 +9,9 @@
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
 
+### 2026-11-26T19:30:00+05:30
+www audit + revamp under JET-432 (no new request, per the dev): hero 'cut' (_components/hero-cut.tsx + globals.css), pricing to D-110, FAQ, delete-account copy, current-page nav, badges, noindex placeholder legal pages, canonical, JSON-LD, OG image. www build green, detector down to brand-only findings. Note on JET-432. Placeholders left: domain, App Store link, company name, legal text.
+
 ### 2026-11-26T18:10:00+05:30
 Built JET-459 (correctness: negative bars, minus sign, On/Off, one inclusive date range sent as exclusive to the backend, per-card errors), JET-460 (packages/ui/src/theme-console.css loaded by admin only; signal, states, kpi, page components; quiet badges; request id on errors; loading skeleton) and JET-461 (packages/ui/src/components/charts.tsx + lib/scale.ts + chart-tips.tsx; D-111: no chart library). Overview, Analytics, Billing and Control room use them. Typecheck, admin build, www build, admin and ui tests green; Impeccable detect clean; checked live in Chrome light and dark. Next: JET-462 (table, confirm levels, REAUTH_REQUIRED: the kill switch buttons now hit the C2 route and will get REAUTH_REQUIRED until 462 adds the sign-in-again flow).
 
