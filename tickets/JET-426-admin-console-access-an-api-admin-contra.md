@@ -4,9 +4,9 @@ title: Admin console access: an /api/admin contract and console origins in CORS
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T17:04:17+05:30
-updated: 2026-11-26T12:23:32+05:30
+updated: 2026-11-26T12:37:12+05:30
 decisions: 
 ---
 
@@ -44,3 +44,5 @@ Contract lists every admin route; a request from origin http://localhost:3100 ge
 2026-11-24T17:04:17+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:23:32+05:30 aquib N: status: open -> approved
 2026-11-26T12:37:05+05:30 aquib N: BUILT (uncommitted). For web: contract is .coord/contracts/api-admin.md — every /api/admin route, shapes, error codes, paging. Auth = same as app: Bearer access token + request signature (requireSignature), user.role 'admin'; sign in via existing /api/auth/google or email login + /api/auth/refresh, no admin login route. Non-admin = 403 FORBIDDEN; flags.posthog.admin off = 404. CORS: env ALLOWED_ORIGINS (comma list) replaces defaults; defaults now include http://localhost:3100. Prod console origin must be added to ALLOWED_ORIGINS on deploy. Two paging styles: /users and /renders use limit+skip+total; every other list uses cursor+limit -> {items|entries, nextCursor}. Errors are {error, code}; zod failures 400 VALIDATION_ERROR with details. Code: src/index.ts (CORS), src/routes/admin.ts (header points at D-104). No .env.example exists in this repo, so env vars are documented in the contract and src/config/env.ts instead.
+2026-11-26T12:37:12+05:30 aquib N: status: approved -> in_progress
+2026-11-26T12:37:12+05:30 aquib N: status: in_progress -> review — backend built and tested; see notes and Test steps

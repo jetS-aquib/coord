@@ -4,9 +4,9 @@ title: Admin renders and content: render detail, moderation of videos and podcas
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T17:04:21+05:30
-updated: 2026-11-26T12:36:16+05:30
+updated: 2026-11-26T12:37:12+05:30
 decisions: D-108
 ---
 
@@ -48,3 +48,5 @@ A taken-down video's share link returns 404 and comes back on restore; render de
 2026-11-26T12:23:42+05:30 aquib N: status: open -> approved
 2026-11-26T12:36:16+05:30 aquib N: linked decision D-108 (Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete)
 2026-11-26T12:37:06+05:30 aquib N: BUILT (uncommitted). Takedown = moderation {hidden, reason, by, at} on MusicVideo and Podcast (D-108). The share page /s/:token returns 404 while hidden, owner POST share returns 403 taken_down, the token is kept, and restore brings the same link back. The owner still sees the item in Library. SKIPPED Video: that model is a YouTube metadata cache, not user content. Podcasts have no public page yet, so for them the flag is recorded only. Routes: GET /admin/renders/:jobId -> {render (summary), plan (full doc), cost (renderCostV1|null), calls (GenerationLog by jobId, oldest first), callsCostUsd, project, traceId=jobId}. GET /admin/{music-videos|podcasts}?userId&status&q&hidden&cursor -> {items (shared bool, never the token), nextCursor}; GET /:id (music videos also get renders[50] + feedback[]); POST /:id/takedown {reason} and /:id/restore. GET /admin/feedback?rating&userId&musicVideoId&cursor. Public assets: GET ?status&type&userId&cursor, POST (https url, defaults approved+public), PATCH /:asset_id, DELETE /:asset_id. Elements: GET ?userId&type&q&cursor, GET /:id, PATCH {name,description,dummy_name,type}, DELETE. There is no admin create for elements: they're user-owned. Say if the console needs one.
+2026-11-26T12:37:12+05:30 aquib N: status: approved -> in_progress
+2026-11-26T12:37:12+05:30 aquib N: status: in_progress -> review — backend built and tested; see notes and Test steps

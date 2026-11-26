@@ -4,9 +4,9 @@ title: Admin users: full profile, filters, suspend/ban, admin role, force logout
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T17:04:19+05:30
-updated: 2026-11-26T12:36:16+05:30
+updated: 2026-11-26T12:37:12+05:30
 decisions: D-108
 ---
 
@@ -49,3 +49,5 @@ Suspending a user makes their next app request 403; reactivating restores it; an
 2026-11-26T12:23:39+05:30 aquib N: status: open -> approved
 2026-11-26T12:36:16+05:30 aquib N: linked decision D-108 (Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete)
 2026-11-26T12:37:05+05:30 aquib N: BUILT (uncommitted). Force logout = User.sessionsRevokedAt; requireAuth and refresh reject tokens with iat <= it (D-108). The snonce isn't stored, so rotating it wasn't possible. Routes: GET /admin/users gains status, role, authProvider, createdFrom/To and sort=newest|oldest|email|name (still limit/skip/total). GET /admin/users/:id -> {user (incl statusReason, statusChangedAt, sessionsRevokedAt, devices[]), settings, quota, billing|null (read-only, never creates an account), counts{musicVideos,podcasts,renders{status:n}}, lastLoginAt, lastActivityAt}. POST /:id/status {status, reason}, POST /:id/role {role: admin|creator}, POST /:id/logout, DELETE /:id {confirm: email}. Refusal codes for the console: 409 self_action (any action on yourself), 409 target_is_admin (suspend/ban/delete an admin: demote first), 409 last_admin (defensive, can't really fire), 400 confirm_mismatch. Delete reuses deleteAccountV1, files are removed in the background, and AuditLog gets user.delete with actor admin:<id>. Login and signup now write AuditLog user.login / user.signup, which is where lastLoginAt comes from. Users who signed in before this ships show null until their next login.
+2026-11-26T12:37:12+05:30 aquib N: status: approved -> in_progress
+2026-11-26T12:37:12+05:30 aquib N: status: in_progress -> review — backend built and tested; see notes and Test steps

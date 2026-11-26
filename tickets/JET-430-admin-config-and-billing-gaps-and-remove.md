@@ -4,9 +4,9 @@ title: Admin config and billing gaps, and remove the two no-auth seed endpoints
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T17:04:22+05:30
-updated: 2026-11-26T12:23:46+05:30
+updated: 2026-11-26T12:37:13+05:30
 decisions: 
 ---
 
@@ -46,3 +46,5 @@ Both seed URLs return 404 without auth; a bundle's versions list with the live o
 2026-11-24T17:04:22+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:23:46+05:30 aquib N: status: open -> approved
 2026-11-26T12:37:06+05:30 aquib N: BUILT (uncommitted). GET /admin/config/:bundle -> {bundle, live|null, source posthog|env|latest, versions[{version,schemaVersion,minAppVersion,publishedBy,createdAt,live}]}. GET /admin/config/:bundle/:version -> full payload + publishedBy. POST /admin/config/:bundle/:version/activate rewrites the ui-config flag payload (bundles[bundle]=version, others kept) through the JET-427 client; it needs the PostHog personal key (503 otherwise) and 404 flag_not_found if ui-config doesn't exist yet. It writes AuditLog admin.config.activate with before/after. Takes effect within ~60s (the server flag poll is 30s, the app's own poll may be longer). GET /admin/billing/ledger?userId&kind&from&to&cursor&limit -> {entries, nextCursor}, across all users. Deleted both no-auth seed routes; scripts/seed-*.ts stay. Those URLs now fall through to the /admin guard, so they answer 401 without auth rather than 404. Nothing runs either way.
+2026-11-26T12:37:12+05:30 aquib N: status: approved -> in_progress
+2026-11-26T12:37:13+05:30 aquib N: status: in_progress -> review — backend built and tested; see notes and Test steps

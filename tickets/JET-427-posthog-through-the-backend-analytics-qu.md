@@ -4,9 +4,9 @@ title: PostHog through the backend: analytics queries, a user's event timeline, 
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-24T17:04:18+05:30
-updated: 2026-11-26T12:23:35+05:30
+updated: 2026-11-26T12:37:12+05:30
 decisions: 
 ---
 
@@ -49,3 +49,5 @@ Each named query returns rows for a staging project; a user's events come back n
 2026-11-24T17:05:23+05:30 aquib N: Decision: D-104 (console reaches PostHog only through the backend). Unlocks JET-434, JET-435 Activity tab, JET-439.
 2026-11-26T12:23:35+05:30 aquib N: status: open -> approved
 2026-11-26T12:37:05+05:30 aquib N: BUILT (uncommitted). New src/shared/posthogApi.ts (fetch wrapper, 60s in-memory cache). Env: POSTHOG_PERSONAL_API_KEY (phx_, scopes query:read + feature_flag:write), POSTHOG_PROJECT_ID, optional POSTHOG_API_HOST (default derived: eu.i.posthog.com -> eu.posthog.com). Missing -> every route 503 posthog_not_configured, so the console should show a 'PostHog not connected' state on 503. Routes: POST /admin/analytics/query {name, from, to} -> {name, columns[], rows[][], cached}; names + columns are tabled in the contract (dau/wau/mau: period,users; signups: day,signups; signup_to_first_render: signed_up,rendered; retention_weekly: cohort,week,users; renders_per_day: day,status,renders; render_failures: reason,renders; ai_spend_per_day: day,model,cost_usd,calls). Rows are positional arrays, so map them by columns. POST {hogql} = raw SELECT, wrapped to 1000 rows, 400 posthog_bad_query on error. GET /admin/users/:id/events?cursor -> {events:[{id,event,timestamp,properties}], nextCursor = last timestamp}. GET /admin/posthog/flags -> flags[{id,key,name,active,rolloutPercentage|null,conditions,multivariate,payload,updatedAt}]; PATCH /admin/posthog/flags/:key {active?,rolloutPercentage?,payload?}, 409 flag_too_complex when >1 condition (rollout) or multivariate (payload), so the console should disable those controls when rolloutPercentage is null or multivariate is true. Every flag change writes AuditLog action admin.posthog.flag with before/after. Server events already cover every named query (user_signed_up, render_*, $ai_generation with cost), so no new captures were needed. NOT verified against live PostHog: no personal key on this machine, so the HogQL is checked by tests for shape only. Run Test steps 2-3 on staging.
+2026-11-26T12:37:12+05:30 aquib N: status: approved -> in_progress
+2026-11-26T12:37:12+05:30 aquib N: status: in_progress -> review — backend built and tested; see notes and Test steps
