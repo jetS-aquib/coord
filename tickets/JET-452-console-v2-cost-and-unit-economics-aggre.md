@@ -42,7 +42,7 @@ Totals reconcile with /billing/reports within $0.01; per-render cost for a jobId
 
 ## Test steps
 
-—
+1. `GET /api/admin/billing/costs?groupBy=day&from=<d>&to=<d>`: total.costUsd equals the sum of costUsd in `/billing/reports` byDayModel for the same range (within $0.01). 2. `?groupBy=provider`, `feature`, `user` (rows have userEmail), `plan` all answer. 3. `GET /api/admin/billing/unit-costs`: cost per completed render, per render-second, per active user, waste by reason, estimate accuracy. 4. `GET /api/admin/billing/liability`: credits equals `db.creditaccountv1s.aggregate([{$group:{_id:null,s:{$sum:'$balance'}}}])`.
 
 ## Thread
 2026-11-26T15:07:29+05:30 aquib N: created ticket, status: - -> open

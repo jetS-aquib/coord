@@ -42,7 +42,7 @@ Feasibility notes per item with effort; export implemented if approved.
 
 ## Test steps
 
-—
+1. `POST /api/admin/users/<test user>/export`: a JSON download with profile, settings, credits.ledger, videos, renders. 2. As support it works; as viewer it is 403. 3. `GET /api/admin/audit?action=user.export` shows it. 4. Read the feasibility notes in this thread for view-as, announcements and push broadcast, and decide which (if any) to build.
 
 ## Thread
 2026-11-26T15:07:35+05:30 aquib N: created ticket, status: - -> open

@@ -42,7 +42,7 @@ Search finds a user by partial email, a render by full jobId, a video by title w
 
 ## Test steps
 
-—
+1. `GET /api/admin/search?q=<part of an email>` returns that user; `?q=<full jobId>` returns the render first; `?q=<a word of a video title>` returns the video. 2. `GET /api/admin/meta`: render statuses, stages, ledger types, audit actions, bundles, kill switches, plans and JSON schemas are all there. 3. `GET /api/admin/users?limit=2` then `?limit=2&cursor=<nextCursor>`: next two users, no repeats. 4. `GET /api/admin/renders` and `/billing/ledger`: every row has userEmail.
 
 ## Thread
 2026-11-26T15:07:26+05:30 aquib N: created ticket, status: - -> open

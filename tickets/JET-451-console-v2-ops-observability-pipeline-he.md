@@ -42,7 +42,7 @@ Pipeline endpoint lists a deliberately stalled test render as stuck; provider hi
 
 ## Test steps
 
-—
+1. `GET /api/admin/ops/pipeline`: inFlight by status/stage and last24h numbers. 2. Stall a test render: in Mongo set a running render's `leaseUntil` and `updatedAt` 20 minutes back; it shows under `stuck` with `restart`; `POST /api/admin/renders/<jobId>/restart` picks it up. 3. `GET /api/admin/ops/providers`: circuits plus hourly calls/error rate per provider. 4. Use the app for a few minutes, then `GET /api/admin/ops/api`: request counts per route group that match the server log. 5. `GET /api/admin/ops/loops` and `/ops/alerts` answer.
 
 ## Thread
 2026-11-26T15:07:28+05:30 aquib N: created ticket, status: - -> open

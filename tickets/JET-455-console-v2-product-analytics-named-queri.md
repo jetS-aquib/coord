@@ -42,7 +42,7 @@ Each named query returns 200 against the live PostHog project (no repeat of the 
 
 ## Test steps
 
-—
+1. `POST /api/admin/analytics/query {name:'activation_funnel',from,to}`: four rows, one per step. 2. Same with `segment:'plan'`: a segment column, `default` for users on the default plan. 3. `retention_weekly` with `segment:'plan'` splits retention by plan. 4. Every name in `/api/admin/meta` namedQueries answers 200 over the last 30 days (each was run against the live project on 2026-11-26). 5. Approve a plan in the app: a `plan_approved` event appears in PostHog for that user.
 
 ## Thread
 2026-11-26T15:07:33+05:30 aquib N: created ticket, status: - -> open

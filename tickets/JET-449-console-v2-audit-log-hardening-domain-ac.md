@@ -42,7 +42,7 @@ No admin.GET rows unless kind=read requested; user delete leaves no plaintext em
 
 ## Test steps
 
-—
+1. Open a few console list pages, then `GET /api/admin/audit`: no admin.GET rows, only writes. 2. Suspend a test user and open their profile: `GET /api/admin/audit` shows `user.status` with before/after and actorEmail; `?kind=read` shows `user.view`. 3. Try `DELETE /api/admin/users/<id> {confirm:'wrong@x.com'}`: the audit row's payload.body.confirm starts with `sha256:` and no plaintext email is anywhere in it. 4. As a non-owner, audit rows have no ip/userAgent. 5. After the post-deploy collMod, `db.auditlogs.getIndexes()` shows timestamp_1 with expireAfterSeconds 34560000.
 
 ## Thread
 2026-11-26T15:07:25+05:30 aquib N: created ticket, status: - -> open

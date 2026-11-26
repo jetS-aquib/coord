@@ -42,7 +42,7 @@ Create, target, archive work against PostHog; audit has before/after; kill switc
 
 ## Test steps
 
-—
+1. `POST /api/admin/posthog/flags {key:'test-flag-console',description:'test'}`: created off at 0%. 2. `PATCH /api/admin/posthog/flags/test-flag-console {active:true, allowEmails:['<your email>']}`: in PostHog the flag has a distinct_id condition with your user id (no email); within ~30s the server evaluates it true for you. 3. `GET /api/admin/audit?action=flag.` shows create and update with before/after. 4. `PATCH /api/admin/posthog/flags/renders-enabled {active:false}` is 409 use_killswitch_route; `POST /api/admin/killswitches/renders-enabled {on:false}` needs a recent sign-in. 5. `DELETE /api/admin/posthog/flags/test-flag-console` archives it.
 
 ## Thread
 2026-11-26T15:07:34+05:30 aquib N: created ticket, status: - -> open

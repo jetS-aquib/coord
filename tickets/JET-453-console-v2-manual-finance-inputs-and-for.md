@@ -42,7 +42,7 @@ Runway = cash / trailing-3-month avg net burn (unit-tested); projection reproduc
 
 ## Test steps
 
-—
+1. `POST /api/admin/finance/inputs/draft {payload:{lines:[{month:'2026-10',category:'gcs',kind:'variable',amountUsd:42}],cash:[{month:'2026-10',amountUsd:10000}]}}` then publish that version. 2. `GET /api/admin/finance/burn?from=2026-10&to=2026-10`: October cost includes the 42 for gcs plus measured AI cost; aiProviders shows measured per provider. 3. Add a line `ai-provider:google` for October and publish: burn uses the invoice, varianceUsd = invoice − measured. 4. `GET /api/admin/finance/runway` answers cash / average burn. 5. Draft and publish a scenario, then `GET /api/admin/finance/scenarios/<id>/projection`: the same numbers every time; as ops the finance routes are 403.
 
 ## Thread
 2026-11-26T15:07:30+05:30 aquib N: created ticket, status: - -> open

@@ -42,7 +42,7 @@ Contract updated; allowedActions present and matches what the action endpoints a
 
 ## Test steps
 
-—
+1. Any admin error (for example `GET /api/admin/users/nope`) is `{status:'error', code:'not_found', message}`. 2. `GET /api/admin/renders/<completed jobId>`: render.allowedActions is []; for a paused render it is ['cancel','resume']. 3. Open a user who has never opened the app: `GET /api/admin/users/<id>` billing.balance equals `GET /api/admin/billing/users/<id>` account.balance. 4. The contract (.coord/contracts/api-admin.md) says save draft / make live.
 
 ## Thread
 2026-11-26T15:07:37+05:30 aquib N: created ticket, status: - -> open
