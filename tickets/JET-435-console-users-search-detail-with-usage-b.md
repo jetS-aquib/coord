@@ -44,3 +44,4 @@ Suspend a test user -> their app session stops working; reactivate -> it works; 
 ## Thread
 2026-11-24T17:05:06+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:39:01+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:01+05:30 aquib N: BUILT (uncommitted). /users table with search, status/role/provider/date filters, sort, paging. /users/[id] tabs Profile, Usage & quota (set/clear override), Billing & ledger (shared account panel), Renders, Activity (PostHog events, cursor), Audit (target=user). Actions: suspend/ban/reactivate with reason, make/remove admin, force logout, delete (type the email). TEST: suspend a test user -> app stops working; reactivate -> works; both in Audit tab.
