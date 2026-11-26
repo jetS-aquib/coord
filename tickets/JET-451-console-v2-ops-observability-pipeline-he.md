@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: review
 created: 2026-11-26T15:07:28+05:30
-updated: 2026-11-26T15:38:11+05:30
-decisions: D-109
+updated: 2026-11-26T15:42:45+05:30
+decisions: D-109, D-110
 ---
 
 ## Request
@@ -51,3 +51,4 @@ Pipeline endpoint lists a deliberately stalled test render as stuck; provider hi
 2026-11-26T15:38:09+05:30 aquib N: BUILT (all five). Contract section 'Ops'; D-109. Store chosen: a Mongo per-minute rollup (ApiMetricMinuteV1, one row per minute per route group per instance, TTL 30d) written by the request logger. That works wherever we are deployed; if prod is on GCP, Cloud Monitoring can replace /ops/api later. Provider history needs no new store: it comes from GenerationLog (calls, failures, p50/p95 per hour). Stuck = worker status, no live lease, no write for N min (default 10, ?stuckMinutes=). Nothing picked those up before a restart, so there is a new POST /renders/:jobId/restart (allowedActions includes 'restart'), safe because it claims the lease first. Loops are per process (ponytail). p50/p95 on /ops/api are histogram bucket edges, so counts and 5xx match the logs exactly but latency is approximate.
 2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
 2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps
+2026-11-26T15:42:45+05:30 aquib N: linked decision D-110 (Go-to-market business defaults for the console: money, finance inputs, roles, retention, metric definitions, view-as, monitoring)

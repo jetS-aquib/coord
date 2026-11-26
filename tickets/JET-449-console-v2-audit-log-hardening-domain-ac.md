@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: review
 created: 2026-11-26T15:07:25+05:30
-updated: 2026-11-26T15:38:11+05:30
-decisions: D-109
+updated: 2026-11-26T15:42:45+05:30
+decisions: D-109, D-110
 ---
 
 ## Request
@@ -51,3 +51,4 @@ No admin.GET rows unless kind=read requested; user delete leaves no plaintext em
 2026-11-26T15:38:09+05:30 aquib N: BUILT. Contract section 'Audit log'; D-109. Writes get domain names (user.status, billing.grant, …) with before/after; reads are logged only for personal-data views (kind 'read'); sign-ins are kind 'auth'. GET /audit defaults to kind=write, ?kind=read|auth|all, and every row has actorEmail and targetLabel (ip/userAgent for owners only). Redaction happens before writing: secrets become [redacted], emails become sha256:<16 hex>. Retention is 400 days via a TTL index; a deleted user's rows lose ip/userAgent and old plaintext confirm emails. Defaults chosen: 400 days, anonymise rather than purge, no sampled page-view reads. POST /audit/export {what, filters?, rows?}: call it on every CSV export. Old rows keep admin.<METHOD> <route> names; kind=all shows them. admin.login is not a separate action (user.login rows by an admin's id are it); user.login_failed is new. POST-DEPLOY: one collMod per environment (see the handoff note) or the TTL won't apply.
 2026-11-26T15:38:10+05:30 aquib N: status: approved -> in_progress
 2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps
+2026-11-26T15:42:45+05:30 aquib N: linked decision D-110 (Go-to-market business defaults for the console: money, finance inputs, roles, retention, metric definitions, view-as, monitoring)

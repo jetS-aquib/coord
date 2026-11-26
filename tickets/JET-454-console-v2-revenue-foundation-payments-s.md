@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: review
 created: 2026-11-26T15:07:31+05:30
-updated: 2026-11-26T15:38:11+05:30
-decisions: D-109
+updated: 2026-11-26T15:42:45+05:30
+decisions: D-109, D-110
 ---
 
 ## Request
@@ -51,3 +51,4 @@ A written feasibility answer: chosen model, provider(s), data model, revenue rec
 2026-11-26T15:38:09+05:30 aquib N: FEASIBILITY ANSWER (nothing built). Model: start with credit packs. Credits, the ledger 'purchase' type and ref.paymentId already exist, and a pack is one ledger entry. Subscriptions later as plans with a refill, which plans already support. Providers: in the app it must be store billing (Apple/Google require in-app purchase for credits used in the app), via RevenueCat to get one webhook for both stores; on the web, Razorpay. Data: Payment {provider, providerPaymentId (unique), userId, productId, credits, gross/fee/tax/net in minor units, currency, status, refundedAt}; Subscription later; RevenueFact {paymentId, month, recognised, kind purchase|consumption|breakage}. Webhooks: RevenueCat (shared-secret header) and Razorpay (HMAC), idempotent on the provider payment id, each posting a 'purchase' ledger entry. A refund is a negative entry; if the balance goes below 0 the account is frozen. Recognition: prepaid credits are a contract liability, recognised as they are used, with breakage recognised in proportion to use when expiry is predictable (Ind AS 115 / IFRS 15). /billing/liability already measures the liability and breakage. Confirm with the accountant. Effort: backend 5–7 days (models, two webhooks, /admin/revenue/{summary,payments,refunds}, tests); mobile purchase flow about 5 days; web checkout about 3 days. Blocked on: packs vs subscriptions, prices and currencies (INR and USD?), store commission (15% small-business programme), accountant's rule.
 2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
 2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps
+2026-11-26T15:42:45+05:30 aquib N: linked decision D-110 (Go-to-market business defaults for the console: money, finance inputs, roles, retention, metric definitions, view-as, monitoring)

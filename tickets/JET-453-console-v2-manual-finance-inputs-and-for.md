@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: review
 created: 2026-11-26T15:07:30+05:30
-updated: 2026-11-26T15:38:11+05:30
-decisions: D-109
+updated: 2026-11-26T15:42:45+05:30
+decisions: D-109, D-110
 ---
 
 ## Request
@@ -51,3 +51,4 @@ Runway = cash / trailing-3-month avg net burn (unit-tested); projection reproduc
 2026-11-26T15:38:09+05:30 aquib N: BUILT. Contract section 'Finance'; D-109. Reuses the BillingConfigV1 versioned store (new kinds financeInputs and scenarios), so it gets draft / make live / rollback and history for free; billing never loads them. USD is the currency of record, and fx per month is stored for INR bills. Endpoints: /finance/burn, /finance/runway, /finance/scenarios/:id/projection (with actuals). Runway and projection are pure functions with unit tests. Open: who enters the numbers and how often (show inputsPublishedAt prominently); accounting export integrations not built.
 2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
 2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps
+2026-11-26T15:42:45+05:30 aquib N: linked decision D-110 (Go-to-market business defaults for the console: money, finance inputs, roles, retention, metric definitions, view-as, monitoring)

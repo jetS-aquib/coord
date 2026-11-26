@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: review
 created: 2026-11-26T15:07:24+05:30
-updated: 2026-11-26T15:38:10+05:30
-decisions: D-109
+updated: 2026-11-26T15:42:45+05:30
+decisions: D-109, D-110
 ---
 
 ## Request
@@ -51,3 +51,4 @@ Each admin route declares a permission; a test asserts every /api/admin route ha
 2026-11-26T15:38:08+05:30 aquib N: BUILT (backend). For the web session: contract .coord/contracts/api-admin.md, sections 'Access' and 'Me, search, meta'; decision D-109. Roles are owner|ops|support|finance|viewer; existing role 'admin' = owner, no migration. GET /api/admin/me gives {role, permissions[], recentAuth, grantLimit}; filter the nav and buttons from permissions[] (GET /meta has rolePermissions). A refusal is 403 {code:'PERMISSION_DENIED', details:{permission}}. A C2 route without a sign-in in the last 10 min is 401 {code:'REAUTH_REQUIRED'}: send the admin through sign-in again, then retry. C2 = delete user, role change, zero balance, billing make live / rollback, kill switch off. Support's grant cap is 500 credits (adminAccess.ts SUPPORT_GRANT_LIMIT_V1). The permission table is in src/routes/adminAccess.ts, and adminAccess.test.ts fails if a route has none. MFA FEASIBILITY (not built): Firebase MFA would only cover Google/Firebase sign-in, not our email/password login, so recommend TOTP in the backend for every admin regardless of how they sign in. Flow: enrol (secret + otpauth URL), verify a code, then a token claim that C2 routes also check; an owner can reset someone's MFA (admin.mfa_reset). That needs one new dependency (otplib, needs a decision record) and a recovery policy. About 1–1.5 days backend plus console screens. Say go if wanted.
 2026-11-26T15:38:10+05:30 aquib N: status: approved -> in_progress
 2026-11-26T15:38:10+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps
+2026-11-26T15:42:45+05:30 aquib N: linked decision D-110 (Go-to-market business defaults for the console: money, finance inputs, roles, retention, metric definitions, view-as, monitoring)
