@@ -44,3 +44,4 @@ Taking a video down from the console breaks its share link; restoring brings it 
 ## Thread
 2026-11-24T17:05:09+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:39:08+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:02+05:30 aquib N: BUILT (uncommitted). /content Music videos + Podcasts (search, user, status, visibility filters, takedown with reason / restore), detail with player, renders and feedback; /content/feedback; /content/assets (filters, approve/reject/delete, create from JSON with an https URL); /content/elements (edit via JSON, delete). No file upload: the backend takes a hosted URL only. TEST: take down a shared video -> share link 404; restore -> back.
