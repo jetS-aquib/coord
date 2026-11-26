@@ -44,3 +44,4 @@ Every action taken in the other console modules appears here with the right acto
 ## Thread
 2026-11-24T17:05:13+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:39:19+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:02+05:30 aquib N: BUILT (uncommitted). /audit with actor, action prefix (with suggestions), target, date filters and cursor paging; /audit/[id] detail with payload JSON; CSV of the current page. The same AuditTable is embedded in user detail (target=user) and render detail (target=jobId). TEST: do an action elsewhere, it appears here with your admin:<id> and the right target.
