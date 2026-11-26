@@ -4,9 +4,9 @@ title: Admin users: full profile, filters, suspend/ban, admin role, force logout
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:04:19+05:30
-updated: 2026-11-24T17:04:19+05:30
+updated: 2026-11-26T12:23:39+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Suspending a user makes their next app request 403; reactivating restores it; an
 
 ## Thread
 2026-11-24T17:04:19+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:23:39+05:30 aquib N: status: open -> approved

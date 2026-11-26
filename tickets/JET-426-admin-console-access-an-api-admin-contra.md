@@ -4,9 +4,9 @@ title: Admin console access: an /api/admin contract and console origins in CORS
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:04:17+05:30
-updated: 2026-11-24T17:04:17+05:30
+updated: 2026-11-26T12:23:32+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ Contract lists every admin route; a request from origin http://localhost:3100 ge
 
 ## Thread
 2026-11-24T17:04:17+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:23:32+05:30 aquib N: status: open -> approved

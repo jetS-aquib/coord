@@ -4,9 +4,9 @@ title: Admin audit log API over AuditLog
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:04:23+05:30
-updated: 2026-11-24T17:04:23+05:30
+updated: 2026-11-26T12:23:49+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Filtering by target=<userId> returns that user's admin actions newest first; pag
 
 ## Thread
 2026-11-24T17:04:23+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:23:49+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Admin config and billing gaps, and remove the two no-auth seed endpoints
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:04:22+05:30
-updated: 2026-11-24T17:04:22+05:30
+updated: 2026-11-26T12:23:46+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Both seed URLs return 404 without auth; a bundle's versions list with the live o
 
 ## Thread
 2026-11-24T17:04:22+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:23:46+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Admin renders and content: render detail, moderation of videos and podcas
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:04:21+05:30
-updated: 2026-11-24T17:04:21+05:30
+updated: 2026-11-26T12:23:42+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ A taken-down video's share link returns 404 and comes back on restore; render de
 
 ## Thread
 2026-11-24T17:04:21+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:23:42+05:30 aquib N: status: open -> approved

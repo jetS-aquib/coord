@@ -4,9 +4,9 @@ title: PostHog through the backend: analytics queries, a user's event timeline, 
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:04:18+05:30
-updated: 2026-11-24T17:04:18+05:30
+updated: 2026-11-26T12:23:35+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ Each named query returns rows for a staging project; a user's events come back n
 ## Thread
 2026-11-24T17:04:18+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T17:05:23+05:30 aquib N: Decision: D-104 (console reaches PostHog only through the backend). Unlocks JET-434, JET-435 Activity tab, JET-439.
+2026-11-26T12:23:35+05:30 aquib N: status: open -> approved
