@@ -44,3 +44,4 @@ pnpm --filter www build produces out/ with every page; /delete-account is reacha
 ## Thread
 2026-11-24T17:05:02+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:38:52+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:01+05:30 aquib N: BUILT (uncommitted). apps/www static export: / (hero, how it works, features, showcase placeholder, download), /pricing, /faq, /support, /privacy, /terms (legal placeholder), /delete-account (matches backend deleteAccount.ts), sitemap, robots, icon.svg, OG image, OS dark mode. Placeholders all in apps/www/app/_components/site.ts (domain, App Store link, company name) + pricing plans + legal text, marked TODO(JET-432). Support email support@jetsynthesys.com and Play id com.jetsynthesys.jetkreatemusic taken from the app. Lighthouse pass not run yet. TEST: pnpm --filter www build -> out/ has every page; pnpm dev:www at 360px no sideways scroll; footer -> /delete-account.
