@@ -1,13 +1,16 @@
 # music-jetkreate-web — aquib N
 
-- **Current task:** Console v2 frontend split into JET-459..472 (web -> web), waiting for approval. Backend JET-448..458 done; answers in D-109 and D-110. JET-432..440 still uncommitted.
+- **Current task:** JET-459, 460, 461 built (uncommitted), notes and test steps posted on each; D-111 recorded. Next: JET-462, then 463.
 - **Status:** waiting on human
-- **Blockers:** JET-459..472 need approval before implementation.
-- **Last updated:** 2026-11-26T16:30:00+05:30
+- **Blockers:** Test steps need putting on JET-459..461 (no coord command for it) before review; commit go-ahead.
+- **Last updated:** 2026-11-26T18:10:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-26T18:10:00+05:30
+Built JET-459 (correctness: negative bars, minus sign, On/Off, one inclusive date range sent as exclusive to the backend, per-card errors), JET-460 (packages/ui/src/theme-console.css loaded by admin only; signal, states, kpi, page components; quiet badges; request id on errors; loading skeleton) and JET-461 (packages/ui/src/components/charts.tsx + lib/scale.ts + chart-tips.tsx; D-111: no chart library). Overview, Analytics, Billing and Control room use them. Typecheck, admin build, www build, admin and ui tests green; Impeccable detect clean; checked live in Chrome light and dark. Next: JET-462 (table, confirm levels, REAUTH_REQUIRED: the kill switch buttons now hit the C2 route and will get REAUTH_REQUIRED until 462 adds the sign-in-again flow).
 
 ### 2026-11-26T16:30:00+05:30
 Filed console v2 web requests JET-459..472 from the final contract (.coord/contracts/api-admin.md) and D-109/D-110; table and order in planning/ui-ux-audit/08. Start with JET-459 (correctness fixes, no new backend), then JET-460 -> 461/462 -> 463, then pages. JET-461 needs a chart-library decision record. Nothing implemented.

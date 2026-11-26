@@ -8,10 +8,13 @@ by: aquib N
 aquib N changed music-jetkreate-backend, music-jetkreate-web and video-processing-backend in the same sitting.
 
 **music-jetkreate-backend** — src/services/render/subShotV1.ts
-**music-jetkreate-web** — packages/ui/src/lib/scale.ts, packages/ui/src/lib/scale.test.ts, packages/ui/src/components/chart-tips.tsx, packages/ui/src/components/charts.tsx, apps/admin/components/chart.tsx
-**video-processing-backend** — script_check.py, app/processors/lyrics/gemini_transcriber.py
+**music-jetkreate-web** — packages/ui/src/lib/scale.ts, packages/ui/src/lib/scale.test.ts, packages/ui/src/components/chart-tips.tsx, packages/ui/src/components/charts.tsx, apps/admin/components/chart.tsx, aquib-n.md
+**video-processing-backend** — app/processors/lyrics/gemini_transcriber.py, script_check.py
 
 _Written automatically from the activity log._
+
+Why they moved together is not recorded here. If you know, write it under this line —
+that sentence is the whole point, and the rest is only there so you recognise the change.
 
 Why they moved together is not recorded here. If you know, write it under this line —
 that sentence is the whole point, and the rest is only there so you recognise the change.
