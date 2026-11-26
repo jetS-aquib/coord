@@ -43,3 +43,4 @@ A stuck render can be found and force-stitched from the console, and the action 
 ## Thread
 2026-11-24T17:05:08+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:39:04+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:01+05:30 aquib N: BUILT (uncommitted). /renders status tabs + user filter, auto-refresh 15s while any is running. /renders/[jobId]: stages strip, summary with user/project links, itemised cost, shots grid (clip or still), AI calls table, flag snapshot, timings, full plan JSON, audit (target=jobId). Cancel/Resume/Force stitch behind confirms. Optional env POSTHOG_APP_URL turns the trace id into a link. TEST: force-stitch a stuck render; it shows in the page's audit section.
