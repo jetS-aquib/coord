@@ -6,8 +6,8 @@ to: music-jetkreate-web
 filed_by: aquib N
 status: approved
 created: 2026-11-26T15:48:49+05:30
-updated: 2026-11-26T15:51:00+05:30
-decisions: 
+updated: 2026-11-26T17:32:22+05:30
+decisions: D-111
 ---
 
 ## Request
@@ -45,3 +45,4 @@ Negative values render below zero; a 30-day range with 3 data points shows 30 sl
 ## Thread
 2026-11-26T15:48:49+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T15:51:00+05:30 aquib N: status: open -> approved
+2026-11-26T17:32:22+05:30 aquib N: linked decision D-111 (Console charts: hand-written SVG server components in packages/ui, no chart library)

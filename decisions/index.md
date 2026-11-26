@@ -112,3 +112,4 @@
 | D-108 | Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete | 2026-11-26 | active | music-jetkreate-backend music-jetkreate-web | JET-428 JET-429 |
 | D-109 | Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them | 2026-11-26 | active | music-jetkreate-backend music-jetkreate-web | JET-448 JET-449 JET-450 JET-451 JET-452 JET-453 JET-454 JET-455 JET-456 JET-457 JET-458 |
 | D-110 | Go-to-market business defaults for the console: money, finance inputs, roles, retention, metric definitions, view-as, monitoring | 2026-11-26 | active | music-jetkreate-backend music-jetkreate-web music-jetkreate-mobile | JET-448 JET-449 JET-451 JET-452 JET-453 JET-454 JET-455 JET-457 |
+| D-111 | Console charts: hand-written SVG server components in packages/ui, no chart library | 2026-11-26 | active | music-jetkreate-web | JET-461 |
