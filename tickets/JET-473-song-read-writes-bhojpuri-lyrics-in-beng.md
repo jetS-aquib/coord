@@ -4,9 +4,9 @@ title: Song read writes Bhojpuri lyrics in Bengali script; Hindi-belt languages 
 from: music-jetkreate-backend
 to: video-processing-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T17:12:18+05:30
-updated: 2026-11-26T17:12:18+05:30
+updated: 2026-11-26T17:20:12+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ Song read of a Bhojpuri track returns lines[].text in Devanagari, lines[].roman 
 
 ## Thread
 2026-11-26T17:12:18+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T17:20:12+05:30 aquib N: status: open -> approved
