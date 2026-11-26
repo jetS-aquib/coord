@@ -4,9 +4,9 @@ title: Console content: music videos, videos, podcasts, feedback, public assets 
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:09+05:30
-updated: 2026-11-24T17:05:09+05:30
+updated: 2026-11-26T12:39:08+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Taking a video down from the console breaks its share link; restoring brings it 
 
 ## Thread
 2026-11-24T17:05:09+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:39:08+05:30 aquib N: status: open -> approved

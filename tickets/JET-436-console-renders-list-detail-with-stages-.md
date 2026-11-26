@@ -4,9 +4,9 @@ title: Console renders: list, detail with stages, shots and cost, and cancel/res
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:08+05:30
-updated: 2026-11-24T17:05:08+05:30
+updated: 2026-11-26T12:39:04+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ A stuck render can be found and force-stitched from the console, and the action 
 
 ## Thread
 2026-11-24T17:05:08+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:39:04+05:30 aquib N: status: open -> approved

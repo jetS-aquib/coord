@@ -4,9 +4,9 @@ title: Console users: search, detail with usage, billing, renders, PostHog timel
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:06+05:30
-updated: 2026-11-24T17:05:06+05:30
+updated: 2026-11-26T12:39:01+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Suspend a test user -> their app session stops working; reactivate -> it works; 
 
 ## Thread
 2026-11-24T17:05:06+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:39:01+05:30 aquib N: status: open -> approved

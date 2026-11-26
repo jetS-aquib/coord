@@ -4,9 +4,9 @@ title: Public site: home, features, download, pricing, FAQ, support, privacy, te
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:02+05:30
-updated: 2026-11-24T17:05:02+05:30
+updated: 2026-11-26T12:38:52+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ pnpm --filter www build produces out/ with every page; /delete-account is reacha
 
 ## Thread
 2026-11-24T17:05:02+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:38:52+05:30 aquib N: status: open -> approved

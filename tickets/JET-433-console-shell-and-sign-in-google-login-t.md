@@ -4,9 +4,9 @@ title: Console shell and sign-in: Google login through the backend, signed serve
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:04+05:30
-updated: 2026-11-24T17:05:04+05:30
+updated: 2026-11-26T12:38:55+05:30
 decisions: 
 ---
 
@@ -47,3 +47,4 @@ An admin signs in and reaches Overview; a creator account sees 'not an admin'; t
 ## Thread
 2026-11-24T17:05:04+05:30 aquib N: created ticket, status: - -> open
 2026-11-24T17:05:23+05:30 aquib N: Order: JET-426 first. Everything else in the console (JET-434..440) builds on this shell. Onboarding: D-103.
+2026-11-26T12:38:55+05:30 aquib N: status: open -> approved

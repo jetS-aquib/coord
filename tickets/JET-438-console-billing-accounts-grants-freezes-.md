@@ -4,9 +4,9 @@ title: Console billing: accounts, grants, freezes, ledgers, cost vs credits repo
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:11+05:30
-updated: 2026-11-24T17:05:11+05:30
+updated: 2026-11-26T12:39:12+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Granting credits to a test user changes their balance in the app; a published ra
 
 ## Thread
 2026-11-24T17:05:11+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:39:12+05:30 aquib N: status: open -> approved

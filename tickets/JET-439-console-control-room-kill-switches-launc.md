@@ -4,9 +4,9 @@ title: Console control room: kill switches, launch limits, spend breaker, featur
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:12+05:30
-updated: 2026-11-24T17:05:12+05:30
+updated: 2026-11-26T12:39:15+05:30
 decisions: 
 ---
 
@@ -42,3 +42,4 @@ Turning renders-enabled off from the console makes the app refuse new renders wi
 
 ## Thread
 2026-11-24T17:05:12+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:39:15+05:30 aquib N: status: open -> approved

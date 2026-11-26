@@ -4,9 +4,9 @@ title: Console overview and analytics: KPIs, charts, funnel, retention, HogQL bo
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-24T17:05:05+05:30
-updated: 2026-11-24T17:05:05+05:30
+updated: 2026-11-26T12:38:58+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Numbers match the same insight in PostHog for the same range; a bad HogQL query 
 
 ## Thread
 2026-11-24T17:05:05+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T12:38:58+05:30 aquib N: status: open -> approved
