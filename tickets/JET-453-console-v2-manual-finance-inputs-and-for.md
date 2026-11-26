@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-26T15:07:30+05:30
-updated: 2026-11-26T15:12:06+05:30
-decisions: 
+updated: 2026-11-26T15:35:33+05:30
+decisions: D-109
 ---
 
 ## Request
@@ -47,3 +47,4 @@ Runway = cash / trailing-3-month avg net burn (unit-tested); projection reproduc
 ## Thread
 2026-11-26T15:07:30+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T15:12:06+05:30 aquib N: status: open -> approved
+2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)

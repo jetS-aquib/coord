@@ -110,3 +110,4 @@
 | D-106 | Vocal stem stays; Demucs runs in-process on every vCPU, preloaded at startup | 2026-11-25 | active | video-processing-backend | JET-443 |
 | D-107 | Song reads stop cooperatively on cancel; the caller decides when nobody wants a song | 2026-11-25 | active | video-processing-backend music-jetkreate-backend music-jetkreate-mobile | JET-445 |
 | D-108 | Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete | 2026-11-26 | active | music-jetkreate-backend music-jetkreate-web | JET-428 JET-429 |
+| D-109 | Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them | 2026-11-26 | active | music-jetkreate-backend music-jetkreate-web | JET-448 JET-449 JET-450 JET-451 JET-452 JET-453 JET-454 JET-455 JET-456 JET-457 JET-458 |
