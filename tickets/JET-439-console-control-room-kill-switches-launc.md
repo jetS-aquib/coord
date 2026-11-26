@@ -43,3 +43,4 @@ Turning renders-enabled off from the console makes the app refuse new renders wi
 ## Thread
 2026-11-24T17:05:12+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:39:15+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:02+05:30 aquib N: BUILT (uncommitted). /control: kill switch cards (renders-enabled, new-signups-enabled, catalogue-enabled, tier-best-enabled via PATCH /posthog/flags/:key active; turning off needs the key typed), spend today vs dailySpendUsd breaker bar, launch-limits payload editor, render flags, feature flags table (toggle, rollout %, payload; complex/multivariate say edit in PostHog). /control/config/[bundle]: versions, live vs selected, publish version, make live / roll back. No backend change needed. TEST: renders-enabled off -> app refuses renders within ~30s; on -> restored.
