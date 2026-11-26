@@ -39,7 +39,7 @@ Filtering by target=<userId> returns that user's admin actions newest first; pag
 
 ## Test steps
 
-—
+1. Do two admin actions on one test user (e.g. suspend then reactivate). 2. `GET /api/admin/audit?target=<userId>`: both, newest first. 3. `GET /api/admin/audit?limit=2` and keep passing nextCursor: no row twice, none missing compared with one big page. 4. Sign in to the app: `GET /api/admin/audit?action=user.login` shows it. 5. `GET /api/admin/audit/<id>` returns one row.
 
 ## Thread
 2026-11-24T17:04:23+05:30 aquib N: created ticket, status: - -> open

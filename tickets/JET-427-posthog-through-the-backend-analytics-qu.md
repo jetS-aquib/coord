@@ -42,7 +42,7 @@ Each named query returns rows for a staging project; a user's events come back n
 
 ## Test steps
 
-—
+1. Without POSTHOG_PERSONAL_API_KEY: `POST /api/admin/analytics/query {name:'dau',from,to}` answers 503 posthog_not_configured. 2. Set POSTHOG_PERSONAL_API_KEY (phx_, query:read + feature_flag:write) and POSTHOG_PROJECT_ID on staging. 3. Run each named query (dau, wau, mau, signups, signup_to_first_render, retention_weekly, renders_per_day, render_failures, ai_spend_per_day) for the last 14 days: each returns columns + rows. 4. `GET /api/admin/users/<your id>/events`: newest first. 5. `PATCH /api/admin/posthog/flags/<a test flag> {active:false}`: PostHog UI shows it off; `GET /api/admin/audit?action=admin.posthog.flag` shows before/after.
 
 ## Thread
 2026-11-24T17:04:18+05:30 aquib N: created ticket, status: - -> open

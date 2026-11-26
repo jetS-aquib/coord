@@ -109,3 +109,4 @@
 | D-105 | Song reads: a lock per song, re-asks join the work in flight, and gates only around Demucs and Whisper | 2026-11-25 | active | video-processing-backend | JET-442 |
 | D-106 | Vocal stem stays; Demucs runs in-process on every vCPU, preloaded at startup | 2026-11-25 | active | video-processing-backend | JET-443 |
 | D-107 | Song reads stop cooperatively on cancel; the caller decides when nobody wants a song | 2026-11-25 | active | video-processing-backend music-jetkreate-backend music-jetkreate-mobile | JET-445 |
+| D-108 | Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete | 2026-11-26 | active | music-jetkreate-backend music-jetkreate-web | JET-428 JET-429 |

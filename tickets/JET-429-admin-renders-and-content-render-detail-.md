@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-24T17:04:21+05:30
-updated: 2026-11-26T12:23:42+05:30
-decisions: 
+updated: 2026-11-26T12:36:16+05:30
+decisions: D-108
 ---
 
 ## Request
@@ -41,8 +41,9 @@ A taken-down video's share link returns 404 and comes back on restore; render de
 
 ## Test steps
 
-—
+1. Share a finished video in the app and open its /s/<token> link. 2. `POST /api/admin/music-videos/<id>/takedown {reason:'test'}`: the link now shows 'This video isn't available' (404); the app's Share answers 403 taken_down; the owner still sees it in Library. 3. `POST …/restore`: the same link plays again. 4. `GET /api/admin/renders/<jobId>` shows the plan's clips, cost and every GenerationLog call. 5. `GET /api/admin/feedback` lists newest first.
 
 ## Thread
 2026-11-24T17:04:21+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:23:42+05:30 aquib N: status: open -> approved
+2026-11-26T12:36:16+05:30 aquib N: linked decision D-108 (Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete)

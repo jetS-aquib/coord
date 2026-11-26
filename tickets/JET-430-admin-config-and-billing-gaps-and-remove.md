@@ -40,7 +40,7 @@ Both seed URLs return 404 without auth; a bundle's versions list with the live o
 
 ## Test steps
 
-—
+1. `curl -X POST http://localhost:5006/api/admin/billing/seed` and `/api/admin/config/seed` without auth: both 401/404, nothing seeded. 2. `GET /api/admin/config/starters`: versions newest first, one marked live (source posthog when ui-config is set). 3. `POST /api/admin/config/starters/<older version>/activate` (PostHog API key set): within a minute `GET /api/v1/config/manifest` shows that version. 4. `GET /api/admin/billing/ledger?kind=grant` pages with nextCursor.
 
 ## Thread
 2026-11-24T17:04:22+05:30 aquib N: created ticket, status: - -> open

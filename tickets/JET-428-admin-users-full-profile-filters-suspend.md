@@ -6,8 +6,8 @@ to: music-jetkreate-backend
 filed_by: aquib N
 status: approved
 created: 2026-11-24T17:04:19+05:30
-updated: 2026-11-26T12:23:39+05:30
-decisions: 
+updated: 2026-11-26T12:36:16+05:30
+decisions: D-108
 ---
 
 ## Request
@@ -42,8 +42,9 @@ Suspending a user makes their next app request 403; reactivating restores it; an
 
 ## Test steps
 
-—
+1. As an admin, `POST /api/admin/users/<test user>/status {status:'suspended',reason:'test'}`; the test user's next app request answers 403 ACCOUNT_SUSPENDED. 2. Set it back to active; the app works again. 3. `POST /api/admin/users/<your own id>/role {role:'creator'}` answers 409 self_action. 4. `POST /api/admin/users/<test user>/logout`; the app on that account is signed out within one request (401) and can sign in again. 5. `DELETE /api/admin/users/<test user> {confirm:'<their email>'}`: user and files gone; GET /api/admin/audit?target=<id> shows every step.
 
 ## Thread
 2026-11-24T17:04:19+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:23:39+05:30 aquib N: status: open -> approved
+2026-11-26T12:36:16+05:30 aquib N: linked decision D-108 (Admin force logout by a revocation time on User; takedown as a moderation flag, not a delete)
