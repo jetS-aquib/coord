@@ -1,13 +1,16 @@
 # music-jetkreate-web — aquib N
 
-- **Current task:** Console v2 audit done (planning/ui-ux-audit, docs 01-11). Backend feasibility requests JET-448..458 filed, waiting. No console v2 implementation until backend APIs are final. JET-432..440 still uncommitted.
+- **Current task:** Console v2 frontend split into JET-459..472 (web -> web), waiting for approval. Backend JET-448..458 done; answers in D-109 and D-110. JET-432..440 still uncommitted.
 - **Status:** waiting on human
-- **Blockers:** JET-448..458 need approval and backend answers; business questions in planning/ui-ux-audit/11.
-- **Last updated:** 2026-11-26T15:40:00+05:30
+- **Blockers:** JET-459..472 need approval before implementation.
+- **Last updated:** 2026-11-26T16:30:00+05:30
 
 ## Handoff notes
 
 <!-- newest first: add a new "### <timestamp>" block on top; what was done, what's next -->
+
+### 2026-11-26T16:30:00+05:30
+Filed console v2 web requests JET-459..472 from the final contract (.coord/contracts/api-admin.md) and D-109/D-110; table and order in planning/ui-ux-audit/08. Start with JET-459 (correctness fixes, no new backend), then JET-460 -> 461/462 -> 463, then pages. JET-461 needs a chart-library decision record. Nothing implemented.
 
 ### 2026-11-26T15:40:00+05:30
 Console v2 UI/UX audit and plan in music-jetkreate-web/planning/ui-ux-audit (01 audit incl. Impeccable dual-agent critique 18/40, 02 design direction, 03 IA, 04 modules, 05 finance, 06 analytics/ops/audit, 07 controls, 08 frontend plan (on hold), 09 backend specs, 10 roadmap, 11 questions). Filed JET-448..458 web -> backend, all waiting. Earlier today: live-run fixes (signing key in .env.local, X-Client captcha header, signup_to_first_render query in backend posthogApi.ts, console reads error `message`). Next: dev approves requests; backend answers feasibility; then file frontend requests from doc 08. First fix when allowed: margin chart drops negative values (P0).
