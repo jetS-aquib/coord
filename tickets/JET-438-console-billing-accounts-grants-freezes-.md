@@ -44,3 +44,4 @@ Granting credits to a test user changes their balance in the app; a published ra
 ## Thread
 2026-11-24T17:05:11+05:30 aquib N: created ticket, status: - -> open
 2026-11-26T12:39:12+05:30 aquib N: status: open -> approved
+2026-11-26T12:57:02+05:30 aquib N: BUILT (uncommitted). /billing cost vs credits report (stats, charts, ledger by type, top spenders, frozen, by day/model table); /billing/ledger browse with filters; /billing/account?userId= account panel (also the user Billing tab): grant/adjust with a per-render idempotency key, change plan, freeze/unfreeze, zero; /billing/config/{rate-card,plans,settings}: versions, live vs selected side by side, rate-card preview vs live, JSON draft editor, publish, rollback. TEST: grant 10 credits -> app balance +10; publish a rate card then roll back.
