@@ -4,9 +4,9 @@ title: Console v2: global search, meta endpoint, uniform paging, user labels on 
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:26+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:11+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Search finds a user by partial email, a render by full jobId, a video by title w
 2026-11-26T15:11:59+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:09+05:30 aquib N: BUILT. Contract 'Me, search, meta' and 'Access › User labels'. GET /search?q= returns typed hits with exact matches first, filtered by role. GET /meta returns every enum the console hard-codes, plus JSON Schemas (input shape) of the rate card, plans, settings and each config bundle. That uses zod 4's own z.toJSONSchema, so no new dependency. The launch-limits payload has no zod schema yet, so it isn't in /meta. /users (sort=newest) and /renders take ?cursor= and return nextCursor plus total; skip still works. userEmail is on renders, content, feedback, assets, elements, ledger, reports frozen/topSpenders, search, ops stuck. Search uses unanchored regex with maxTimeMS 2s and limit 10, fine at today's size; an index or Atlas Search is the upgrade.
+2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps

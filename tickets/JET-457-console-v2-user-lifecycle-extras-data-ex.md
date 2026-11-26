@@ -4,9 +4,9 @@ title: Console v2: user lifecycle extras (data export, read-only view-as, announ
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:35+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:11+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Feasibility notes per item with effort; export implemented if approved.
 2026-11-26T15:12:26+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:10+05:30 aquib N: BUILT: export. POST /users/:id/export returns a JSON download (profile, settings, credits and ledger, videos, podcasts, renders, elements, feedback; metadata only, media stays at its URLs). Owner and support; logged as user.export. Synchronous, not an async zip on a signed URL: one person's metadata is small, and our bucket URLs are public, so a stored export would be readable by anyone with the link. FEASIBILITY (not built): (2) View-as: recommend NOT building impersonation. A read-only token would need every user route to refuse writes for it, which is broad and risky. The console's user detail, events, renders and export already show what the user has. If wanted anyway: an owner/support-only token scoped to one user for 30 min, GET only, every request audited, reason required; about 2 days. (3) Announcements and maintenance: a new config bundle 'announcements' [{id, severity info|warning|critical, title, body, startsAt, endsAt}], using the existing save version / make live flow; about half a day of backend, but the app has to show it (mobile request). Blocking renders already exists as the renders-enabled kill switch. (4) Push broadcast: push tokens and per-user send exist; a broadcast needs a segment, a dry-run count, rate limiting, owner + C2 and audit; about 1–2 days backend. Each of 2–4 needs a decision first. DPDP: the export covers access requests; erasure is the existing delete.
+2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps

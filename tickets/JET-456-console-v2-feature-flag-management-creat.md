@@ -4,9 +4,9 @@ title: Console v2: feature flag management (create, targeting, multivariate, usa
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:34+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:11+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Create, target, archive work against PostHog; audit has before/after; kill switc
 2026-11-26T15:12:19+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:10+05:30 aquib N: BUILT. Contract section 'PostHog'. POST /posthog/flags (created off at 0%). PATCH now also takes conditions (replaces release conditions, person properties), allowUserIds/allowEmails and denyUserIds/denyEmails. Emails become user ids on the server, so no email goes to PostHog. Lists are distinct_id conditions, which posthog-node evaluates locally, so the server sees them within ~30s. DELETE archives (soft delete, switched off). GET /posthog/flags/:key/usage reads $feature_flag_called; the server evaluates without sending those, so only client evaluations count. Kill switches are refused on these routes (409 use_killswitch_route) and have GET /killswitches and POST /killswitches/:key {on}; turning one off is C2. Multivariate is not editable here (Phase 3). Flags stay in PostHog (D-089); no local store.
+2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps

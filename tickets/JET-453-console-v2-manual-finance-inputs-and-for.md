@@ -4,9 +4,9 @@ title: Console v2: manual finance inputs and forecast scenarios (opex, infra inv
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:30+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:11+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Runway = cash / trailing-3-month avg net burn (unit-tested); projection reproduc
 2026-11-26T15:12:06+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:09+05:30 aquib N: BUILT. Contract section 'Finance'; D-109. Reuses the BillingConfigV1 versioned store (new kinds financeInputs and scenarios), so it gets draft / make live / rollback and history for free; billing never loads them. USD is the currency of record, and fx per month is stored for INR bills. Endpoints: /finance/burn, /finance/runway, /finance/scenarios/:id/projection (with actuals). Runway and projection are pure functions with unit tests. Open: who enters the numbers and how often (show inputsPublishedAt prominently); accounting export integrations not built.
+2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps

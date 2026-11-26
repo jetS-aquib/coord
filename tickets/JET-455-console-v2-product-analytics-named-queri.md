@@ -4,9 +4,9 @@ title: Console v2: product analytics named queries and missing events (activatio
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:33+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:11+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Each named query returns 200 against the live PostHog project (no repeat of the 
 2026-11-26T15:12:12+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:10+05:30 aquib N: BUILT. Contract section 'PostHog'. New named queries: activation_funnel (one row per step), time_to_first_render, feature_adoption, renders_per_active_user, churn, limit_hits, ai_quality. segment=all|plan|cohort on the ones marked segmentable in /meta (retention_weekly included). The window is capped at 92 days; the 60s cache is kept. Every query and segment combination was run against the live PostHog project on 2026-11-26 and returned 200. Churn default: no activity for 28 days after at least one completed render. Server-side additions: a plan_approved event (afterPreview=true means stills approved), and the plan_id person property when an admin changes a plan (users on the default plan show 'default'). ai_quality has plan_score and reshoot rate but no thumbs ratio: thumbs are in Mongo (GET /feedback), not PostHog. Platform, app_version and signup_source segments need the mobile client events (JET-373).
+2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps

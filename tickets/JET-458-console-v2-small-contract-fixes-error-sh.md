@@ -4,9 +4,9 @@ title: Console v2: small contract fixes (error shape, render allowedActions, pub
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:37+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:12+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Contract updated; allowedActions present and matches what the action endpoints a
 2026-11-26T15:12:31+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:10+05:30 aquib N: BUILT. (1) The contract documents {status:'error', code, message, details?}; admin.ts now throws AppErrors everywhere, so every admin error has that shape. The auth 401s add code and message next to the old error. (2) allowedActions on render list rows, detail, action responses and project renders: cancel | resume | stitch | restart, computed from the same guards the action routes use (a test pins each case). A completed render has []. (3) The contract uses save draft / make live; routes unchanged. (4) billing:null was deliberate (reading never created an account), but the billing tab's read did create one and also applied due refills, so the two disagreed. Now both read through accountV1: one balance, never null, and the first admin view creates the account with its signup grant, as the app's first call would. GET /billing/users/:id now 404s for a user that doesn't exist instead of creating an orphan account.
+2026-11-26T15:38:12+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:12+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps

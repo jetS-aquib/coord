@@ -4,9 +4,9 @@ title: Console v2: cost and unit-economics aggregates (AI cost by provider/featu
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: approved
+status: review
 created: 2026-11-26T15:07:29+05:30
-updated: 2026-11-26T15:35:33+05:30
+updated: 2026-11-26T15:38:11+05:30
 decisions: D-109
 ---
 
@@ -49,3 +49,5 @@ Totals reconcile with /billing/reports within $0.01; per-render cost for a jobId
 2026-11-26T15:12:03+05:30 aquib N: status: open -> approved
 2026-11-26T15:35:33+05:30 aquib N: linked decision D-109 (Console v2 backend: admin roles, re-auth, audit hardening, metrics store, finance store and the business defaults behind them)
 2026-11-26T15:38:09+05:30 aquib N: BUILT. Contract 'Billing'; D-109. GET /billing/costs (groupBy day|provider|model|feature|category|user|plan, the same filter names as the lists), /billing/unit-costs, /billing/liability. Defaults: active user = at least one AI call in the window (no PostHog dependency). Waste = measured cost of renders that ended failed or cancelled. Infra cost from JET-453 is NOT allocated per user; finance burn shows it unallocated. Totals use successful calls only, like /reports, so day totals reconcile; per-render cost counts every call, like /renders/:jobId callsCostUsd. callSeconds is time inside calls; GenerationLog has no video seconds. No new indexes or rollups yet (ponytail): add them when a 92-day query passes 2s.
+2026-11-26T15:38:11+05:30 aquib N: status: approved -> in_progress
+2026-11-26T15:38:11+05:30 aquib N: status: in_progress -> review — built; see the BUILT note and Test steps
