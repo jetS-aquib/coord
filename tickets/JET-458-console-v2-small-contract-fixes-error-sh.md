@@ -4,9 +4,9 @@ title: Console v2: small contract fixes (error shape, render allowedActions, pub
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:37+05:30
-updated: 2026-11-26T15:07:37+05:30
+updated: 2026-11-26T15:12:31+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Contract updated; allowedActions present and matches what the action endpoints a
 
 ## Thread
 2026-11-26T15:07:37+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:31+05:30 aquib N: status: open -> approved

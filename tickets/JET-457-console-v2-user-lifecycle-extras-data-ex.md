@@ -4,9 +4,9 @@ title: Console v2: user lifecycle extras (data export, read-only view-as, announ
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:35+05:30
-updated: 2026-11-26T15:07:35+05:30
+updated: 2026-11-26T15:12:26+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Feasibility notes per item with effort; export implemented if approved.
 
 ## Thread
 2026-11-26T15:07:35+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:26+05:30 aquib N: status: open -> approved

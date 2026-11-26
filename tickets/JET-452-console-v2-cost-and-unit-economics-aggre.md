@@ -4,9 +4,9 @@ title: Console v2: cost and unit-economics aggregates (AI cost by provider/featu
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:29+05:30
-updated: 2026-11-26T15:07:29+05:30
+updated: 2026-11-26T15:12:03+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Totals reconcile with /billing/reports within $0.01; per-render cost for a jobId
 
 ## Thread
 2026-11-26T15:07:29+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:03+05:30 aquib N: status: open -> approved

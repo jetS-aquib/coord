@@ -4,9 +4,9 @@ title: Console v2: admin roles and permissions, admin MFA, re-auth for risky act
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:24+05:30
-updated: 2026-11-26T15:07:24+05:30
+updated: 2026-11-26T15:11:51+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Each admin route declares a permission; a test asserts every /api/admin route ha
 
 ## Thread
 2026-11-26T15:07:24+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:11:51+05:30 aquib N: status: open -> approved

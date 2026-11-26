@@ -4,9 +4,9 @@ title: Console v2: product analytics named queries and missing events (activatio
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:33+05:30
-updated: 2026-11-26T15:07:33+05:30
+updated: 2026-11-26T15:12:12+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Each named query returns 200 against the live PostHog project (no repeat of the 
 
 ## Thread
 2026-11-26T15:07:33+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:12+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Console v2: manual finance inputs and forecast scenarios (opex, infra inv
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:30+05:30
-updated: 2026-11-26T15:07:30+05:30
+updated: 2026-11-26T15:12:06+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Runway = cash / trailing-3-month avg net burn (unit-tested); projection reproduc
 
 ## Thread
 2026-11-26T15:07:30+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:06+05:30 aquib N: status: open -> approved

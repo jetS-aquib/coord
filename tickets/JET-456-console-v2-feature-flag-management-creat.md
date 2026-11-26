@@ -4,9 +4,9 @@ title: Console v2: feature flag management (create, targeting, multivariate, usa
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:34+05:30
-updated: 2026-11-26T15:07:34+05:30
+updated: 2026-11-26T15:12:19+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Create, target, archive work against PostHog; audit has before/after; kill switc
 
 ## Thread
 2026-11-26T15:07:34+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:19+05:30 aquib N: status: open -> approved

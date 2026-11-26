@@ -4,9 +4,9 @@ title: Console v2: global search, meta endpoint, uniform paging, user labels on 
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:26+05:30
-updated: 2026-11-26T15:07:26+05:30
+updated: 2026-11-26T15:11:59+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Search finds a user by partial email, a render by full jobId, a video by title w
 
 ## Thread
 2026-11-26T15:07:26+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:11:59+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Console v2: audit log hardening (domain actions, redaction, retention, re
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:25+05:30
-updated: 2026-11-26T15:07:25+05:30
+updated: 2026-11-26T15:11:55+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ No admin.GET rows unless kind=read requested; user delete leaves no plaintext em
 
 ## Thread
 2026-11-26T15:07:25+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:11:55+05:30 aquib N: status: open -> approved

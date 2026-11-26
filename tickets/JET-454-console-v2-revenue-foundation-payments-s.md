@@ -4,9 +4,9 @@ title: Console v2: revenue foundation (payments, subscriptions or credit packs, 
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:31+05:30
-updated: 2026-11-26T15:07:31+05:30
+updated: 2026-11-26T15:12:09+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ A written feasibility answer: chosen model, provider(s), data model, revenue rec
 
 ## Thread
 2026-11-26T15:07:31+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:09+05:30 aquib N: status: open -> approved

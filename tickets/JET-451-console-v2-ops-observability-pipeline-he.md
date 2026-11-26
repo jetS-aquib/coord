@@ -4,9 +4,9 @@ title: Console v2: ops observability (pipeline health, stuck renders, provider h
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:07:28+05:30
-updated: 2026-11-26T15:07:28+05:30
+updated: 2026-11-26T15:12:01+05:30
 decisions: 
 ---
 
@@ -46,3 +46,4 @@ Pipeline endpoint lists a deliberately stalled test render as stuck; provider hi
 
 ## Thread
 2026-11-26T15:07:28+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T15:12:01+05:30 aquib N: status: open -> approved
