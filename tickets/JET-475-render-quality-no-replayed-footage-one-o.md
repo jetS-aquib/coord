@@ -44,3 +44,4 @@ Re-render of Heroine with Dev and one other director: no shot replays earlier fo
 
 ## Thread
 2026-11-26T17:23:53+05:30 aquib N: created ticket, status: - -> open
+2026-11-26T17:29:57+05:30 aquib N: BUILT (uncommitted), on aquib's go-ahead in session. subShotV1: one window per slot, partners lend only unplayed tail, nearest different size; treatment: one outfit per person, recast drops stale wardrobe; stills and clip prompts carry only the shot's named cast (shotAbsentV1); performance moves rotate by performance ordinal. Director-agnostic, tested across every director in DIRECTORS_V1/V2 and every cut-style pace. 451 render tests pass; the 13 failures in posthog/captcha tests fail on clean HEAD too. Q6 seed test and per-size clip framing deliberately skipped.
