@@ -28,23 +28,3 @@ Song-read latency (8-9 min on staging). Planned the optimisation, then, at the d
 
 Session ended while on JET-323. Touched: tests/test_graphic_layer.py. Nothing committed. (written automatically — no one said what is next)
 
-### 2026-11-19T15:46:45+05:30
-
-Session ended while on JET-323. Touched: tests/test_beat_cuts.py. Nothing committed. (written automatically — no one said what is next)
-
-### 2026-11-19T15:41:44+05:30
-
-Session ended while on JET-323. Touched: tests/test_beat_cuts.py. Nothing committed. (written automatically — no one said what is next)
-
-### 2026-11-17T16:10:00+05:30
-
-JET-329 implemented, uncommitted: schemas AudioWindow mixin, plumbing routes -> job_service -> video_service -> pipeline; pipeline cuts work/audio_window.wav (song_file stays the whole song for transcription/cache); captions shifted in _corrected_lyrics_file via processors/lyrics/audio_window.py. Contracts video-stitching.md / video-segments.md updated. Next: commit, then coord review 329 once the board shows it started.
-
-### 2026-11-17T13:24:47+05:30
-
-Session ended while on JET-323. Touched: app/services/song_read.py. Nothing committed. (written automatically — no one said what is next)
-
-### 2026-11-17T12:49:25+05:30
-
-Session ended while on JET-323. Touched: musetalk_batch.py, NOTES.md. Nothing committed. (written automatically — no one said what is next)
-
