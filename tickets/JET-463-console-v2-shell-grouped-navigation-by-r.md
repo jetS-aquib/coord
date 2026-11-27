@@ -4,9 +4,9 @@ title: Console v2: shell, grouped navigation by role (GET /me), âŒ˜K search (GET
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:51+05:30
-updated: 2026-11-26T15:48:51+05:30
+updated: 2026-11-27T15:51:18+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ A viewer account sees no Money group and no write buttons; pasting a jobId in âŒ
 
 ## Thread
 2026-11-26T15:48:51+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:18+05:30 aquib N: status: open -> approved

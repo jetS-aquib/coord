@@ -4,9 +4,9 @@ title: Console v2: pricing and plans editors (schema forms from /meta, diff, imp
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:58+05:30
-updated: 2026-11-26T15:48:58+05:30
+updated: 2026-11-27T15:51:40+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ An invalid rate entry is blocked before saving with the same rule the backend us
 
 ## Thread
 2026-11-26T15:48:58+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:40+05:30 aquib N: status: open -> approved

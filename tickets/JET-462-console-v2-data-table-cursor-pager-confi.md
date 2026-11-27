@@ -4,9 +4,9 @@ title: Console v2: data table, cursor pager, confirm dialog levels and re-auth (
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:50+05:30
-updated: 2026-11-26T15:48:50+05:30
+updated: 2026-11-27T15:51:13+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ An admin who signed in > 10 minutes ago and deletes a test user is asked to sign
 
 ## Thread
 2026-11-26T15:48:50+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:13+05:30 aquib N: status: open -> approved

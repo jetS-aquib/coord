@@ -4,9 +4,9 @@ title: Console v2: Security (audit log v2 with kinds, diffs, export logging; adm
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:49:04+05:30
-updated: 2026-11-26T15:49:04+05:30
+updated: 2026-11-27T15:52:02+05:30
 decisions: 
 ---
 
@@ -43,3 +43,4 @@ Opening the audit log shows only writes; a grant shows balance before and after 
 
 ## Thread
 2026-11-26T15:49:04+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:52:02+05:30 aquib N: status: open -> approved

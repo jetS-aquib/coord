@@ -4,9 +4,9 @@ title: Console v2: Production (renders with allowedActions and stuck/restart, co
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:56+05:30
-updated: 2026-11-26T15:48:56+05:30
+updated: 2026-11-27T15:51:30+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ A completed render shows no action buttons; a render stuck > 10 minutes shows Re
 
 ## Thread
 2026-11-26T15:48:56+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:30+05:30 aquib N: status: open -> approved

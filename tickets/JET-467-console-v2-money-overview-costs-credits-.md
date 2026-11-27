@@ -4,9 +4,9 @@ title: Console v2: Money overview, costs, credits and unit economics (costs, uni
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:57+05:30
-updated: 2026-11-26T15:48:57+05:30
+updated: 2026-11-27T15:51:33+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Costs total for 7 days equals /billing/reports within $0.01; nothing labelled pr
 
 ## Thread
 2026-11-26T15:48:57+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:33+05:30 aquib N: status: open -> approved

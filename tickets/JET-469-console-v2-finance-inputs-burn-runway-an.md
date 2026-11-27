@@ -4,9 +4,9 @@ title: Console v2: finance inputs, burn, runway and scenarios (forecast vs actua
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:59+05:30
-updated: 2026-11-26T15:48:59+05:30
+updated: 2026-11-27T15:51:47+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Entering October GCS and cash then Make live updates October burn and runway; on
 
 ## Thread
 2026-11-26T15:48:59+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:47+05:30 aquib N: status: open -> approved

@@ -4,9 +4,9 @@ title: Console v2: Home (attention strip, north-star and KPI tiles, recent admin
 from: music-jetkreate-web
 to: music-jetkreate-web
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-26T15:48:53+05:30
-updated: 2026-11-26T15:48:53+05:30
+updated: 2026-11-27T15:51:22+05:30
 decisions: 
 ---
 
@@ -44,3 +44,4 @@ With all healthy, the strip shows one calm line and no red; switching renders of
 
 ## Thread
 2026-11-26T15:48:53+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T15:51:22+05:30 aquib N: status: open -> approved
