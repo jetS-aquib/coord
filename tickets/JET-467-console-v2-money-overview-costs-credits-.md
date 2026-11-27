@@ -46,3 +46,4 @@ Costs total for 7 days equals /billing/reports within $0.01; nothing labelled pr
 ## Thread
 2026-11-26T15:48:57+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:33+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:48+05:30 aquib N: BUILT (uncommitted). /money overview, /money/costs (groupBy, drill-down links, unit costs, waste, reconcile note vs /billing/reports), /money/credits (liability, breakage, waterfall, pack price reference 2.5x / 0.85), /money/ledger. Old /billing/account removed (⌘K covers it). TEST: 1) /money/costs 7 days -> note says totals match the report. 2) nothing labelled profit; revenue panel explains free credits phase. 3) ledger CSV downloads and is logged.
