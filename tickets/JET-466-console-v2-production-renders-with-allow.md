@@ -45,3 +45,4 @@ A completed render shows no action buttons; a render stuck > 10 minutes shows Re
 ## Thread
 2026-11-26T15:48:56+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:30+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:48+05:30 aquib N: BUILT (uncommitted). Renders tabs from /meta, email column, Stuck light + Restart, detail shows only allowedActions, measured vs estimated cost. /content is one moderation queue; per-kind lists at /content/music-videos|podcasts; Hide needs reason; elements form + Advanced JSON. TEST: 1) completed render -> no action buttons. 2) stuck render -> Restart works. 3) Hide a video: click, reason, confirm -> shows Hidden.
