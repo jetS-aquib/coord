@@ -45,3 +45,4 @@ With all healthy, the strip shows one calm line and no red; switching renders of
 ## Thread
 2026-11-26T15:48:53+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:22+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:48+05:30 aquib N: BUILT (uncommitted). Attention strip from lib/attention.ts (9 tests), KPI tiles with north-star definition, recent admin changes. Checked live: strip showed negative price-vs-cost today and missing finance inputs. TEST: 1) all healthy -> one 'All systems normal' line. 2) turn Renders off in System > Controls, reload Home -> 'Renders off'. 3) north-star tile shows its definition.
