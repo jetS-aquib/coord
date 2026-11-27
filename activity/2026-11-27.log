@@ -40,3 +40,6 @@
 2026-11-27T16:04:29+05:30	music-jetkreate-web	edit	aquib N	apps/admin/app/(console)/money/credits/page.tsx
 2026-11-27T16:04:29+05:30	music-jetkreate-web	edit	aquib N	apps/admin/app/(console)/money/ledger/page.tsx
 2026-11-27T16:04:54+05:30	music-jetkreate-web	session-stop	aquib N
+2026-11-27T16:05:12+05:30	music-jetkreate-web	edit	aquib N	apps/admin/app/(console)/money/config/[kind]/preview.tsx
+2026-11-27T16:05:12+05:30	music-jetkreate-web	edit	aquib N	apps/admin/app/(console)/money/config/[kind]/page.tsx
+2026-11-27T16:05:14+05:30	music-jetkreate-web	session-stop	aquib N
