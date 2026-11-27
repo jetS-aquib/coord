@@ -45,3 +45,4 @@ An invalid rate entry is blocked before saving with the same rule the backend us
 ## Thread
 2026-11-26T15:48:58+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:40+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:49+05:30 aquib N: BUILT (uncommitted). SchemaForm from /meta schemas with client validation (lib/schema.ts, tests), Advanced JSON, field diff vs live. /money/config/rate-card|plans|settings: Save draft, Preview impact, Make live / Roll back C2 (type v<n>) with re-auth. /system/config/[bundle] same form, Save version / Make live. TEST: 1) enter a negative cost in the rate card -> blocked before saving. 2) Make live shows the preview change % and needs a recent sign-in. 3) diff lists changed fields.
