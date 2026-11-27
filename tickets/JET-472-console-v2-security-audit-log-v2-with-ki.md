@@ -44,3 +44,4 @@ Opening the audit log shows only writes; a grant shows balance before and after 
 ## Thread
 2026-11-26T15:49:04+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:52:02+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:49+05:30 aquib N: BUILT (uncommitted). /audit default kind=write, kind tabs, filters (actor id, action prefix from /meta, target, dates), field diff detail, IP/UA only with audit.sensitive, retention note, logged CSV. /admins lists admin roles with revoke sessions and role change (owner, C2), rules shown. No last sign-in column (would need a logged per-admin read). TEST: 1) /audit shows writes only. 2) a billing.grant detail shows balance before/after. 3) non-owner sees no IP column. 4) /admins lists every admin.
