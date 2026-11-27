@@ -46,3 +46,4 @@ Entering October GCS and cash then Make live updates October burn and runway; on
 ## Thread
 2026-11-26T15:48:59+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:47+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:49+05:30 aquib N: BUILT (uncommitted). /money/inputs (month editor, INR helper at month fx, freshness badge lib/freshness.ts + tests), /money/runway (burn stacked bar, AI invoice vs measured, runway or Not burning), /money/scenarios (editor, projection by stored version, dashed forecast vs actual). Finance forms use a copy of the backend schemas (/meta has none for finance). TEST: 1) enter October GCS + cash, Save draft, Make live -> October burn and runway change. 2) on the 11th with last month empty -> badge red. 3) reload a projection -> identical.
