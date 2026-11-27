@@ -46,3 +46,4 @@ Delete and role change appear only in the danger zone and only for owners; suppo
 ## Thread
 2026-11-26T15:48:54+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:26+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:48+05:30 aquib N: BUILT (uncommitted). Users list (cursor/sort headers, filter chips), detail with tabs Overview/Renders/Credits/Activity/Audit/Timeline, danger zone (role C2 with 2-owner warning, delete C2), grant dialog before->after capped by /me grantLimit, JSON export. Plan/balance not on list rows (no per-row fetch). TEST: 1) support grants: can't exceed 500. 2) owner: danger zone at bottom of Overview. 3) More > Export user data -> user-<id>.json with ledger. 4) Overview and Credits show the same balance.
