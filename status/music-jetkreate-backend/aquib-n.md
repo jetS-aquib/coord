@@ -7,6 +7,10 @@
 
 ## Handoff notes
 
+### 2026-11-27T16:30:04+05:30
+
+Session ended while on JET-476. Touched: src/routes/adminSources.ts. Nothing committed. (written automatically — no one said what is next)
+
 ### 2026-11-26T17:29:57+05:30
 JET-475 built, uncommitted: no replayed footage in the edit (subShotV1), one outfit per person (treatment prompt + recast), only the shot's cast in stills and clip prompts (shotAbsentV1), performance camera moves vary in a section. Works for every director. Needs a Heroine re-render with Dev and one other director to verify, then commit. JET-473 (lyrics script) is being done in its own session; bump SONG_READ_CACHE_V1 here once it lands.
 
