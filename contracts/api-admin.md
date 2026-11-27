@@ -59,6 +59,28 @@ The route paths are unchanged.
   public assets, elements, ledger, the reports' `frozen` and `topSpenders`, search hits and ops stuck renders.
   The audit log has `actorEmail` and `targetLabel`.
 
+## Data source labels (JET-476)
+
+Every `/api/admin` answer, refusals included, carries `X-Data-Source: <comma list>`. The header is exposed to the browser through CORS.
+
+- `posthog`: PostHog's API was asked during this request (HogQL, a person's events, flag definitions). It counts only events the app sent, and lags a little. These answers include `asOf`, the ISO time PostHog ran the query; a cached answer keeps its first time.
+- `db`: MongoDB (users, renders, ledger, GenerationLog, audit, API metrics). Exact.
+- `server`: the memory of the instance that answered. That covers env flags, circuit breakers and loop beats, plus its own copy of PostHog flags and payloads, which it polls every ~30 seconds. With 2 instances, two calls can differ.
+
+Answers that mix sources also return `sources: { <top-level field>: source }`:
+
+| route | header | `sources` |
+|---|---|---|
+| `GET /flags` | `server,db` | `{ posthog, limitsEnforced, killSwitches, launchLimits, render: 'server', spendTodayUsd: 'db' }` |
+| `GET /killswitches` | `posthog,server` | `{ inPosthog, active: 'posthog', serverSees: 'server' }` |
+| `GET /ops/providers` | `server,db` | `{ circuits: 'server', last24h: 'db' }` |
+| `GET /config/:bundle` | `db,server` | `{ versions: 'db', live: 'server' }` (`'db'` when `source` is `latest`) |
+
+The other `posthog` routes are `/analytics/*`, `/users/:id/events`, `/posthog/flags*` (each with `asOf`), `/ops/alerts` (also `asOf`), `POST /killswitches/:key`, and `POST /config/:bundle/:version/activate` (`posthog,db`).
+`GET /ops/loops` is `server`. `GET /meta` is `db,server`. Everything else is `db`.
+
+`GET /meta` returns `sources: [{ method, route, source }]` for every route. It comes from the same table as the header (`src/routes/adminSources.ts`), and a test fails if a route has no entry.
+
 ## Me, search, meta (JET-448, JET-450)
 
 - `GET /me` returns `{ id, email, role, permissions[], authTime, recentAuth, grantLimit | null }`. `grantLimit` is null when the role can grant any amount.
