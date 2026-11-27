@@ -44,3 +44,4 @@ Each chart loads against the live project; switching segment to plan splits rete
 ## Thread
 2026-11-26T15:49:01+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:56+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:49+05:30 aquib N: BUILT (uncommitted). /analytics with segment selector (only segmentable queries), funnel, retention per segment, adoption, churn, time to first render, renders per active user, limit hits, AI quality, definitions under each title, JET-373 note; /analytics/explore HogQL with Cmd/Ctrl+Enter and logged CSV. Note: backend activation_funnel counts a completed render at any time, not within 7 days. TEST: 1) every card shows its definition. 2) Segment = plan -> retention splits per plan. 3) Explore: Cmd+Enter runs, CSV downloads.
