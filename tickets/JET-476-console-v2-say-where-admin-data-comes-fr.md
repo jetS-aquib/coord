@@ -4,9 +4,9 @@ title: Console v2: say where admin data comes from (PostHog, database or live se
 from: music-jetkreate-web
 to: music-jetkreate-backend
 filed_by: aquib N
-status: open
+status: approved
 created: 2026-11-27T16:25:34+05:30
-updated: 2026-11-27T16:25:34+05:30
+updated: 2026-11-27T16:26:30+05:30
 decisions: 
 ---
 
@@ -45,3 +45,4 @@ Every /api/admin response has X-Data-Source; GET /flags, /killswitches, /ops/pro
 
 ## Thread
 2026-11-27T16:25:34+05:30 aquib N: created ticket, status: - -> open
+2026-11-27T16:26:30+05:30 aquib N: status: open -> approved
