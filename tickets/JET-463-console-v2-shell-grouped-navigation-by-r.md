@@ -46,3 +46,4 @@ A viewer account sees no Money group and no write buttons; pasting a jobId in �
 ## Thread
 2026-11-26T15:48:51+05:30 aquib N: created ticket, status: - -> open
 2026-11-27T15:51:18+05:30 aquib N: status: open -> approved
+2026-11-27T16:12:48+05:30 aquib N: BUILT (uncommitted). Grouped sidebar from lib/nav.ts filtered by GET /me permissions (Money = finance.read, so viewer sees none); ⌘K over GET /search + page names; env badge (CONSOLE_ENV or guessed from BACKEND_URL); user menu with theme + density; phone sheet nav; billing/ -> money/, control/ -> system/ with redirects; hard-coded lists replaced by GET /meta. TEST: 1) ⌘K, type part of an email, Enter -> user page; paste a jobId -> render. 2) sign in as viewer -> no Money group, no write buttons. 3) 390px wide window -> no sideways scroll (checked 20 pages in Chrome).
